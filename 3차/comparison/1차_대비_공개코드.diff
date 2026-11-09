@@ -1,0 +1,2407 @@
+--- 1차/CHANGELOG.md
++++ 3차/CHANGELOG.md
+@@ -0,0 +1,26 @@
++# 3차 변경 기록
++
++## 변경 목적
++
++감사에서 확인한 데이터 검증·검색 정규화·실행 보존 문제를 고치고 공개 CXR 최종 가중치 평가에서 새 모델 학습 후 평가로 실행 순서를 변경합니다.
++
++## 현재 확정한 변경
++
++- 실행 관리자는 CUDA 확인 → 데이터 준비와 검증 → 새 모델 학습 → 해당 실행의 가중치로 평가 순서를 강제합니다.
++- 실행 UUID마다 새 출력 폴더를 만들고 공개 CXR 가중치나 이전 실행의 학습 체크포인트로 자동 재개하지 않습니다.
++- 과거 실행의 결과를 현재 결과 표에 섞지 않으며 학습 상태·에폭·단계·손실을 별도로 표시합니다.
++- 기존 Host·Origin 검사, 임의 명령·경로 입력 거부, 실행 ID 중단, 모션과 다크·라이트 전환을 유지합니다.
++- 지표 설명은 고정 공격에서의 재식별 실패율로 한정합니다.
++
++## 연구 엔진과 학습 포팅
++
++- Verification·Retrieval의 공식 목록 차이를 별도 검증하고, 영상 전수 디코드와 정확 픽셀 중복·환자 분리 검사를 추가했습니다.
++- 검색 L2 정규화와 고유 영상 키 동률 규칙을 적용하고 질의 분모·영벡터·동률을 기록합니다.
++- 캐시 v4는 모델·영상·전처리·환경과 payload SHA·dtype·shape를 확인합니다. 불일치 파일은 격리 보존합니다.
++- 결과를 실행별로 보존하고 재개 시 조건별 영수증·파일 해시를 확인합니다.
++- 고정 원격 소스·메타데이터·다운로드 해시, 완료 partial416 처리와 중단 추출 prefix 보존·복원을 구현했습니다.
++- CMD·노트북을 현재 경로와 학습 가중치 명시 선택에 맞췄습니다. 메모리·디스크 검사와 그래프 수식 글리프를 보완했습니다.
++- PML0.9.94의 손실·임베딩 gradient·CBM 큐를 직접 대조한 131개 검사를 통과했습니다. 실제 GPU에서 배치32인 검증·검색 출력부·검색 전체의 합성 역전파를 확인했습니다.
++- 검색 모델 전체 학습에 활성값 재계산을 적용하며 BatchNorm 상태·난수·기울기 보존을 검사했습니다. AMP 초기 overflow는 상태 복구·배율 backoff 후 같은 배치를 재시도하고 유한 갱신만 적용합니다.
++
++엔진·학습 구현의 실제 전체 파일 비교를 [비교 설명](COMPARISON.md)에 연결합니다. 합성 검사와 실제 NIH 학습·논문 성능 재현을 구분하며 문서의 존재를 학습 실행·완료나 원격 반영 증거로 사용하지 않습니다.
+--- 1차/README.md
++++ 3차/README.md
+@@ -1,20 +1,33 @@
+-# 🩻 1차 — 로컬 실험 제어와 대시보드
++# 🩻 3차 — 학습부터 다시 수행하는 흉부 X선 재식별 실험
+ 
+-첫 구현 차수입니다. 앞선 차수나 최종본은 없습니다. 원본·블러·모자이크는 실험의 세 단계이며 파일 저장 차수와 다릅니다.
++공개 CXR 최종 가중치를 평가하는 경로와 새로운 학습 경로를 분리했습니다. 데이터 준비·검증이 끝나면 검증 모델, 검색 모델 출력부, 검색 모델 전체를 순서대로 학습하고 이 실행에서 생성한 가중치로 원본·블러·모자이크를 평가합니다. ImageNet 초기화는 논문상 설정이며 CXR 최종 가중치 재사용과 구분합니다.
+ 
+-## 화면과 동작
++## 🧪 실행
+ 
+-- 흰색·저채도 회청색, 나눔고딕 Bold 700, 좌측 탐색과 넓은 현재 작업 영역을 사용합니다.
+-- 실제 영상의 원본·블러·모자이크 변환을 입체 패널로 보여 줍니다. 로컬 미리보기는 평가 결과와 구분합니다. 모션을 멈춰도 실험은 계속됩니다.
+-- 다크·라이트 전환은 표·로그·입체 재질까지 함께 바꿉니다.
+-- GPU 정보와 데이터 다운로드 파일 크기, 환경 설치·실험 로그, 실제 CSV 결과를 표시합니다.
+-- 결과가 없으면 빈 상태를 표시합니다. 표시된 데이터셋 수량은 목표와 관측값을 구분합니다.
+-- 서버는 로컬 주소에만 바인딩하고 Host·Origin을 검사합니다. 경로 탐색과 임의 명령 입력을 허용하지 않습니다.
++프로젝트 상위의 `runtime/Scripts/python.exe`로 `run_experiment.py`를 실행합니다. 대시보드는 Node.js로 `server.mjs`를 실행하고 로컬 포트 8787에서 확인합니다. 데이터는 기존 프로젝트의 `research/`를 사용하고 실행별 학습·체크포인트·기록은 `3차/work/runs/<실행 UUID>/`에 새로 저장합니다. 과거 실행에서 자동 재개하지 않습니다.
+ 
+-## 실행과 검증
++학습 전 데이터의 실제 확보·손상·환자 분리 검증과 GPU 연산 확인이 필요합니다. 화면의 준비 중은 학습 중을 뜻하지 않습니다. 모델 학습 실패나 현재 실행이 생성하지 않은 가중치에서는 평가를 시작하지 않습니다. 기존 1차와 감사 보고서 2차는 보존합니다.
+ 
+-`START_DASHBOARD.cmd` 또는 `node server.mjs`로 화면 서버를 실행합니다. 실험 시작은 `run_experiment.py`를 사용합니다. 원본 평가 코드는 로컬 `experiment/`, Python은 상위 `runtime/`, 데이터와 결과는 상위 `research/`에 필요합니다. [전체 안내](../README.md)를 확인하세요.
++학습은 원 논문 시드3과 배치32를 사용합니다. 현재 GPU에서는 검색 네트워크의 활성값 재계산을 켜고, 재계산 중 BatchNorm 통계와 난수 상태를 보존합니다. 혼합정밀도 초기 배율의 overflow는 가중치 갱신 없이 상태를 복원하고 배율을 낮춘 뒤 같은 배치를 재시도합니다. 유한 손실·기울기를 확인한 뒤 optimizer와 스케줄러를 한 번 갱신합니다. 이 포팅 조건을 원 논문 실행환경과 구분해 기록합니다.
+ 
+-검사는 `node --test tests/server.test.mjs`, `python tests/test_runner.py -v`와 원본 엔진의 unittest를 사용합니다. 현재 공개 소스는 대시보드와 관리자에 한하며, 원본 패키지·실데이터는 별도입니다.
++원 공식 검색 코드의 validation CBM 메모리 갱신은 이번 구현에서 차단합니다. 검증 영상이 다음 학습 큐에 섞이지 않도록 한 의도된 변경이며, 원 논문 주요 학습 조건에 누수 방어를 보완한 재학습으로 구분합니다. 모든 코드 동작과 환경이 원본과 동일한 재현이라고 표현하지 않습니다.
+ 
+-[직전 비교와 전체 변경 범위](COMPARISON.md) · [차수 목차](../docs/REVISION_INDEX.md)
++## 📊 지표 해석
++
++프라이버시 점수 `100 × (1 − CMC@1)`는 고정된 공격 모델과 검색 집합에서의 1순위 재식별 실패율입니다. 익명성 보장·차등 프라이버시·법적 적합성·진단 효용을 뜻하지 않습니다. 자기 원본은 검색에서 제외하며 같은 환자의 다른 촬영 영상으로 재식별을 평가합니다. 환자별 영상 수와 질의 분모를 함께 기록합니다.
++
++## 🔎 검증과 공개 경계
++
++검사와 독립 검토 결과는 실제 실행 뒤 별도로 기록합니다. 합성 GPU 역전파 성공과 실제 NIH 학습, 학습 종료와 원 논문 수치 재현은 각각 구분합니다. Windows·Python3.12·PyTorch2.7.1 환경은 원 논문 환경과 동일하지 않습니다.
++
++의료 원영상·영상별 목록·환자 식별자·학습 가중치·실행 로그·개인 지침은 공개하지 않습니다. 제공 패키지 자체의 재배포 권한이 확인되지 않은 평가 엔진은 로컬에서 보존하며 공개 대상에서 보류합니다.
++
++## 📚 근거
++
++- [Packhäuser 등 원 논문](https://doi.org/10.1038/s41598-022-19045-3)
++- [원 저자 공식 코드](https://github.com/kaipackhaeuser/CXR-Patient-ReID/tree/880168f564afa07936a8d8fb3b868b140ab937d9)
++- [PyTorch 체크포인트 저장 안내](https://docs.pytorch.org/tutorials/beginner/saving_loading_models.html)
++
++[학습 포팅 조건](docs/training_protocol.md) · [전체 변경 비교](COMPARISON.md) · [변경 기록](CHANGELOG.md)
++
++측정하지 않은 성능이나 예상 완료 시각은 표시하지 않습니다.
+--- 1차/START_DASHBOARD.cmd
++++ 3차/START_DASHBOARD.cmd
+@@ -1,8 +1,4 @@
+ @echo off
+-setlocal
+-set "NODE_EXE=node"
+-if exist "%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe" set "NODE_EXE=%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe"
+ cd /d "%~dp0"
+-echo CXR Privacy Lab: http://127.0.0.1:8786
+-"%NODE_EXE%" "%~dp0server.mjs"
++node server.mjs
+ if errorlevel 1 pause
+--- 1차/app/app.js
++++ 3차/app/app.js
+@@ -29,6 +29,11 @@
+  $('result-count').textContent=s.results.length?`${s.results.length}개 평가 조건`:'아직 없음';
+  $('download-summary').textContent=s.downloads.length?`${s.downloads.length}개 파일 · ${bytes(s.downloads.reduce((n,d)=>n+d.bytes,0))}`:'다운로드 파일 아직 없음';
+  $('phase').textContent=run?.phase||'실험 시작 후 현재 작업이 표시됩니다.';
++ const training=s.training;
++ const phaseNames={verification:'검증 모델',retrieval_phase1:'검색 모델 출력부',retrieval_phase2:'검색 모델 전체',complete:'학습 완료',failed:'학습 오류',stopped:'학습 중단',preflight:'학습 입력 검사',data_validation:'학습 데이터 검증'};
++ const statusNames={waiting_for_gpu:'GPU 여유 메모리 대기',training:'학습 중',initializing:'새 모델 초기화 중',validating:'검증 중',epoch_complete:'에폭 완료',completed:'완료',failed:'오류',stopped:'중단',ready:'입력 검사 완료'};
++ $('training-state').textContent=training ? `${phaseNames[training.phase] || '학습 상태 확인'} · 에폭 ${training.epoch ?? '—'} / ${training.epochs ?? '—'}` : '데이터 검증 후 새 학습 시작';
++ $('training-detail').textContent=training ? `단계 ${training.step ?? '—'} · 손실 ${metric(training.loss)} · ${statusNames[training.status] || '진행 상태 확인'}` : '공개 CXR 최종 가중치 사용 안 함 · 논문상 ImageNet 초기화';
+  if(run?.error) notice(run.error);
+  const log=s.log.text;const shown=logTab==='environment'?s.environment_log:s.log;$('terminal').textContent=shown.text||'[대기] 아직 실행 기록이 없습니다.';$('log-info').textContent=`${shown.truncated?'최근 64 KiB 범위 · 앞부분 생략 · ':''}원본 ${bytes(shown.bytes)}`;
+  document.querySelectorAll('.stage').forEach((el,i)=>{
+--- 1차/app/index.html
++++ 3차/app/index.html
+@@ -1,7 +1,7 @@
+ <!doctype html>
+ <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CXR Privacy Lab — 흉부 X선 재식별·프라이버시 실험</title><link rel="stylesheet" href="/style.css"><script type="module" src="/app.js"></script></head>
+ <body><aside><a class="brand" href="#overview"><span class="brand-icon">♧</span><span>CXR Privacy Lab<small>흉부 X선 재식별<br>연구 플랫폼</small></span></a><nav aria-label="주 탐색"><a href="#overview" class="selected" data-icon="home">개요</a><a href="#stages" data-icon="layers">실험 단계</a><a href="#datasets" data-icon="database">데이터셋</a><a href="#results" data-icon="chart">결과</a><a href="#logs" data-icon="file">실행 기록</a></nav><div class="local">로컬 실험 워크스페이스<br><span>외부 업로드 없음</span></div></aside>
+-<main id="overview"><header><div><h1>흉부 X선 프라이버시 실험</h1><p>원본과 블러·모자이크 영상의 환자 재식별 성능 비교</p></div><div class="actions"><button id="theme" aria-pressed="false" title="화면 테마 전환">다크 모드</button><span id="status" role="status">실행 상태 확인 중</span><button class="primary" id="start">▶ &nbsp; 실험 시작</button><button id="stop">■ &nbsp; 중단</button></div></header><div id="notice" role="alert" hidden></div>
++<main id="overview"><header><div><h1>흉부 X선 프라이버시 실험</h1><p>3차 · 새 모델 학습 후 원본·블러·모자이크 재식별 성능 비교</p></div><div class="actions"><button id="theme" aria-pressed="false" title="화면 테마 전환">다크 모드</button><span id="status" role="status">실행 상태 확인 중</span><button class="primary" id="start">▶ &nbsp; 실험 시작</button><button id="stop">■ &nbsp; 중단</button></div></header><div id="notice" role="alert" hidden></div>
+ <section class="metrics" aria-label="핵심 상태"><article class="metric"><span class="metric-icon" data-icon="chip"></span><div><h2>GPU</h2><strong id="gpu">확인 중</strong><small id="gpu-detail">실제 장치 조회</small></div></article><article class="metric"><span class="metric-icon" data-icon="database"></span><div><h2>데이터셋</h2><strong>NIH + COVID-19</strong><small id="download-summary">파일 상태 확인 중</small></div></article><article class="metric"><span class="metric-icon" data-icon="trophy"></span><div><h2>평가 결과</h2><strong id="result-count">아직 없음</strong><small>실제 평가 산출물 기준</small></div></article></section>
+-<section class="panel pipeline" id="stages"><div class="section-title"><div><h2>영상 변환과 평가 흐름</h2><p class="section-caption">변환 미리보기 · 평가 결과 아님</p></div><button class="motion" id="motion" aria-pressed="false">모션 정지 <span class="switch"></span></button></div><div class="scene"><article class="stage" data-stage="1"><div class="stage-heading"><span>01</span><h3>원본 평가</h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-original" alt="원본 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">원본 영상</span></div></div><p class="stage-description">원본 영상의 재식별 성능 확인</p><span class="stage-status">평가 대기</span></article><article class="stage" data-stage="2"><div class="stage-heading"><span>02</span><h3>블러 평가</h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-blur" alt="블러 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">블러 영상</span></div></div><p class="stage-description">원본에 블러를 적용해 10수준 비교</p><span class="stage-status">평가 대기</span></article><article class="stage" data-stage="3"><div class="stage-heading"><span>03</span><h3>모자이크 평가</h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-mosaic" alt="모자이크 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">모자이크 영상</span></div></div><p class="stage-description">원본을 모자이크 처리해 10수준 비교</p><span class="stage-status">평가 대기</span></article></div><div class="pipeline-bottom"><p class="phase" id="phase">실험 상태를 확인하고 있습니다.</p><a href="#results">평가 결과 보기 <span aria-hidden="true">↗</span></a></div><p class="preview-note">동일한 원본 영상에서 각 변환을 독립적으로 적용합니다. 미리보기는 변환 예시이며, 실제 평가 수치는 아래 결과 표에 표시됩니다.</p></section><div class="middle"><section class="panel" id="datasets"><div class="section-title"><h2>데이터 준비</h2></div><div class="check"><span id="check-model">○</span><b>모델 로드</b><small>공식 가중치 · 구성 확인</small></div><div class="check"><span id="check-data">○</span><b>데이터 소스 확인</b><small>NIH, COVID-19 파일 준비</small></div><div class="check"><span id="check-validation">○</span><b>데이터 검증</b><small>실제 검증 로그 기준</small></div><div id="downloads" class="downloads">아직 다운로드 파일이 없습니다.</div></section><section class="panel" id="logs"><div class="section-title"><div class="log-tabs" role="tablist" aria-label="기록 종류"><button role="tab" id="experiment-tab" aria-selected="true" aria-controls="terminal">실시간 기록</button><button role="tab" id="environment-tab" aria-selected="false" aria-controls="terminal">환경 설치 기록</button></div><span class="live"><i></i> 3초 갱신</span></div><pre id="terminal" tabindex="0" aria-label="실험 실행 기록">기록을 불러오고 있습니다.</pre><small id="log-info">최근 기록만 표시합니다.</small></section></div>
+-<section class="panel result-panel" id="results"><div class="section-title"><h2>결과</h2><span id="updated"></span></div><div class="table-scroll"><table><thead><tr><th>단계</th><th>수준</th><th>AUC</th><th>정밀도@1 / CMC Rank-1</th><th>프라이버시 점수</th><th>상태</th></tr></thead><tbody id="result-rows"></tbody></table></div><div class="empty" id="empty"><span data-icon="file"></span><p>평가 후 실제 결과가 표시됩니다.</p></div><p class="result-note">1단계는 원본의 정밀도@1, 2·3단계는 CMC Rank-1을 표시합니다. 프라이버시 점수는 2·3단계의 100 × (1 − CMC@1)입니다.</p></section><footer>CXR Privacy Lab — 흉부 X선 재식별·프라이버시 실험 · 데이터는 이 컴퓨터에 보관됩니다.</footer></main></body></html>
++<section class="panel training-panel" aria-label="새 모델 학습 상태"><div class="section-title"><h2>새 모델 학습</h2><span>검증 모델 → 검색 모델 출력부 → 전체 네트워크</span></div><p id="training-state">데이터 검증 후 새 학습 시작</p><p id="training-detail">공개 CXR 최종 가중치 사용 안 함 · 논문상 ImageNet 초기화</p></section><section class="panel pipeline" id="stages"><div class="section-title"><div><h2>영상 변환과 평가 흐름</h2><p class="section-caption">변환 미리보기 · 평가 결과 아님</p></div><button class="motion" id="motion" aria-pressed="false">모션 정지 <span class="switch"></span></button></div><div class="scene"><article class="stage" data-stage="1"><div class="stage-heading"><span>01</span><h3>원본 평가</h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-original" alt="원본 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">원본 영상</span></div></div><p class="stage-description">원본 영상의 재식별 성능 확인</p><span class="stage-status">평가 대기</span></article><article class="stage" data-stage="2"><div class="stage-heading"><span>02</span><h3>블러 평가</h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-blur" alt="블러 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">블러 영상</span></div></div><p class="stage-description">원본에 블러를 적용해 10수준 비교</p><span class="stage-status">평가 대기</span></article><article class="stage" data-stage="3"><div class="stage-heading"><span>03</span><h3>모자이크 평가</h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-mosaic" alt="모자이크 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">모자이크 영상</span></div></div><p class="stage-description">원본을 모자이크 처리해 10수준 비교</p><span class="stage-status">평가 대기</span></article></div><div class="pipeline-bottom"><p class="phase" id="phase">실험 상태를 확인하고 있습니다.</p><a href="#results">평가 결과 보기 <span aria-hidden="true">↗</span></a></div><p class="preview-note">동일한 원본 영상에서 각 변환을 독립적으로 적용합니다. 미리보기는 변환 예시이며, 실제 평가 수치는 아래 결과 표에 표시됩니다.</p></section><div class="middle"><section class="panel" id="datasets"><div class="section-title"><h2>데이터 준비</h2></div><div class="check"><span id="check-model">○</span><b>모델 로드</b><small>새 학습 가중치 · 구성 확인</small></div><div class="check"><span id="check-data">○</span><b>데이터 소스 확인</b><small>NIH, COVID-19 파일 준비</small></div><div class="check"><span id="check-validation">○</span><b>데이터 검증</b><small>실제 검증 로그 기준</small></div><div id="downloads" class="downloads">아직 다운로드 파일이 없습니다.</div></section><section class="panel" id="logs"><div class="section-title"><div class="log-tabs" role="tablist" aria-label="기록 종류"><button role="tab" id="experiment-tab" aria-selected="true" aria-controls="terminal">실시간 기록</button><button role="tab" id="environment-tab" aria-selected="false" aria-controls="terminal">환경 설치 기록</button></div><span class="live"><i></i> 3초 갱신</span></div><pre id="terminal" tabindex="0" aria-label="실험 실행 기록">기록을 불러오고 있습니다.</pre><small id="log-info">최근 기록만 표시합니다.</small></section></div>
++<section class="panel result-panel" id="results"><div class="section-title"><h2>결과</h2><span id="updated"></span></div><div class="table-scroll"><table><thead><tr><th>단계</th><th>수준</th><th>AUC</th><th>정밀도@1 / CMC Rank-1</th><th>프라이버시 점수</th><th>상태</th></tr></thead><tbody id="result-rows"></tbody></table></div><div class="empty" id="empty"><span data-icon="file"></span><p>평가 후 실제 결과가 표시됩니다.</p></div><p class="result-note">1단계는 원본의 정밀도@1, 2·3단계는 CMC Rank-1을 표시합니다. 프라이버시 점수는 100 × (1 − CMC@1), 즉 고정된 공격 모델·검색 집합에서의 1순위 재식별 실패율입니다. 익명성 보장이나 종합적인 개인정보 보호 수준을 뜻하지 않습니다. 자기 원본은 검색 대상에서 제외합니다.</p></section><footer>CXR Privacy Lab — 흉부 X선 재식별·프라이버시 실험 · 데이터는 이 컴퓨터에 보관됩니다.</footer></main></body></html>
+--- 1차/app/state.mjs
++++ 3차/app/state.mjs
+@@ -4,8 +4,10 @@
+  const matches=[...log.matchAll(/\[단계 ([123])\]/g)];
+  const lastStage=Number(matches.at(-1)?.[1] || 0);
+  const evaluating=/평가 실행/.test(run.phase || '');
+- const labels={completed:'평가 완료',failed:'실험 오류',stopped:'실험 중단',interrupted:'실행 중단됨'};
+- const status=s.starting?'실험 시작 중':run.status==='running'?(evaluating?'평가 실행 중':'실험 준비 중'):(labels[run.status] || '실험 대기');
++ const training=/모델.*학습/.test(run.phase || '');
++ const labels={completed:run.mode==='데이터 준비 전용'?'데이터 준비 완료':'학습·평가 완료',failed:'실험 오류',stopped:'실험 중단',interrupted:'실행 중단됨'};
++ const trainingStatus=!s.training?'학습 시작 준비 중':s.training.phase==='data_validation'?'학습 데이터 검증 중':s.training.status==='waiting_for_gpu'?'GPU 여유 메모리 대기':s.training.status==='initializing'?'새 모델 초기화 중':s.training.status==='validating'?'학습 모델 검증 중':'새 모델 학습 중';
++ const status=s.starting?'실험 시작 중':run.status==='running'?(evaluating?'평가 실행 중':training?trainingStatus:'실험 준비 중'):(labels[run.status] || '실험 대기');
+  const stages=[1,2,3].map(n=>{
+   const count=s.results.filter(r=>r.source.startsWith(`stage_${n}_`)).length;
+   const done=count>=(n===1?1:10);
+--- 1차/app/style.css
++++ 3차/app/style.css
+@@ -7,4 +7,4 @@
+ @media(max-width:1350px){header{align-items:flex-start;flex-direction:column;gap:17px}.actions{width:100%}.metric{gap:12px;padding:17px 15px}.metric strong{font-size:21px}.metric-icon{width:45px;height:49px}.check{grid-template-columns:23px 105px 1fr}.check b{font-size:12px}.check small{font-size:10px}.log-tabs button{font-size:12px;padding:9px 11px}.scene{padding:3px 8px 15px;gap:35px}.stage:not(:last-child):after{right:-28px}.image-surface{height:clamp(170px,18vw,235px)}}
+ @media(max-width:1050px){aside{width:190px}.brand{font-size:19px;gap:7px;margin-left:5px;margin-right:5px}.brand-icon{min-width:36px;width:36px;height:41px}.brand small{font-size:11px}nav a{font-size:17px;padding:13px 16px;gap:15px}main{margin-left:190px;padding:24px 18px}h1{font-size:33px}.metrics{gap:10px}.metric{gap:10px;padding:15px 12px;align-items:flex-start}.metric strong{font-size:18px}.metric-icon{width:35px;height:40px}.metric-icon svg{width:25px;height:25px}.metric h2{font-size:12px}.metric small{font-size:9px}.middle{grid-template-columns:1fr}.pipeline{padding:18px 17px}.scene{gap:25px;padding:3px 0 12px}.stage:not(:last-child):after{font-size:18px;right:-21px}.image-space{padding-left:0;padding-right:9px}.image-panel{padding:6px 6px 0;box-shadow:5px 7px 0 var(--image-edge),8px 11px 0 var(--image-back),10px 15px 19px var(--deep-shadow)}.image-caption{margin:0 -6px;font-size:10px}.image-surface{height:175px}.stage-heading{gap:5px}h3{font-size:14px}.stage-description{font-size:10px;min-height:33px}.stage-status{font-size:10px;padding:5px 10px}.check{grid-template-columns:28px 140px 1fr}.check b{font-size:14px}.check small{font-size:12px}}
+ @media(max-width:700px){aside{position:static;width:100%;padding:16px;display:block}.brand{font-size:24px;margin:0 0 15px;align-items:center;gap:10px}.brand small{font-size:11px;margin-top:3px}.brand-icon{width:45px;height:45px}.local{display:none}nav{display:flex;gap:2px;overflow-x:auto}nav a{font-size:12px;padding:10px 8px;gap:6px;white-space:nowrap;flex:1;justify-content:center}nav svg{width:17px;height:17px}main{margin:0;padding:20px 13px}header{margin:0 2px 20px}h1{font-size:29px;letter-spacing:-1.4px}header p{font-size:12px}.actions{justify-content:flex-start;gap:8px}.actions>span{order:-1;font-size:12px}.actions button{padding:9px 12px;font-size:14px;min-height:40px}#theme{margin-left:auto}.actions .primary{order:2}.actions #stop{order:3}.metrics{grid-template-columns:1fr;gap:8px;margin-bottom:15px}.metric{padding:13px 18px;min-height:80px;gap:17px;align-items:center}.metric-icon{width:47px;height:47px}.metric strong{font-size:22px}.metric small{font-size:10px;margin-top:4px}.metric h2{margin-bottom:5px}.panel{padding:16px}.section-title h2{font-size:21px}.section-caption{font-size:10px}.motion{font-size:10px;gap:6px}.switch{width:35px;height:21px}.switch:after{width:15px;height:15px}.paused .switch:after{right:17px}.scene{grid-template-columns:1fr;gap:25px;padding:7px 25px 12px}.stage{padding-bottom:20px}.stage:not(:last-child):after{content:'↓';right:calc(50% - 8px);top:auto;bottom:-18px;font-size:23px}.stage-heading{margin-bottom:8px}h3{font-size:19px}.stage-heading>span{font-size:13px}.image-space{padding:12px 20px 23px}.image-panel{max-width:270px;padding:8px 8px 0;box-shadow:6px 8px 0 var(--image-edge),10px 13px 0 var(--image-back),13px 18px 25px var(--deep-shadow)}.image-caption{margin:0 -8px;font-size:12px}.image-surface{height:255px}.stage-description{min-height:0;font-size:12px;margin:10px 0}.stage-status{font-size:11px}.pipeline-bottom{align-items:flex-start}.phase{font-size:11px}.pipeline-bottom a{font-size:10px}.preview-note{font-size:9px}.check{grid-template-columns:23px 118px 1fr}.check b{font-size:13px}.check small{font-size:10px}.log-tabs button{font-size:12px;padding:8px 10px}.section-title>span{font-size:9px}.middle{gap:14px}th{font-size:11px}td{font-size:11px}.result-note{font-size:9px}}
+-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}}+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}}.training-panel{margin-bottom:24px;padding:24px 28px}.training-panel p{line-height:1.8}.training-panel #training-state{font-size:21px}.training-panel .section-title span{color:var(--muted);font-size:12px}@media(max-width:600px){.training-panel .section-title{display:block}.training-panel #training-state{font-size:17px}}
+--- 1차/docs/training_protocol.md
++++ 3차/docs/training_protocol.md
+@@ -0,0 +1,30 @@
++# 새 CXR 모델 학습과 평가 조건
++
++## 원 논문과 맞춘 조건
++
++원 저자 고정 커밋 `880168f564afa07936a8d8fb3b868b140ab937d9`을 기준으로 모델 구조·학습 분할·손실과 최적화 조건을 이식합니다. 공개 CXR 최종 가중치는 학습 초기값으로 쓰지 않습니다. 원 논문의 ImageNet 초기화 파일 `resnet50-19c8e357.pth`와 새 head 초기화·새 optimizer를 사용하며 파일 SHA를 기록합니다.
++
++| 항목 | 조건 |
++| --- | --- |
++| 검증 모델 | 입력256, 배치32, BCEWithLogitsLoss, Adam lr0.0001, 최대100에폭, validation BCE 기준 patience5 |
++| 검증 쌍 | 양성396,147쌍과 매 에폭 다시 구성한 음성396,147쌍. validation은 별도 환자 집합에서 음성 재구성 |
++| 검증 분할 | 학습75,708장·validation10,816장·test25,596장. 검색 분할의 수량과 구분 |
++| 검색 모델 | 입력1024, 배치32, 학습61,755장, 환자별 블록8 샘플러, 밝기·대비0.4 증강 |
++| 검색 손실 | PML0.9.94 기준 정규화 L2 ContrastiveLoss, CBM128, 자기 비교 제외 |
++| 검색 최적화 | SGD momentum0.9, weight_decay0.00001, OneCycle max_lr0.158489 |
++| 검색 단계 | 출력부30에폭 → 같은 실행의 가중치로 전체50에폭. 각 단계의 optimizer·scheduler·CBM은 새로 구성 |
++| 선택과 평가 | 검증 모델은 validation BCE 기준, 검색은 공식 경로의 마지막 에폭. 시험 영상과 COVID를 학습·선택에 사용하지 않음 |
++
++Windows·Python3.12·PyTorch2.7.1 포팅은 논문 당시 Linux 환경과 동일하지 않습니다. GPU 메모리를 절약하기 위한 활성값 재계산을 선택할 경우 같은 배치·난수·BatchNorm 상태와 기울기를 보존하는지 검사하고 실행 설정에 기록합니다. 배치 크기를 묵시적으로 줄이지 않습니다.
++
++공식 검색 코드에서는 validation에서도 PML0.9.94의 CBM 손실을 호출해 메모리 큐를 갱신하는 경로가 있습니다. 이번 구현은 검증 영상이 다음 학습의 메모리에 섞이지 않도록 validation에서 큐를 갱신하지 않습니다. validation은 검색 지표를 별도로 계산하며 모델 선택에 시험 집합을 쓰지 않습니다. 이 누수 방어와 AMP 재시도·활성값 재계산은 원 공식 실행과의 의도된 차이이며, 모든 학습 동작을 그대로 복제했다고 주장하지 않습니다.
++
++## 실행과 기록
++
++`train_from_scratch.py --project <연구 폴더> --output <새 실행 폴더> --seed 3 --tasks both --validated-snapshot <완료 검증 스냅샷>`이 새 학습 진입점입니다. 먼저 상위 실행기의 `--prepare-only`로 데이터 준비·전수 검증을 완료하고, 그 실행이 기록한 `validation_snapshot` 경로를 전달합니다. 학습 진입점은 현재 원영상의 SHA256을 다시 대조합니다. `--preflight`는 입력 검사, `--smoke-gpu`는 합성 영상의 역전파 검사로 정식 학습과 구분합니다. 실제 학습은 데이터의 전수 무결성·환자 분리를 먼저 확인한 뒤 시작합니다.
++
++진행 상태, 초기화 출처, optimizer와 난수 상태, 가중치 해시와 선택 근거를 실행별로 저장합니다. 재개는 동일 실행에 명시적으로 요청하고 입력·소스·설정이 일치할 때만 허용합니다. 평가에는 해당 실행이 생성한 순수 state_dict를 전달합니다.
++
++## 해석 범위
++
++현재 실험 범위는 NIH와 COVID-19의 재식별 및 블러·모자이크 비교입니다. CheXpert와 원 논문의 모든 부가 분석까지 포함한 완전 재현으로 표현하지 않습니다. 프라이버시 점수는 고정 공격에서의 Rank-1 실패율이며 영상의 진단 효용이나 익명성을 보장하지 않습니다. 라이선스·포팅 출처는 학습 코드 폴더의 NOTICE와 LICENSE를 확인하십시오.
+--- 1차/experiment/train_from_scratch.py
++++ 3차/experiment/train_from_scratch.py
+@@ -0,0 +1,46 @@
++"""ImageNet 초기값에서 검증·검색 CXR 모델을 새로 학습합니다."""
++
++import argparse
++from pathlib import Path
++import traceback
++
++from training.engine import train, smoke_gpu
++from training.state import progress
++
++
++def parse_args():
++    parser = argparse.ArgumentParser(description="공개 최종 CXR 모델을 초기값으로 쓰지 않는 논문 기반 재학습")
++    parser.add_argument("--project", type=Path, required=True, help="official과 data를 포함한 공유 연구 폴더")
++    parser.add_argument("--output", type=Path, required=True, help="이번 UUID 전용 새 학습 결과 폴더")
++    parser.add_argument("--tasks", choices=["both", "verification", "retrieval"], default="both")
++    parser.add_argument("--seed", type=int, default=3)
++    parser.add_argument("--device", choices=["cuda", "cpu"], default="cuda")
++    parser.add_argument("--num-workers", type=int, default=4)
++    parser.add_argument("--checkpoint-every-steps", type=int, default=250)
++    parser.add_argument("--resume", action="store_true", help="해당 output의 자기 학습 체크포인트만 명시적으로 재개")
++    parser.add_argument("--preflight", action="store_true", help="원본 분할·학습 입력만 검사하고 학습하지 않음")
++    parser.add_argument("--validated-snapshot", type=Path, help="전수검증 report.json·비공개 픽셀 manifest가 있는 디렉터리")
++    parser.add_argument("--smoke-gpu", action="store_true", help="합성 영상으로 세 학습 단계의 정식 배치32 역전파만 검사")
++    parser.add_argument("--activation-checkpointing", action="store_true", help="배치32를 유지하며 재계산으로 활성값 메모리 절약")
++    parser.add_argument("--no-wait-for-memory", dest="wait_for_memory", action="store_false")
++    parser.add_argument("--memory-wait-seconds", type=int, default=21600)
++    parser.add_argument("--imagenet-cache", type=Path,
++                        default=Path(__file__).resolve().parent.parent / "work/imagenet_cache")
++    args = parser.parse_args()
++    if args.num_workers < 0 or args.checkpoint_every_steps < 1 or args.memory_wait_seconds < 0:
++        parser.error("작업자 수·체크포인트 간격·메모리 대기시간이 유효하지 않습니다.")
++    return args
++
++
++if __name__ == "__main__":
++    args = parse_args()
++    try:
++        smoke_gpu(args) if args.smoke_gpu else train(args)
++    except KeyboardInterrupt as error:
++        progress(args.output, phase="stopped", status="stopped", epoch=0, epochs=0, step=0, loss=None, error=str(error))
++        raise SystemExit(130)
++    except Exception as error:
++        progress(args.output, phase="failed", status="failed", epoch=0, epochs=0, step=0, loss=None,
++                 error_type=type(error).__name__, error=str(error))
++        traceback.print_exc()
++        raise SystemExit(1)
+--- 1차/experiment/training/LICENSE
++++ 3차/experiment/training/LICENSE
+@@ -0,0 +1,674 @@
++                    GNU GENERAL PUBLIC LICENSE
++                       Version 3, 29 June 2007
++
++ Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
++ Everyone is permitted to copy and distribute verbatim copies
++ of this license document, but changing it is not allowed.
++
++                            Preamble
++
++  The GNU General Public License is a free, copyleft license for
++software and other kinds of works.
++
++  The licenses for most software and other practical works are designed
++to take away your freedom to share and change the works.  By contrast,
++the GNU General Public License is intended to guarantee your freedom to
++share and change all versions of a program--to make sure it remains free
++software for all its users.  We, the Free Software Foundation, use the
++GNU General Public License for most of our software; it applies also to
++any other work released this way by its authors.  You can apply it to
++your programs, too.
++
++  When we speak of free software, we are referring to freedom, not
++price.  Our General Public Licenses are designed to make sure that you
++have the freedom to distribute copies of free software (and charge for
++them if you wish), that you receive source code or can get it if you
++want it, that you can change the software or use pieces of it in new
++free programs, and that you know you can do these things.
++
++  To protect your rights, we need to prevent others from denying you
++these rights or asking you to surrender the rights.  Therefore, you have
++certain responsibilities if you distribute copies of the software, or if
++you modify it: responsibilities to respect the freedom of others.
++
++  For example, if you distribute copies of such a program, whether
++gratis or for a fee, you must pass on to the recipients the same
++freedoms that you received.  You must make sure that they, too, receive
++or can get the source code.  And you must show them these terms so they
++know their rights.
++
++  Developers that use the GNU GPL protect your rights with two steps:
++(1) assert copyright on the software, and (2) offer you this License
++giving you legal permission to copy, distribute and/or modify it.
++
++  For the developers' and authors' protection, the GPL clearly explains
++that there is no warranty for this free software.  For both users' and
++authors' sake, the GPL requires that modified versions be marked as
++changed, so that their problems will not be attributed erroneously to
++authors of previous versions.
++
++  Some devices are designed to deny users access to install or run
++modified versions of the software inside them, although the manufacturer
++can do so.  This is fundamentally incompatible with the aim of
++protecting users' freedom to change the software.  The systematic
++pattern of such abuse occurs in the area of products for individuals to
++use, which is precisely where it is most unacceptable.  Therefore, we
++have designed this version of the GPL to prohibit the practice for those
++products.  If such problems arise substantially in other domains, we
++stand ready to extend this provision to those domains in future versions
++of the GPL, as needed to protect the freedom of users.
++
++  Finally, every program is threatened constantly by software patents.
++States should not allow patents to restrict development and use of
++software on general-purpose computers, but in those that do, we wish to
++avoid the special danger that patents applied to a free program could
++make it effectively proprietary.  To prevent this, the GPL assures that
++patents cannot be used to render the program non-free.
++
++  The precise terms and conditions for copying, distribution and
++modification follow.
++
++                       TERMS AND CONDITIONS
++
++  0. Definitions.
++
++  "This License" refers to version 3 of the GNU General Public License.
++
++  "Copyright" also means copyright-like laws that apply to other kinds of
++works, such as semiconductor masks.
++
++  "The Program" refers to any copyrightable work licensed under this
++License.  Each licensee is addressed as "you".  "Licensees" and
++"recipients" may be individuals or organizations.
++
++  To "modify" a work means to copy from or adapt all or part of the work
++in a fashion requiring copyright permission, other than the making of an
++exact copy.  The resulting work is called a "modified version" of the
++earlier work or a work "based on" the earlier work.
++
++  A "covered work" means either the unmodified Program or a work based
++on the Program.
++
++  To "propagate" a work means to do anything with it that, without
++permission, would make you directly or secondarily liable for
++infringement under applicable copyright law, except executing it on a
++computer or modifying a private copy.  Propagation includes copying,
++distribution (with or without modification), making available to the
++public, and in some countries other activities as well.
++
++  To "convey" a work means any kind of propagation that enables other
++parties to make or receive copies.  Mere interaction with a user through
++a computer network, with no transfer of a copy, is not conveying.
++
++  An interactive user interface displays "Appropriate Legal Notices"
++to the extent that it includes a convenient and prominently visible
++feature that (1) displays an appropriate copyright notice, and (2)
++tells the user that there is no warranty for the work (except to the
++extent that warranties are provided), that licensees may convey the
++work under this License, and how to view a copy of this License.  If
++the interface presents a list of user commands or options, such as a
++menu, a prominent item in the list meets this criterion.
++
++  1. Source Code.
++
++  The "source code" for a work means the preferred form of the work
++for making modifications to it.  "Object code" means any non-source
++form of a work.
++
++  A "Standard Interface" means an interface that either is an official
++standard defined by a recognized standards body, or, in the case of
++interfaces specified for a particular programming language, one that
++is widely used among developers working in that language.
++
++  The "System Libraries" of an executable work include anything, other
++than the work as a whole, that (a) is included in the normal form of
++packaging a Major Component, but which is not part of that Major
++Component, and (b) serves only to enable use of the work with that
++Major Component, or to implement a Standard Interface for which an
++implementation is available to the public in source code form.  A
++"Major Component", in this context, means a major essential component
++(kernel, window system, and so on) of the specific operating system
++(if any) on which the executable work runs, or a compiler used to
++produce the work, or an object code interpreter used to run it.
++
++  The "Corresponding Source" for a work in object code form means all
++the source code needed to generate, install, and (for an executable
++work) run the object code and to modify the work, including scripts to
++control those activities.  However, it does not include the work's
++System Libraries, or general-purpose tools or generally available free
++programs which are used unmodified in performing those activities but
++which are not part of the work.  For example, Corresponding Source
++includes interface definition files associated with source files for
++the work, and the source code for shared libraries and dynamically
++linked subprograms that the work is specifically designed to require,
++such as by intimate data communication or control flow between those
++subprograms and other parts of the work.
++
++  The Corresponding Source need not include anything that users
++can regenerate automatically from other parts of the Corresponding
++Source.
++
++  The Corresponding Source for a work in source code form is that
++same work.
++
++  2. Basic Permissions.
++
++  All rights granted under this License are granted for the term of
++copyright on the Program, and are irrevocable provided the stated
++conditions are met.  This License explicitly affirms your unlimited
++permission to run the unmodified Program.  The output from running a
++covered work is covered by this License only if the output, given its
++content, constitutes a covered work.  This License acknowledges your
++rights of fair use or other equivalent, as provided by copyright law.
++
++  You may make, run and propagate covered works that you do not
++convey, without conditions so long as your license otherwise remains
++in force.  You may convey covered works to others for the sole purpose
++of having them make modifications exclusively for you, or provide you
++with facilities for running those works, provided that you comply with
++the terms of this License in conveying all material for which you do
++not control copyright.  Those thus making or running the covered works
++for you must do so exclusively on your behalf, under your direction
++and control, on terms that prohibit them from making any copies of
++your copyrighted material outside their relationship with you.
++
++  Conveying under any other circumstances is permitted solely under
++the conditions stated below.  Sublicensing is not allowed; section 10
++makes it unnecessary.
++
++  3. Protecting Users' Legal Rights From Anti-Circumvention Law.
++
++  No covered work shall be deemed part of an effective technological
++measure under any applicable law fulfilling obligations under article
++11 of the WIPO copyright treaty adopted on 20 December 1996, or
++similar laws prohibiting or restricting circumvention of such
++measures.
++
++  When you convey a covered work, you waive any legal power to forbid
++circumvention of technological measures to the extent such circumvention
++is effected by exercising rights under this License with respect to
++the covered work, and you disclaim any intention to limit operation or
++modification of the work as a means of enforcing, against the work's
++users, your or third parties' legal rights to forbid circumvention of
++technological measures.
++
++  4. Conveying Verbatim Copies.
++
++  You may convey verbatim copies of the Program's source code as you
++receive it, in any medium, provided that you conspicuously and
++appropriately publish on each copy an appropriate copyright notice;
++keep intact all notices stating that this License and any
++non-permissive terms added in accord with section 7 apply to the code;
++keep intact all notices of the absence of any warranty; and give all
++recipients a copy of this License along with the Program.
++
++  You may charge any price or no price for each copy that you convey,
++and you may offer support or warranty protection for a fee.
++
++  5. Conveying Modified Source Versions.
++
++  You may convey a work based on the Program, or the modifications to
++produce it from the Program, in the form of source code under the
++terms of section 4, provided that you also meet all of these conditions:
++
++    a) The work must carry prominent notices stating that you modified
++    it, and giving a relevant date.
++
++    b) The work must carry prominent notices stating that it is
++    released under this License and any conditions added under section
++    7.  This requirement modifies the requirement in section 4 to
++    "keep intact all notices".
++
++    c) You must license the entire work, as a whole, under this
++    License to anyone who comes into possession of a copy.  This
++    License will therefore apply, along with any applicable section 7
++    additional terms, to the whole of the work, and all its parts,
++    regardless of how they are packaged.  This License gives no
++    permission to license the work in any other way, but it does not
++    invalidate such permission if you have separately received it.
++
++    d) If the work has interactive user interfaces, each must display
++    Appropriate Legal Notices; however, if the Program has interactive
++    interfaces that do not display Appropriate Legal Notices, your
++    work need not make them do so.
++
++  A compilation of a covered work with other separate and independent
++works, which are not by their nature extensions of the covered work,
++and which are not combined with it such as to form a larger program,
++in or on a volume of a storage or distribution medium, is called an
++"aggregate" if the compilation and its resulting copyright are not
++used to limit the access or legal rights of the compilation's users
++beyond what the individual works permit.  Inclusion of a covered work
++in an aggregate does not cause this License to apply to the other
++parts of the aggregate.
++
++  6. Conveying Non-Source Forms.
++
++  You may convey a covered work in object code form under the terms
++of sections 4 and 5, provided that you also convey the
++machine-readable Corresponding Source under the terms of this License,
++in one of these ways:
++
++    a) Convey the object code in, or embodied in, a physical product
++    (including a physical distribution medium), accompanied by the
++    Corresponding Source fixed on a durable physical medium
++    customarily used for software interchange.
++
++    b) Convey the object code in, or embodied in, a physical product
++    (including a physical distribution medium), accompanied by a
++    written offer, valid for at least three years and valid for as
++    long as you offer spare parts or customer support for that product
++    model, to give anyone who possesses the object code either (1) a
++    copy of the Corresponding Source for all the software in the
++    product that is covered by this License, on a durable physical
++    medium customarily used for software interchange, for a price no
++    more than your reasonable cost of physically performing this
++    conveying of source, or (2) access to copy the
++    Corresponding Source from a network server at no charge.
++
++    c) Convey individual copies of the object code with a copy of the
++    written offer to provide the Corresponding Source.  This
++    alternative is allowed only occasionally and noncommercially, and
++    only if you received the object code with such an offer, in accord
++    with subsection 6b.
++
++    d) Convey the object code by offering access from a designated
++    place (gratis or for a charge), and offer equivalent access to the
++    Corresponding Source in the same way through the same place at no
++    further charge.  You need not require recipients to copy the
++    Corresponding Source along with the object code.  If the place to
++    copy the object code is a network server, the Corresponding Source
++    may be on a different server (operated by you or a third party)
++    that supports equivalent copying facilities, provided you maintain
++    clear directions next to the object code saying where to find the
++    Corresponding Source.  Regardless of what server hosts the
++    Corresponding Source, you remain obligated to ensure that it is
++    available for as long as needed to satisfy these requirements.
++
++    e) Convey the object code using peer-to-peer transmission, provided
++    you inform other peers where the object code and Corresponding
++    Source of the work are being offered to the general public at no
++    charge under subsection 6d.
++
++  A separable portion of the object code, whose source code is excluded
++from the Corresponding Source as a System Library, need not be
++included in conveying the object code work.
++
++  A "User Product" is either (1) a "consumer product", which means any
++tangible personal property which is normally used for personal, family,
++or household purposes, or (2) anything designed or sold for incorporation
++into a dwelling.  In determining whether a product is a consumer product,
++doubtful cases shall be resolved in favor of coverage.  For a particular
++product received by a particular user, "normally used" refers to a
++typical or common use of that class of product, regardless of the status
++of the particular user or of the way in which the particular user
++actually uses, or expects or is expected to use, the product.  A product
++is a consumer product regardless of whether the product has substantial
++commercial, industrial or non-consumer uses, unless such uses represent
++the only significant mode of use of the product.
++
++  "Installation Information" for a User Product means any methods,
++procedures, authorization keys, or other information required to install
++and execute modified versions of a covered work in that User Product from
++a modified version of its Corresponding Source.  The information must
++suffice to ensure that the continued functioning of the modified object
++code is in no case prevented or interfered with solely because
++modification has been made.
++
++  If you convey an object code work under this section in, or with, or
++specifically for use in, a User Product, and the conveying occurs as
++part of a transaction in which the right of possession and use of the
++User Product is transferred to the recipient in perpetuity or for a
++fixed term (regardless of how the transaction is characterized), the
++Corresponding Source conveyed under this section must be accompanied
++by the Installation Information.  But this requirement does not apply
++if neither you nor any third party retains the ability to install
++modified object code on the User Product (for example, the work has
++been installed in ROM).
++
++  The requirement to provide Installation Information does not include a
++requirement to continue to provide support service, warranty, or updates
++for a work that has been modified or installed by the recipient, or for
++the User Product in which it has been modified or installed.  Access to a
++network may be denied when the modification itself materially and
++adversely affects the operation of the network or violates the rules and
++protocols for communication across the network.
++
++  Corresponding Source conveyed, and Installation Information provided,
++in accord with this section must be in a format that is publicly
++documented (and with an implementation available to the public in
++source code form), and must require no special password or key for
++unpacking, reading or copying.
++
++  7. Additional Terms.
++
++  "Additional permissions" are terms that supplement the terms of this
++License by making exceptions from one or more of its conditions.
++Additional permissions that are applicable to the entire Program shall
++be treated as though they were included in this License, to the extent
++that they are valid under applicable law.  If additional permissions
++apply only to part of the Program, that part may be used separately
++under those permissions, but the entire Program remains governed by
++this License without regard to the additional permissions.
++
++  When you convey a copy of a covered work, you may at your option
++remove any additional permissions from that copy, or from any part of
++it.  (Additional permissions may be written to require their own
++removal in certain cases when you modify the work.)  You may place
++additional permissions on material, added by you to a covered work,
++for which you have or can give appropriate copyright permission.
++
++  Notwithstanding any other provision of this License, for material you
++add to a covered work, you may (if authorized by the copyright holders of
++that material) supplement the terms of this License with terms:
++
++    a) Disclaiming warranty or limiting liability differently from the
++    terms of sections 15 and 16 of this License; or
++
++    b) Requiring preservation of specified reasonable legal notices or
++    author attributions in that material or in the Appropriate Legal
++    Notices displayed by works containing it; or
++
++    c) Prohibiting misrepresentation of the origin of that material, or
++    requiring that modified versions of such material be marked in
++    reasonable ways as different from the original version; or
++
++    d) Limiting the use for publicity purposes of names of licensors or
++    authors of the material; or
++
++    e) Declining to grant rights under trademark law for use of some
++    trade names, trademarks, or service marks; or
++
++    f) Requiring indemnification of licensors and authors of that
++    material by anyone who conveys the material (or modified versions of
++    it) with contractual assumptions of liability to the recipient, for
++    any liability that these contractual assumptions directly impose on
++    those licensors and authors.
++
++  All other non-permissive additional terms are considered "further
++restrictions" within the meaning of section 10.  If the Program as you
++received it, or any part of it, contains a notice stating that it is
++governed by this License along with a term that is a further
++restriction, you may remove that term.  If a license document contains
++a further restriction but permits relicensing or conveying under this
++License, you may add to a covered work material governed by the terms
++of that license document, provided that the further restriction does
++not survive such relicensing or conveying.
++
++  If you add terms to a covered work in accord with this section, you
++must place, in the relevant source files, a statement of the
++additional terms that apply to those files, or a notice indicating
++where to find the applicable terms.
++
++  Additional terms, permissive or non-permissive, may be stated in the
++form of a separately written license, or stated as exceptions;
++the above requirements apply either way.
++
++  8. Termination.
++
++  You may not propagate or modify a covered work except as expressly
++provided under this License.  Any attempt otherwise to propagate or
++modify it is void, and will automatically terminate your rights under
++this License (including any patent licenses granted under the third
++paragraph of section 11).
++
++  However, if you cease all violation of this License, then your
++license from a particular copyright holder is reinstated (a)
++provisionally, unless and until the copyright holder explicitly and
++finally terminates your license, and (b) permanently, if the copyright
++holder fails to notify you of the violation by some reasonable means
++prior to 60 days after the cessation.
++
++  Moreover, your license from a particular copyright holder is
++reinstated permanently if the copyright holder notifies you of the
++violation by some reasonable means, this is the first time you have
++received notice of violation of this License (for any work) from that
++copyright holder, and you cure the violation prior to 30 days after
++your receipt of the notice.
++
++  Termination of your rights under this section does not terminate the
++licenses of parties who have received copies or rights from you under
++this License.  If your rights have been terminated and not permanently
++reinstated, you do not qualify to receive new licenses for the same
++material under section 10.
++
++  9. Acceptance Not Required for Having Copies.
++
++  You are not required to accept this License in order to receive or
++run a copy of the Program.  Ancillary propagation of a covered work
++occurring solely as a consequence of using peer-to-peer transmission
++to receive a copy likewise does not require acceptance.  However,
++nothing other than this License grants you permission to propagate or
++modify any covered work.  These actions infringe copyright if you do
++not accept this License.  Therefore, by modifying or propagating a
++covered work, you indicate your acceptance of this License to do so.
++
++  10. Automatic Licensing of Downstream Recipients.
++
++  Each time you convey a covered work, the recipient automatically
++receives a license from the original licensors, to run, modify and
++propagate that work, subject to this License.  You are not responsible
++for enforcing compliance by third parties with this License.
++
++  An "entity transaction" is a transaction transferring control of an
++organization, or substantially all assets of one, or subdividing an
++organization, or merging organizations.  If propagation of a covered
++work results from an entity transaction, each party to that
++transaction who receives a copy of the work also receives whatever
++licenses to the work the party's predecessor in interest had or could
++give under the previous paragraph, plus a right to possession of the
++Corresponding Source of the work from the predecessor in interest, if
++the predecessor has it or can get it with reasonable efforts.
++
++  You may not impose any further restrictions on the exercise of the
++rights granted or affirmed under this License.  For example, you may
++not impose a license fee, royalty, or other charge for exercise of
++rights granted under this License, and you may not initiate litigation
++(including a cross-claim or counterclaim in a lawsuit) alleging that
++any patent claim is infringed by making, using, selling, offering for
++sale, or importing the Program or any portion of it.
++
++  11. Patents.
++
++  A "contributor" is a copyright holder who authorizes use under this
++License of the Program or a work on which the Program is based.  The
++work thus licensed is called the contributor's "contributor version".
++
++  A contributor's "essential patent claims" are all patent claims
++owned or controlled by the contributor, whether already acquired or
++hereafter acquired, that would be infringed by some manner, permitted
++by this License, of making, using, or selling its contributor version,
++but do not include claims that would be infringed only as a
++consequence of further modification of the contributor version.  For
++purposes of this definition, "control" includes the right to grant
++patent sublicenses in a manner consistent with the requirements of
++this License.
++
++  Each contributor grants you a non-exclusive, worldwide, royalty-free
++patent license under the contributor's essential patent claims, to
++make, use, sell, offer for sale, import and otherwise run, modify and
++propagate the contents of its contributor version.
++
++  In the following three paragraphs, a "patent license" is any express
++agreement or commitment, however denominated, not to enforce a patent
++(such as an express permission to practice a patent or covenant not to
++sue for patent infringement).  To "grant" such a patent license to a
++party means to make such an agreement or commitment not to enforce a
++patent against the party.
++
++  If you convey a covered work, knowingly relying on a patent license,
++and the Corresponding Source of the work is not available for anyone
++to copy, free of charge and under the terms of this License, through a
++publicly available network server or other readily accessible means,
++then you must either (1) cause the Corresponding Source to be so
++available, or (2) arrange to deprive yourself of the benefit of the
++patent license for this particular work, or (3) arrange, in a manner
++consistent with the requirements of this License, to extend the patent
++license to downstream recipients.  "Knowingly relying" means you have
++actual knowledge that, but for the patent license, your conveying the
++covered work in a country, or your recipient's use of the covered work
++in a country, would infringe one or more identifiable patents in that
++country that you have reason to believe are valid.
++
++  If, pursuant to or in connection with a single transaction or
++arrangement, you convey, or propagate by procuring conveyance of, a
++covered work, and grant a patent license to some of the parties
++receiving the covered work authorizing them to use, propagate, modify
++or convey a specific copy of the covered work, then the patent license
++you grant is automatically extended to all recipients of the covered
++work and works based on it.
++
++  A patent license is "discriminatory" if it does not include within
++the scope of its coverage, prohibits the exercise of, or is
++conditioned on the non-exercise of one or more of the rights that are
++specifically granted under this License.  You may not convey a covered
++work if you are a party to an arrangement with a third party that is
++in the business of distributing software, under which you make payment
++to the third party based on the extent of your activity of conveying
++the work, and under which the third party grants, to any of the
++parties who would receive the covered work from you, a discriminatory
++patent license (a) in connection with copies of the covered work
++conveyed by you (or copies made from those copies), or (b) primarily
++for and in connection with specific products or compilations that
++contain the covered work, unless you entered into that arrangement,
++or that patent license was granted, prior to 28 March 2007.
++
++  Nothing in this License shall be construed as excluding or limiting
++any implied license or other defenses to infringement that may
++otherwise be available to you under applicable patent law.
++
++  12. No Surrender of Others' Freedom.
++
++  If conditions are imposed on you (whether by court order, agreement or
++otherwise) that contradict the conditions of this License, they do not
++excuse you from the conditions of this License.  If you cannot convey a
++covered work so as to satisfy simultaneously your obligations under this
++License and any other pertinent obligations, then as a consequence you may
++not convey it at all.  For example, if you agree to terms that obligate you
++to collect a royalty for further conveying from those to whom you convey
++the Program, the only way you could satisfy both those terms and this
++License would be to refrain entirely from conveying the Program.
++
++  13. Use with the GNU Affero General Public License.
++
++  Notwithstanding any other provision of this License, you have
++permission to link or combine any covered work with a work licensed
++under version 3 of the GNU Affero General Public License into a single
++combined work, and to convey the resulting work.  The terms of this
++License will continue to apply to the part which is the covered work,
++but the special requirements of the GNU Affero General Public License,
++section 13, concerning interaction through a network will apply to the
++combination as such.
++
++  14. Revised Versions of this License.
++
++  The Free Software Foundation may publish revised and/or new versions of
++the GNU General Public License from time to time.  Such new versions will
++be similar in spirit to the present version, but may differ in detail to
++address new problems or concerns.
++
++  Each version is given a distinguishing version number.  If the
++Program specifies that a certain numbered version of the GNU General
++Public License "or any later version" applies to it, you have the
++option of following the terms and conditions either of that numbered
++version or of any later version published by the Free Software
++Foundation.  If the Program does not specify a version number of the
++GNU General Public License, you may choose any version ever published
++by the Free Software Foundation.
++
++  If the Program specifies that a proxy can decide which future
++versions of the GNU General Public License can be used, that proxy's
++public statement of acceptance of a version permanently authorizes you
++to choose that version for the Program.
++
++  Later license versions may give you additional or different
++permissions.  However, no additional obligations are imposed on any
++author or copyright holder as a result of your choosing to follow a
++later version.
++
++  15. Disclaimer of Warranty.
++
++  THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
++APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
++HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY
++OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
++THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
++PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
++IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
++ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
++
++  16. Limitation of Liability.
++
++  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
++WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS
++THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY
++GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
++USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF
++DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD
++PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
++EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
++SUCH DAMAGES.
++
++  17. Interpretation of Sections 15 and 16.
++
++  If the disclaimer of warranty and limitation of liability provided
++above cannot be given local legal effect according to their terms,
++reviewing courts shall apply local law that most closely approximates
++an absolute waiver of all civil liability in connection with the
++Program, unless a warranty or assumption of liability accompanies a
++copy of the Program in return for a fee.
++
++                     END OF TERMS AND CONDITIONS
++
++            How to Apply These Terms to Your New Programs
++
++  If you develop a new program, and you want it to be of the greatest
++possible use to the public, the best way to achieve this is to make it
++free software which everyone can redistribute and change under these terms.
++
++  To do so, attach the following notices to the program.  It is safest
++to attach them to the start of each source file to most effectively
++state the exclusion of warranty; and each file should have at least
++the "copyright" line and a pointer to where the full notice is found.
++
++    <one line to give the program's name and a brief idea of what it does.>
++    Copyright (C) <year>  <name of author>
++
++    This program is free software: you can redistribute it and/or modify
++    it under the terms of the GNU General Public License as published by
++    the Free Software Foundation, either version 3 of the License, or
++    (at your option) any later version.
++
++    This program is distributed in the hope that it will be useful,
++    but WITHOUT ANY WARRANTY; without even the implied warranty of
++    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++    GNU General Public License for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with this program.  If not, see <https://www.gnu.org/licenses/>.
++
++Also add information on how to contact you by electronic and paper mail.
++
++  If the program does terminal interaction, make it output a short
++notice like this when it starts in an interactive mode:
++
++    <program>  Copyright (C) <year>  <name of author>
++    This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
++    This is free software, and you are welcome to redistribute it
++    under certain conditions; type `show c' for details.
++
++The hypothetical commands `show w' and `show c' should show the appropriate
++parts of the General Public License.  Of course, your program's commands
++might be different; for a GUI interface, you would use an "about box".
++
++  You should also get your employer (if you work as a programmer) or school,
++if any, to sign a "copyright disclaimer" for the program, if necessary.
++For more information on this, and how to apply and follow the GNU GPL, see
++<https://www.gnu.org/licenses/>.
++
++  The GNU General Public License does not permit incorporating your program
++into proprietary programs.  If your program is a subroutine library, you
++may consider it more useful to permit linking proprietary applications with
++the library.  If this is what you want to do, use the GNU Lesser General
++Public License instead of this License.  But first, please read
++<https://www.gnu.org/licenses/why-not-lgpl.html>.
+--- 1차/experiment/training/LICENSE_PML
++++ 3차/experiment/training/LICENSE_PML
+@@ -0,0 +1,21 @@
++MIT License
++
++Copyright (c) 2019 Kevin Musgrave
++
++Permission is hereby granted, free of charge, to any person obtaining a copy
++of this software and associated documentation files (the "Software"), to deal
++in the Software without restriction, including without limitation the rights
++to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++copies of the Software, and to permit persons to whom the Software is
++furnished to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice shall be included in all
++copies or substantial portions of the Software.
++
++THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++SOFTWARE.--- 1차/experiment/training/NOTICE.md
++++ 3차/experiment/training/NOTICE.md
+@@ -0,0 +1,12 @@
++# 학습 포팅의 출처와 라이선스
++
++이 폴더는 다음 공식 소스와 논문에 근거한 현대 PyTorch 학습 포팅입니다.
++
++- 원 저장소: https://github.com/kaipackhaeuser/CXR-Patient-ReID
++- 고정 커밋: `880168f564afa07936a8d8fb3b868b140ab937d9`
++- 원 논문: Packhäuser et al., Scientific Reports 12, 14851 (2022), DOI https://doi.org/10.1038/s41598-022-19045-3
++- 공식 `PatientRetrieval/paper_retrieval_training_phase1.py`, `paper_retrieval_training_phase2.py`의 `sample_func`, `get_block`, `build_mining_list_32`에 따른 블록8 샘플러와 모델·학습 조건을 `data.py`, `engine.py`로 이식했습니다. 공식 `PatientVerification`의 RNP 데이터 구성과 학습 조건도 이식했습니다.
++- 원 공식 저장소의 GNU GPL v3 라이선스 전문을 `LICENSE`에 변경 없이 보존했습니다. 해당 파생 부분의 기존 라이선스·출처를 제거하거나 임의의 다른 라이선스로 변경하지 않습니다. 원본 소스의 한국어 주석 이식과 현대 API·안전한 저장·재개·입력 경계 검사는 이번 차수의 변경입니다.
++- PML 0.9.94의 `ContrastiveLoss`, `AvgNonZeroReducer`, `BaseDistance`, `CrossBatchMemory` 동작에 근거해 정규화 유클리드 거리·margin0/1·양/음성별 비영 손실 평균·메모리128을 구현했습니다. 출처: https://github.com/KevinMusgrave/pytorch-metric-learning/tree/v0.9.94 . 이 저장소의 MIT 라이선스와 Copyright (c) 2019 Kevin Musgrave는 `LICENSE_PML`에 보존합니다.
++
++이 안내는 의료 원영상·가명 환자별 목록·훈련 가중치의 공개 허가가 아닙니다. 기존 첨부 평가 패키지의 재배포 권한 판단과 이 학습 포팅의 파생 소스 의무는 별도 검토 대상입니다. 학습 모듈이 참조하는 `cxr_reid` 패키지를 포함한 전체 배포의 공개 가능 범위는 부모의 독립 검토 전 확정하지 않습니다.
+--- 1차/experiment/training/__init__.py
++++ 3차/experiment/training/__init__.py
+@@ -0,0 +1 @@
++"""공개 CXR 최종 가중치를 초기값으로 사용하지 않는 논문 기반 재학습 도구입니다."""
+--- 1차/experiment/training/data.py
++++ 3차/experiment/training/data.py
+@@ -0,0 +1,184 @@
++"""검증 전용 분할과 공식 블록 샘플링을 보존합니다."""
++
++from collections import Counter
++import random
++from pathlib import Path
++
++import numpy as np
++from PIL import Image
++import torch
++from torch.utils.data import Dataset
++from torchvision import transforms
++
++from cxr_reid.data import read_pair_manifest, read_retrieval_manifest
++
++
++def patient(name):
++    return str(int(Path(name).name.split("_")[0]))
++
++
++def assert_patient_disjoint(*names_by_phase):
++    groups = [{patient(name) for name in names} for names in names_by_phase]
++    for i, group in enumerate(groups):
++        for other in groups[i + 1:]:
++            if group & other:
++                raise ValueError("학습·검증·평가 분할 사이에 환자 중복이 있습니다.")
++
++
++def check_pairs(pairs, allowed):
++    allowed = set(allowed)
++    for first, second, label in pairs:
++        if first not in allowed or second not in allowed:
++            raise ValueError("쌍에 해당 분할 밖의 영상이 있습니다.")
++        if first == second or (patient(first) == patient(second)) != bool(label):
++            raise ValueError("동일 파일 또는 환자 라벨이 잘못된 쌍이 있습니다.")
++
++
++def randomized_pairs(positive_pairs, names, count, *, seed):
++    """공식 RNP처럼 고정 양성 쌍과 에폭별 무작위 음성 쌍을 결합합니다."""
++    if count <= 0 or count % 2 or len(positive_pairs) < count // 2:
++        raise ValueError("균형 쌍 수는 양의 짝수이며 충분한 양성 쌍이 필요합니다.")
++    if len({patient(name) for name in names}) < 2:
++        raise ValueError("음성 쌍 생성에는 서로 다른 환자가 두 명 이상 필요합니다.")
++    rng = random.Random(seed)
++    positives = list(positive_pairs[:count // 2])
++    negatives = []
++    while len(negatives) < count // 2:
++        first, second = rng.choice(names), rng.choice(names)
++        if patient(first) != patient(second):
++            negatives.append((first, second, 0))
++    # 공식 코드도 생성한 음성 쌍을 random.sample로 다시 섞습니다.
++    result = positives + rng.sample(negatives, len(negatives))
++    check_pairs(result, names)
++    return result
++
++
++def mining_order(rows, *, seed, block_size=8):
++    """공식 build_mining_list_32/get_block의 블록8 규칙을 이식합니다."""
++    if block_size != 8:
++        raise ValueError("공식 재현 샘플러는 블록 크기 8만 허용합니다.")
++    names = np.arange(len(rows))
++    labels = np.asarray([int(row[1]) for row in rows], dtype=np.int64)
++    if any(value < 2 for value in Counter(labels).values()):
++        raise ValueError("검색 학습에는 원본 train.csv의 다중 영상 환자만 허용합니다.")
++    rng = np.random.RandomState(seed)
++    coin = random.Random(seed)
++    output, remainder = [], []
++
++    def take(current, count):
++        nonlocal names, labels
++        chosen = rng.choice(names[labels == current], int(count), replace=False)
++        keep = ~np.isin(names, chosen)
++        names, labels = names[keep], labels[keep]
++        return chosen.tolist()
++
++    while len(names):
++        current = rng.choice(labels)
++        count = int(np.sum(labels == current))
++        block = []
++        success = True
++        if count % block_size == 0:
++            block += take(current, block_size)
++        else:
++            if count > block_size:
++                if count % 8 == 1:
++                    block += take(current, 2)
++                elif coin.random() < .5:
++                    block += take(current, block_size)
++                elif count % block_size == block_size - 1:
++                    block += take(current, count % block_size - 2)
++                else:
++                    block += take(current, count % block_size)
++            else:
++                block += take(current, count % block_size)
++            rest = block_size - len(block)
++            while rest:
++                ids, counts = np.unique(labels, return_counts=True)
++                mod = counts % block_size
++                possible = ids[(mod > 1) & (((rest - mod) > 1) | ((rest - mod) == 0))]
++                if not len(possible):
++                    possible = ids[mod == block_size - 1]
++                    if not len(possible):
++                        success = False
++                    else:
++                        block += take(rng.choice(possible), rest)
++                    break
++                current = rng.choice(possible)
++                block += take(current, int(mod[ids == current].item()))
++                rest = block_size - len(block)
++        (output if success else remainder).extend(block)
++    result = output + remainder
++    if len(result) != len(rows) or len(set(result)) != len(rows):
++        raise RuntimeError("공식 블록 샘플링에서 영상이 누락되거나 중복되었습니다.")
++    return result
++
++
++def load_protocol(official):
++    """서로 다른 verification/retrieval 분할 목록을 섞지 않습니다."""
++    official = Path(official)
++    vr, rr = official / "PatientVerification", official / "PatientRetrieval/csv_files"
++    train_val = (vr / "train_val_list.txt").read_text(encoding="utf-8").split()
++    names = {"train": train_val[:75708], "validation": train_val[75708:],
++             "test": (vr / "test_list.txt").read_text(encoding="utf-8").split()}
++    if [len(names[key]) for key in ("train", "validation", "test")] != [75708, 10816, 25596]:
++        raise ValueError("원 저자의 검증 전용 영상 분할 수가 다릅니다.")
++    assert_patient_disjoint(*names.values())
++    pairs = {}
++    for phase, filename, count in (("train", "pairs_training.txt", 792294),
++                                   ("validation", "pairs_validation.txt", 50000),
++                                   ("test", "pairs_testing.txt", 100000)):
++        pairs[phase] = read_pair_manifest(vr / "image_pairs" / filename, expected_count=count)
++        check_pairs(pairs[phase], names[phase])
++    retrieval = {
++        "train": read_retrieval_manifest([rr / "train.csv"]),
++        "validation": read_retrieval_manifest([rr / "validation.csv", rr / "validation_single_files.csv"]),
++        "test": read_retrieval_manifest([rr / "test.csv", rr / "test_single_files.csv"]),
++    }
++    assert_patient_disjoint(*[[name for name, _ in rows] for rows in retrieval.values()])
++    for rows in retrieval.values():
++        for name, label in rows:
++            if patient(name) != str(int(label)):
++                raise ValueError("검색 CSV의 환자 ID와 원본 영상 이름이 다릅니다.")
++    return names, pairs, retrieval
++
++
++class PairDataset(Dataset):
++    def __init__(self, root, pairs):
++        self.root, self.pairs = Path(root), pairs
++        self.transform = transforms.Compose([
++            transforms.Resize((256, 256)), transforms.ToTensor(),
++            transforms.Normalize([.485, .456, .406], [.229, .224, .225]),
++        ])
++
++    def __len__(self):
++        return len(self.pairs)
++
++    def __getitem__(self, index):
++        first, second, label = self.pairs[index]
++        images = []
++        for name in (first, second):
++            with Image.open(self.root / name) as image:
++                images.append(self.transform(image.convert("RGB")))
++        return *images, torch.tensor(float(label))
++
++
++class RetrievalDataset(Dataset):
++    def __init__(self, root, rows, *, augment=False, seed=3):
++        self.root, self.rows, self.seed = Path(root), rows, seed
++        operations = [transforms.ColorJitter(brightness=.4, saturation=0, contrast=.4, hue=0)] if augment else []
++        self.transform = transforms.Compose(operations + [transforms.ToTensor(),
++            transforms.Normalize([.485, .456, .406], [.229, .224, .225])])
++
++    def __len__(self):
++        return len(self.rows)
++
++    def __getitem__(self, index):
++        name, label = self.rows[index]
++        with Image.open(self.root / name) as image:
++            if image.size != (1024, 1024):
++                raise ValueError("공식 검색 학습 원본은 1024×1024이어야 합니다.")
++            # 에폭별·영상별 증강 seed를 고정하여 Windows 작업자 수와 재개에 독립시킵니다.
++            with torch.random.fork_rng(devices=[]):
++                torch.random.set_rng_state(torch.Generator().manual_seed(self.seed + index).get_state())
++                output = self.transform(image.convert("RGB"))
++        return output, int(label)
+--- 1차/experiment/training/engine.py
++++ 3차/experiment/training/engine.py
+@@ -0,0 +1,493 @@
++"""현대 PyTorch에서 원 논문 학습 조건을 명시적으로 실행합니다."""
++
++from contextlib import contextmanager, nullcontext
++from datetime import datetime, timezone
++import gc
++import hashlib
++import json
++from importlib.metadata import version
++import math
++import os
++from pathlib import Path
++import random
++import time
++
++import numpy as np
++import torch
++from torch import nn
++from torch.nn import functional as F
++from torch.utils.checkpoint import checkpoint
++from torch.utils.data import DataLoader, Subset
++from torchvision.models import resnet50
++
++from cxr_reid.models import VerificationNetwork, ExtractorRes50, RetrievalHead
++from cxr_reid.evaluation import calculate_retrieval_metrics
++from cxr_reid.dataset_validation import validate_prepared_snapshot
++from .data import PairDataset, RetrievalDataset, load_protocol, randomized_pairs, mining_order
++from .losses import CrossBatchContrastive
++from .imagenet import ensure_safe_initialization
++from .state import atomic_json, atomic_torch_save, digest, load_checkpoint, progress, save_checkpoint, rng_state, restore_rng
++
++
++IMAGENET_URL = "https://download.pytorch.org/models/resnet50-19c8e357.pth"
++PROTOCOL = {
++    "source_commit": "880168f564afa07936a8d8fb3b868b140ab937d9",
++    "initialization": IMAGENET_URL, "published_cxr_initialization": False,
++    "batch_size": 32, "verification_resolution": 256, "retrieval_resolution": 1024,
++    "verification_pairs": 792294, "verification_validation_pairs": 50000,
++    "verification_epochs": 100, "verification_patience": 5, "verification_lr": .0001,
++    "retrieval_phase1_epochs": 30, "retrieval_phase2_epochs": 50,
++    "retrieval_lr": .158489, "weight_decay": 1e-5, "memory_size": 128,
++    "mining_block_size": 8, "retrieval_precision": "float16-mixed",
++}
++
++
++def seed_all(seed):
++    random.seed(seed)
++    np.random.seed(seed)
++    torch.manual_seed(seed)
++    # 완전 동일한 GPU 수치를 보장하지 않으며 seed와 실행 환경을 기록합니다.
++    torch.backends.cudnn.benchmark = False
++    torch.backends.cudnn.deterministic = True
++
++
++@contextmanager
++def preserve_bn_buffers(module):
++    """체크포인트 재계산이 BN 이동통계를 두 번 갱신하지 않도록 복구합니다."""
++    buffers = [(buffer, buffer.detach().clone()) for name, buffer in module.named_buffers()
++               if name.endswith(("running_mean", "running_var", "num_batches_tracked"))]
++    try:
++        yield
++    finally:
++        with torch.no_grad():
++            for buffer, value in buffers:
++                buffer.copy_(value)
++
++
++class TrainingExtractor(ExtractorRes50):
++    def __init__(self, activation_checkpointing=False):
++        super().__init__()
++        self.activation_checkpointing = activation_checkpointing
++
++    def forward(self, inputs):
++        if not self.activation_checkpointing or not self.training or not any(p.requires_grad for p in self.parameters()):
++            return self.extractor_net(inputs)
++        layers = list(self.extractor_net.children())
++        blocks = [nn.Sequential(*layers[:4])]
++        blocks.extend(block for layer in layers[4:] for block in layer)
++        for block in blocks:
++            # 비재진입 방식은 입력 영상에 requires_grad를 붙이지 않아도 매개변수 기울기를 보존합니다.
++            inputs = checkpoint(block, inputs, use_reentrant=False, preserve_rng_state=True,
++                                context_fn=lambda block=block: (nullcontext(), preserve_bn_buffers(block)))
++        return inputs
++
++
++def create_model(task, *, imagenet_state=None, activation_checkpointing=False):
++    backbone = resnet50(weights=None)
++    if imagenet_state is not None:
++        backbone.load_state_dict(imagenet_state, strict=True)
++    if task == "verification":
++        model = VerificationNetwork()
++        backbone.fc = nn.Linear(2048, 128)
++        model.model = backbone
++        return model
++    if task != "retrieval":
++        raise ValueError("지원하지 않는 학습 과제입니다.")
++    extractor = TrainingExtractor(activation_checkpointing)
++    extractor.extractor_net = nn.Sequential(*list(backbone.children())[:-2])
++    return nn.Sequential(extractor, RetrievalHead())
++
++
++def imagenet_initialization(cache):
++    # 학습 본체는 변환된 안전 state_dict만 weights_only=True로 읽습니다.
++    return ensure_safe_initialization(cache)
++
++
++def parameters_digest(model, *, head_only=False):
++    result = hashlib.sha256()
++    for name, value in model.named_parameters():
++        if head_only and not (name.startswith("1.") or name.startswith("fc_end") or name.startswith("model.fc")):
++            continue
++        result.update(name.encode())
++        result.update(value.detach().cpu().contiguous().numpy().tobytes())
++    return result.hexdigest()
++
++
++def optimizer_batch(model, optimizer, scaler, forward, *, memory=None, on_overflow=None, max_overflows=32):
++    """같은 배치를 유한 기울기로 한 번만 갱신하고 AMP 배율 보정을 기록합니다."""
++    saved_rng = rng_state()
++    bn = [(buffer, buffer.detach().clone()) for name, buffer in model.named_buffers()
++          if name.endswith(("running_mean", "running_var", "num_batches_tracked"))]
++    memory_before = {key: value.clone() for key, value in memory.state_dict().items()} if memory is not None else None
++    start_scale = scaler.get_scale()
++    for attempt in range(max_overflows + 1):
++        optimizer.zero_grad(set_to_none=True)
++        loss = forward()
++        if not torch.isfinite(loss):
++            raise FloatingPointError("학습 손실이 NaN/무한대입니다. AMP 배율 보정으로 숨기지 않습니다.")
++        scaler.scale(loss).backward()
++        scaler.unscale_(optimizer)
++        gradients = [(name, parameter.grad) for name, parameter in model.named_parameters() if parameter.grad is not None]
++        checks = [torch.isfinite(value).all() for _, value in gradients]
++        finite = bool(torch.stack(checks).all()) if checks else False
++        if finite:
++            scaler.step(optimizer)
++            scaler.update()
++            return loss.detach(), {"gradients_finite": True, "amp_overflows": attempt,
++                                   "scale_before": start_scale, "scale_after": scaler.get_scale()}
++        first_bad = next((name for (name, _), good in zip(gradients, checks) if not good), None)
++        if not scaler.is_enabled() or attempt == max_overflows:
++            raise FloatingPointError(f"유한 기울기를 얻지 못했습니다. 최초 위치: {first_bad}")
++        old_scale = scaler.get_scale()
++        # GradScaler가 비유한 기울기의 optimizer 갱신을 건너뛰고 배율만 낮춥니다.
++        scaler.step(optimizer)
++        scaler.update()
++        new_scale = scaler.get_scale()
++        if not math.isfinite(new_scale) or new_scale <= 0 or new_scale >= old_scale:
++            raise FloatingPointError("AMP 배율이 안전하게 감소하지 않았습니다.")
++        event = {"overflow_attempt": attempt + 1, "scale_before": old_scale,
++                 "scale_after": new_scale, "first_nonfinite_parameter": first_bad,
++                 "optimizer_applied": False}
++        if on_overflow is not None:
++            on_overflow(event)
++        # 동일 영상·드롭아웃·BN·메모리에서 다시 계산하여 학습 표본을 버리지 않습니다.
++        with torch.no_grad():
++            for buffer, value in bn:
++                buffer.copy_(value)
++            if memory is not None:
++                memory.load_state_dict(memory_before)
++        restore_rng(saved_rng)
++    raise RuntimeError("도달할 수 없는 AMP 보정 상태입니다.")
++
++
++def memory_gate(args, phase):
++    if args.device != "cuda":
++        return
++    if not torch.cuda.is_available():
++        raise RuntimeError("학습용 CUDA GPU가 없습니다. CPU로 자동 대체하지 않습니다.")
++    gc.collect()
++    torch.cuda.empty_cache()
++    minimum = 9. if phase == "verification" else 19.
++    started = time.monotonic()
++    while True:
++        free, total = torch.cuda.mem_get_info()
++        if total / 2 ** 30 < minimum:
++            raise RuntimeError(f"장치 전체 VRAM {total / 2**30:.2f} GiB가 사전 기준 {minimum:.1f} GiB보다 작습니다.")
++        if free / 2 ** 30 >= minimum:
++            return
++        progress(args.output, status="waiting_for_gpu", phase=phase, epoch=0, epochs=0, step=0,
++                 loss=None, free_gpu_gib=free / 2 ** 30, total_gpu_gib=total / 2 ** 30,
++                 minimum_free_gpu_gib=minimum)
++        if not args.wait_for_memory or time.monotonic() - started >= args.memory_wait_seconds:
++            raise RuntimeError("정식 배치32를 시도할 GPU 여유 메모리가 부족합니다. 다른 작업은 종료하지 않습니다.")
++        if (Path(args.output) / "STOP_REQUESTED").exists():
++            raise KeyboardInterrupt("사용자가 GPU 대기를 중단했습니다.")
++        time.sleep(20)
++
++
++def binding(args, official):
++    manifests = sorted((official / "PatientVerification").glob("*.txt"))
++    manifests += sorted((official / "PatientVerification/image_pairs").glob("*.txt"))
++    manifests += sorted((official / "PatientRetrieval/csv_files").glob("*.csv"))
++    sources = {f"training/{p.name}": digest(p) for p in sorted(Path(__file__).parent.glob("*.py"))}
++    experiment = Path(__file__).parent.parent
++    for name in ("models.py", "evaluation.py", "inference.py", "image_ops.py", "data.py", "dataset_validation.py"):
++        sources[f"cxr_reid/{name}"] = digest(experiment / "cxr_reid" / name)
++    sources["train_from_scratch.py"] = digest(experiment / "train_from_scratch.py")
++    snapshot = getattr(args, "validated_snapshot", None)
++    snapshot_hashes = {name: digest(Path(snapshot) / name) for name in
++                       ("report.json", "nih_pixels.private.json", "covid_pixels.private.json")} if snapshot else {}
++    value = {"protocol": PROTOCOL, "seed": args.seed, "num_workers": args.num_workers,
++             "activation_checkpointing": args.activation_checkpointing,
++             "manifests": {str(p.relative_to(official)): digest(p) for p in manifests},
++             "sources": sources, "validation_snapshot_sha256": snapshot_hashes,
++             "environment": {package: version(package) for package in
++                             ("torch", "torchvision", "Pillow", "numpy", "scikit-learn")},
++             "cuda": torch.version.cuda, "cudnn": torch.backends.cudnn.version()}
++    encoded = json.dumps(value, sort_keys=True).encode()
++    return hashlib.sha256(encoded).hexdigest(), value
++
++
++def loader(dataset, args, *, order=None, offset=0, seed=0):
++    indices = list(range(len(dataset))) if order is None else order
++    indices = indices[offset * 32:]
++    return DataLoader(Subset(dataset, indices), batch_size=32, shuffle=False,
++                      num_workers=args.num_workers, pin_memory=args.device == "cuda",
++                      generator=torch.Generator().manual_seed(seed), persistent_workers=False)
++
++
++@torch.inference_mode()
++def validation(model, phase, protocol_data, args, epoch):
++    names, pairs, retrieval = protocol_data
++    images = args.project / "data/NIH_ChestXray14/images"
++    model.eval()
++    if phase == "verification":
++        positives = [pair for pair in pairs["validation"] if pair[2] == 1]
++        current = randomized_pairs(positives, names["validation"], 50000,
++                                   seed=args.seed + 1000000 + epoch)
++        total, count = 0., 0
++        for left, right, target in loader(PairDataset(images, current), args, seed=epoch):
++            pred = model(left.to(args.device), right.to(args.device)).flatten()
++            loss = F.binary_cross_entropy_with_logits(pred, target.to(args.device))
++            total += float(loss)
++            count += 1
++        return {"validation_loss": total / count}
++    rows = retrieval["validation"]
++    outputs, labels = [], []
++    # 검증 순전파는 학습 배치와 독립적이며 FP32 메모리 절약용 배치2입니다.
++    val_loader = DataLoader(RetrievalDataset(images, rows), batch_size=2,
++                            num_workers=args.num_workers, shuffle=False)
++    for image, label in val_loader:
++        outputs.append(model(image.to(args.device)).float().cpu().numpy())
++        labels.extend(label.tolist())
++    vectors = np.concatenate(outputs)
++    result = calculate_retrieval_metrics(vectors, vectors, labels, labels, same_source=True,
++                                         gallery_keys=[name for name, _ in rows])
++    return {"validation_map_at_r": result["map_at_r"], "validation_precision_at_1": result["precision_at_1"]}
++
++
++def phase_train(args, phase, protocol_data, state, image_init, run_binding, previous_weights=None):
++    seed_all(args.seed)
++    memory_gate(args, phase)
++    is_verification = phase == "verification"
++    model = create_model("verification" if is_verification else "retrieval",
++                         imagenet_state=image_init if previous_weights is None else None,
++                         activation_checkpointing=args.activation_checkpointing)
++    if previous_weights is not None:
++        model.load_state_dict(torch.load(previous_weights, map_location="cpu", weights_only=True), strict=True)
++    if phase == "retrieval_phase1":
++        for parameter in model[0].parameters():
++            parameter.requires_grad_(False)
++    model.to(args.device)
++    if is_verification:
++        optimizer = torch.optim.Adam(model.parameters(), lr=.0001)
++        epochs, scheduler, memory = 100, None, None
++        full_batches = math.ceil(792294 / 32)
++    else:
++        groups = [{"params": [p for n, p in model.named_parameters() if p.requires_grad and not any(t in n for t in ("bias", "bn"))], "weight_decay": 1e-5},
++                  {"params": [p for n, p in model.named_parameters() if p.requires_grad and any(t in n for t in ("bias", "bn"))], "weight_decay": 0.}]
++        optimizer = torch.optim.SGD(groups, lr=.158489, momentum=.9, weight_decay=1e-5)
++        epochs = 30 if phase == "retrieval_phase1" else 50
++        full_batches = math.ceil(61755 / 32)
++        scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=.158489,
++            total_steps=full_batches * epochs + 1, pct_start=.3, anneal_strategy="cos",
++            cycle_momentum=True, base_momentum=.85, max_momentum=.95, div_factor=25., final_div_factor=10000.)
++        memory = CrossBatchContrastive().to(args.device)
++    scaler = torch.amp.GradScaler("cuda", enabled=(not is_verification and args.device == "cuda"))
++    folder = args.output / phase
++    folder.mkdir(parents=True, exist_ok=True)
++    last, exported = folder / "last.pt", folder / "selected_weights.pth"
++    metadata = {"binding": run_binding, "phase": phase, "epoch": 0, "batch": 0,
++                "global_step": 0, "train_sum": 0., "train_samples": 0,
++                "best_loss": None, "bad_epochs": 0, "finished": False}
++    if args.resume and last.exists():
++        metadata = load_checkpoint(last, model, optimizer, binding=run_binding,
++                                   scheduler=scheduler, scaler=scaler, memory=memory)
++    else:
++        atomic_json(folder / "initialization.json", {"phase": phase, "initialization": state,
++            "global_step": 0, "optimizer_state_entries": len(optimizer.state),
++            "head_sha256": parameters_digest(model, head_only=True),
++            "previous_phase_weights": str(previous_weights) if previous_weights else None})
++    if metadata["finished"]:
++        return exported
++    names, pairs, retrieval = protocol_data
++    images = args.project / "data/NIH_ChestXray14/images"
++    for epoch in range(metadata["epoch"], epochs):
++        if is_verification:
++            positives = [pair for pair in pairs["train"] if pair[2] == 1]
++            current = randomized_pairs(positives, names["train"], 792294, seed=args.seed + epoch)
++            dataset = PairDataset(images, current)
++            order = np.random.RandomState(args.seed + epoch).permutation(len(dataset)).tolist()
++        else:
++            dataset = RetrievalDataset(images, retrieval["train"], augment=True, seed=args.seed + epoch * 100000)
++            order = mining_order(retrieval["train"], seed=args.seed + epoch)
++        offset = metadata["batch"] if metadata["epoch"] == epoch else 0
++        batches = loader(dataset, args, order=order, offset=offset, seed=args.seed + epoch)
++        model.train()
++        if memory:
++            memory.train()
++        accumulated = metadata["train_sum"] if offset else 0.
++        sample_count = metadata["train_samples"] if offset else 0
++        for batch_number, batch in enumerate(batches, start=offset):
++            if (args.output / "STOP_REQUESTED").exists():
++                save_checkpoint(last, model, optimizer, metadata=metadata, scheduler=scheduler, scaler=scaler, memory=memory)
++                raise KeyboardInterrupt("사용자가 학습 중단을 요청했습니다.")
++            first_step = metadata["global_step"] == 0
++            before = parameters_digest(model, head_only=True) if first_step else None
++            tensors = [item.to(args.device, non_blocking=True) for item in batch]
++            label = tensors[-1]
++
++            def forward_batch():
++                with torch.autocast(args.device, dtype=torch.float16,
++                                    enabled=(not is_verification and args.device == "cuda")):
++                    if is_verification:
++                        return F.binary_cross_entropy_with_logits(model(tensors[0], tensors[1]).flatten(), label)
++                    return memory(model(tensors[0]), label)
++
++            def record_overflow(event):
++                progress(args.output, phase=phase, status="amp_backoff", epoch=epoch + 1, epochs=epochs,
++                         step=batch_number + 1, loss=None, **event)
++
++            loss, precision = optimizer_batch(model, optimizer, scaler, forward_batch,
++                                               memory=memory, on_overflow=record_overflow)
++            metadata["amp_overflows"] = metadata.get("amp_overflows", 0) + precision["amp_overflows"]
++            if scheduler:
++                scheduler.step()
++            if first_step:
++                atomic_json(folder / "first_backward.json", {"global_step_before": 0,
++                    **precision, "head_before_sha256": before,
++                    "head_after_sha256": parameters_digest(model, head_only=True), "batch": len(label),
++                    "loss": float(loss.detach()), "device": args.device})
++            sample_count += len(label)
++            accumulated += float(loss.detach()) * len(label)
++            metadata.update(epoch=epoch, batch=batch_number + 1, global_step=metadata["global_step"] + 1,
++                            train_sum=accumulated, train_samples=sample_count)
++            if metadata["global_step"] % args.checkpoint_every_steps == 0:
++                save_checkpoint(last, model, optimizer, metadata=metadata, scheduler=scheduler, scaler=scaler, memory=memory)
++            if batch_number % 25 == 0 or batch_number + 1 == full_batches:
++                progress(args.output, phase=phase, status="training", epoch=epoch + 1, epochs=epochs,
++                         step=batch_number + 1, steps=full_batches, global_step=metadata["global_step"],
++                         loss=float(loss.detach()), learning_rate=optimizer.param_groups[0]["lr"],
++                         samples_seen=sample_count, batch_size=32)
++        progress(args.output, phase=phase, status="validating", epoch=epoch + 1, epochs=epochs,
++                 step=full_batches, loss=accumulated / max(sample_count, 1))
++        scores = validation(model, phase, protocol_data, args, epoch)
++        if is_verification:
++            current_loss = scores["validation_loss"]
++            if metadata["best_loss"] is None or current_loss < metadata["best_loss"]:
++                metadata["best_loss"], metadata["bad_epochs"] = current_loss, 0
++                atomic_torch_save(model.state_dict(), exported)
++            else:
++                metadata["bad_epochs"] += 1
++        else:
++            # 공식 검색 코드는 validation이 아닌 마지막 학습 에폭의 모델을 내보냅니다.
++            atomic_torch_save(model.state_dict(), exported)
++        metadata.update(epoch=epoch + 1, batch=0, train_sum=0., train_samples=0.,
++                        finished=(epoch + 1 == epochs or (is_verification and metadata["bad_epochs"] >= 5)))
++        save_checkpoint(last, model, optimizer, metadata=metadata, scheduler=scheduler, scaler=scaler, memory=memory)
++        atomic_torch_save(torch.load(last, map_location="cpu", weights_only=True), folder / f"epoch_{epoch+1:03d}.pt")
++        progress(args.output, phase=phase, status="epoch_complete", epoch=epoch + 1, epochs=epochs,
++                 step=full_batches, loss=accumulated / max(sample_count, 1), **scores)
++        if metadata["finished"]:
++            break
++    del model, optimizer, scheduler, scaler, memory
++    gc.collect()
++    if args.device == "cuda":
++        torch.cuda.empty_cache()
++    return exported
++
++
++def preflight(args):
++    if not args.preflight and not getattr(args, "validated_snapshot", None):
++        raise ValueError("정식 학습에는 전수검증을 완료한 --validated-snapshot이 필요합니다.")
++    if getattr(args, "validated_snapshot", None):
++        progress(args.output, phase="data_validation", status="validating", epoch=0, epochs=0, step=0, loss=None)
++        validate_prepared_snapshot(args.project, args.validated_snapshot)
++    official = args.project / "official"
++    protocol_data = load_protocol(official)
++    run_binding, details = binding(args, official)
++    names, _, retrieval = protocol_data
++    images = args.project / "data/NIH_ChestXray14/images"
++    required = set(names["train"] + names["validation"])
++    required.update(name for phase in ("train", "validation") for name, _ in retrieval[phase])
++    missing = sum(not (images / name).is_file() for name in required)
++    summary = {"binding": run_binding, "protocol": details, "required_training_validation_images": len(required),
++               "missing_training_validation_images": missing,
++               "verification_counts": {key: len(value) for key, value in names.items()},
++               "retrieval_counts": {key: len(value) for key, value in retrieval.items()},
++               "test_images_used_for_training": False}
++    atomic_json(args.output / "preflight.json", summary)
++    if missing:
++        raise FileNotFoundError(f"학습·검증에 필요한 원본 영상 중 {missing}장이 없습니다. 다운로드 검증 완료 후 실행하세요.")
++    return protocol_data, run_binding, summary
++
++
++def train(args):
++    args.project = args.project.resolve()
++    args.output = args.output.resolve()
++    args.output.mkdir(parents=True, exist_ok=True)
++    if (args.output / "training_config.json").exists() and not args.resume:
++        raise FileExistsError("기존 학습 실행이 있습니다. 새 output을 사용하거나 해당 실행에 --resume를 명시하세요.")
++    protocol_data, run_binding, report = preflight(args)
++    if args.preflight:
++        progress(args.output, phase="preflight", status="ready", epoch=0, epochs=0, step=0, loss=None)
++        return report
++    config = {"binding": run_binding, "protocol": PROTOCOL, "seed": args.seed,
++              "tasks": args.tasks, "num_workers": args.num_workers,
++              "activation_checkpointing": args.activation_checkpointing, "device": args.device,
++              "torch": torch.__version__, "new_cxr_training": True}
++    if args.resume:
++        saved = json.loads((args.output / "training_config.json").read_text(encoding="utf-8"))
++        if saved != config:
++            raise ValueError("재개 설정이 해당 실행의 원본 설정과 다릅니다.")
++    else:
++        atomic_json(args.output / "training_config.json", config)
++    init, provenance = imagenet_initialization(args.imagenet_cache)
++    artifacts = {"kind": "새로 학습한 CXR 모델", "published_cxr_initialization": False,
++                 "initialization": provenance, "binding": run_binding}
++    if args.tasks in ("both", "verification"):
++        path = phase_train(args, "verification", protocol_data, provenance, init, run_binding)
++        artifacts.update(verification_checkpoint=str(path), verification_sha256=digest(path))
++    if args.tasks in ("both", "retrieval"):
++        intermediate = phase_train(args, "retrieval_phase1", protocol_data, provenance, init, run_binding)
++        path = phase_train(args, "retrieval_phase2", protocol_data, provenance, init, run_binding, previous_weights=intermediate)
++        artifacts.update(retrieval_checkpoint=str(path), retrieval_sha256=digest(path))
++    atomic_json(args.output / "artifacts.json", artifacts)
++    progress(args.output, phase="complete", status="completed", epoch=0, epochs=0, step=0, loss=None)
++    return artifacts
++
++
++def smoke_gpu(args):
++    """배치·해상도를 줄이지 않고 실제 손실의 한 optimizer step만 검사합니다."""
++    args.output.mkdir(parents=True, exist_ok=True)
++    seed_all(args.seed)
++    results = []
++    for phase in ("verification", "retrieval_phase1", "retrieval_phase2"):
++        memory_gate(args, phase)
++        torch.cuda.reset_peak_memory_stats()
++        model = create_model("verification" if phase == "verification" else "retrieval",
++                             activation_checkpointing=args.activation_checkpointing).cuda().train()
++        if phase == "retrieval_phase1":
++            for parameter in model[0].parameters():
++                parameter.requires_grad_(False)
++        optimizer = torch.optim.Adam(model.parameters(), lr=.0001) if phase == "verification" else torch.optim.SGD(
++            [p for p in model.parameters() if p.requires_grad], lr=.00633956, momentum=.9)
++        memory = CrossBatchContrastive().cuda()
++        use_amp = phase != "verification"
++        scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
++        size = 256 if phase == "verification" else 1024
++        image = torch.randn(32, 3, size, size, device="cuda")
++        label = torch.arange(32, device="cuda") // 8
++        before = parameters_digest(model, head_only=True)
++        fresh_optimizer_entries = len(optimizer.state)
++        started = time.monotonic()
++
++        def forward_smoke():
++            with torch.autocast("cuda", dtype=torch.float16, enabled=use_amp):
++                if phase == "verification":
++                    predicted = model(image, image.roll(1, dims=0)).flatten()
++                    return F.binary_cross_entropy_with_logits(predicted, (torch.arange(32, device="cuda") % 2).float())
++                return memory(model(image), label)
++
++        def record_overflow(event):
++            progress(args.output, phase=phase, status="amp_backoff", epoch=0, epochs=0, step=0, loss=None, **event)
++
++        loss, precision = optimizer_batch(model, optimizer, scaler, forward_smoke,
++                                          memory=memory if use_amp else None, on_overflow=record_overflow)
++        torch.cuda.synchronize()
++        result = {"phase": phase, "batch_size": 32, "resolution": size, "loss": float(loss.detach()),
++                  **precision, "initial_optimizer_state_entries": fresh_optimizer_entries,
++                  "global_step_before": 0, "optimizer_state_entries": len(optimizer.state),
++                  "head_before_sha256": before, "head_after_sha256": parameters_digest(model, head_only=True),
++                  "head_changed": before != parameters_digest(model, head_only=True),
++                  "peak_gpu_gib": torch.cuda.max_memory_allocated() / 2 ** 30,
++                  "seconds": time.monotonic() - started, "activation_checkpointing": args.activation_checkpointing,
++                  "data_type": "합성 난수 영상; CXR 성능 평가나 정식 학습 아님"}
++        results.append(result)
++        atomic_json(args.output / "smoke.json", results)
++        progress(args.output, phase=phase, status="smoke_pass", epoch=0, epochs=0, step=1, **{
++            key: value for key, value in result.items() if key != "phase"})
++        del model, optimizer, memory, scaler, image, label, loss
++        gc.collect()
++        torch.cuda.empty_cache()
++    return results
+--- 1차/experiment/training/imagenet.py
++++ 3차/experiment/training/imagenet.py
+@@ -0,0 +1,169 @@
++"""정확히 고정한 공식 ImageNet legacy 파일만 안전한 저장 형식으로 변환합니다."""
++
++from collections import OrderedDict
++import hashlib
++import io
++import json
++from pathlib import Path
++import subprocess
++import sys
++import tempfile
++
++import torch
++from torchvision.models import resnet50
++
++from cxr_reid.download import download_with_resume
++from .state import atomic_json, digest
++
++
++SOURCE_URL = "https://download.pytorch.org/models/resnet50-19c8e357.pth"
++SOURCE_SHA256 = "19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097"
++SOURCE_BYTES = 102502400
++
++
++def validate_legacy_bytes(blob):
++    if len(blob) != SOURCE_BYTES:
++        raise ValueError("공식 ImageNet legacy 파일의 고정 크기가 다릅니다.")
++    if hashlib.sha256(blob).hexdigest() != SOURCE_SHA256:
++        raise ValueError("공식 ImageNet legacy 파일의 고정 SHA256가 다릅니다.")
++
++
++def validate_state(state):
++    if not isinstance(state, (dict, OrderedDict)):
++        raise ValueError("ImageNet 변환 결과가 state_dict가 아닙니다.")
++    expected = resnet50(weights=None).state_dict()
++    # 구버전 BatchNorm에는 num_batches_tracked가 없으며 PyTorch의 정식 로더가 0을 보충합니다.
++    keys_without_counters = {key for key in expected if not key.endswith("num_batches_tracked")}
++    if set(state) not in (set(expected), keys_without_counters):
++        raise ValueError("공식 ImageNet 모델의 키 집합이 다릅니다.")
++    for name, tensor in state.items():
++        if type(tensor) is not torch.Tensor or tensor.device.type != "cpu":
++            raise ValueError("공식 ImageNet state_dict에 일반 CPU tensor가 아닌 값이 있습니다: "
++                             f"key={name}, type={type(tensor).__module__}.{type(tensor).__name__}, "
++                             f"device={getattr(tensor, 'device', None)}, "
++                             f"shape={getattr(tensor, 'shape', None)}, dtype={getattr(tensor, 'dtype', None)}")
++        if tensor.shape != expected[name].shape or tensor.dtype != expected[name].dtype:
++            raise ValueError("공식 ImageNet tensor의 shape/dtype가 다릅니다.")
++        if not torch.isfinite(tensor).all():
++            raise ValueError("공식 ImageNet tensor에 비유한 값이 있습니다.")
++
++
++def normalize_legacy_state(state):
++    """고정 공식 파일의 Parameter 저장 표현만 순수 CPU Tensor로 바꿉니다."""
++    if not isinstance(state, (dict, OrderedDict)):
++        raise ValueError("공식 legacy ImageNet 반환 값이 state_dict가 아닙니다.")
++    normalized = OrderedDict()
++    for name, tensor in state.items():
++        if type(tensor) not in (torch.Tensor, torch.nn.Parameter) or tensor.device.type != "cpu":
++            raise ValueError("공식 legacy ImageNet에 허용하지 않은 tensor 하위 자료형 또는 장치가 있습니다.")
++        normalized[name] = tensor.detach().cpu()
++        if type(normalized[name]) is not torch.Tensor or not torch.equal(tensor, normalized[name]):
++            raise ValueError("ImageNet Parameter의 저장 표현 정규화에서 값이 변경됐습니다.")
++    validate_state(normalized)
++    return normalized
++
++
++def convert_legacy_bytes(blob):
++    """검증한 공식 바이트만 작업자 전용 임시 핸들에서 변환합니다."""
++    validate_legacy_bytes(blob)
++    if __name__ != "__main__":
++        raise RuntimeError("실제 legacy 역직렬화는 별도 변환 subprocess에서만 허용합니다.")
++    # 구형 tar 로더는 fileno()를 요구하므로 BytesIO 대신 보호된 임시 핸들을 사용합니다.
++    # 부모가 승인한 공식 단일 해시만 도달하며 외부 파일 경로·해시·옵션은 받지 않습니다.
++    work = Path(__file__).resolve().parents[2] / "work" / "imagenet_conversion"
++    work.mkdir(parents=True, exist_ok=True)
++    with tempfile.TemporaryDirectory(prefix="worker-", dir=work) as directory:
++        # torch의 구형 tar 로더가 만드는 내부 추출 임시 폴더도 이 작업 경계에 둡니다.
++        previous_tempdir = tempfile.tempdir
++        tempfile.tempdir = directory
++        try:
++            with tempfile.TemporaryFile(mode="w+b", prefix="verified-", dir=directory) as handle:
++                handle.write(blob)
++                handle.flush()
++                handle.seek(0)
++                validate_legacy_bytes(handle.read())
++                handle.seek(0)
++                original_state = torch.load(handle, map_location="cpu", weights_only=False)
++        finally:
++            tempfile.tempdir = previous_tempdir
++    state = normalize_legacy_state(original_state)
++    stream = io.BytesIO()
++    torch.save(state, stream)
++    safe = stream.getvalue()
++    reloaded = torch.load(io.BytesIO(safe), map_location="cpu", weights_only=True)
++    validate_state(reloaded)
++    if (list(original_state) != list(state) or list(state) != list(reloaded)
++            or not all(torch.equal(original_state[key], state[key])
++                       and torch.equal(state[key], reloaded[key]) for key in state)):
++        raise ValueError("ImageNet 형식 변환 전후 tensor가 정확하게 일치하지 않습니다.")
++    return safe, {"source_url": SOURCE_URL, "source_sha256": SOURCE_SHA256,
++                  "source_bytes": SOURCE_BYTES, "converted_sha256": hashlib.sha256(safe).hexdigest(),
++                  "converted_bytes": len(safe), "tensor_count": len(state),
++                  "legacy_parameter_count": sum(type(value) is torch.nn.Parameter for value in original_state.values()),
++                  "normalization": "정확한 nn.Parameter만 detach().cpu() 순수 Tensor로 저장 표현 변환; 수치 변경 없음",
++                  "all_tensors_equal": True, "keys_shapes_dtypes_finite_checked": True,
++                  "legacy_load_boundary": "고정 SHA/크기·동일 바이트와 임시 핸들 재검증·별도 subprocess 한정"}
++
++
++def ensure_safe_initialization(cache):
++    cache = Path(cache)
++    cache.mkdir(parents=True, exist_ok=True)
++    source = cache / "resnet50-19c8e357.pth"
++    safe = cache / "resnet50-19c8e357.safe.pt"
++    receipt = cache / "resnet50-19c8e357.safe.json"
++    download_with_resume(SOURCE_URL, source, digest=SOURCE_SHA256)
++    if safe.exists() or receipt.exists():
++        if not safe.is_file() or not receipt.is_file():
++            raise ValueError("ImageNet 변환 캐시 또는 영수증이 누락됐습니다. 기존 파일을 보존합니다.")
++        record = json.loads(receipt.read_text(encoding="utf-8"))
++        if (record.get("source_sha256") != SOURCE_SHA256 or record.get("source_bytes") != SOURCE_BYTES
++                or record.get("source_url") != SOURCE_URL or not record.get("all_tensors_equal")
++                or record.get("converted_sha256") != digest(safe)):
++            raise ValueError("ImageNet 변환 캐시의 출처·바이트 해시가 다릅니다. 기존 파일을 보존합니다.")
++    else:
++        blob = source.read_bytes()
++        validate_legacy_bytes(blob)
++        command = [sys.executable, "-B", "-X", "utf8", "-m", "training.imagenet"]
++        result = subprocess.run(command, input=blob, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
++                                cwd=Path(__file__).resolve().parents[1], timeout=180, check=False)
++        if result.returncode:
++            raise RuntimeError("고정 ImageNet 변환 subprocess 실패: " + result.stderr.decode("utf-8", errors="replace")[-5000:])
++        marker = b"IMAGENET_CONVERSION_PROVENANCE "
++        lines = result.stderr.split(b"\n")
++        records = [json.loads(line[len(marker):]) for line in lines if line.startswith(marker)]
++        if len(records) != 1:
++            raise ValueError("ImageNet 변환 subprocess의 영수증이 없습니다.")
++        record = records[0]
++        if record.get("converted_sha256") != hashlib.sha256(result.stdout).hexdigest():
++            raise ValueError("ImageNet 변환 subprocess 출력이 영수증과 다릅니다.")
++        validate_state(torch.load(io.BytesIO(result.stdout), map_location="cpu", weights_only=True))
++        # 중단으로 남은 임시 파일을 덮어쓰거나 고정 임시 이름을 다시 사용하지 않습니다.
++        with tempfile.NamedTemporaryFile(mode="wb", prefix=safe.name + ".", suffix=".tmp",
++                                         dir=cache, delete=False) as handle:
++            temporary = Path(handle.name)
++            handle.write(result.stdout)
++        try:
++            temporary.replace(safe)
++        finally:
++            temporary.unlink(missing_ok=True)
++        atomic_json(receipt, record)
++    state = torch.load(safe, map_location="cpu", weights_only=True)
++    validate_state(state)
++    return state, {**record, "safe_file": str(safe), "sha256": digest(safe),
++                   "kind": "ImageNet 사전학습 backbone; 공개 CXR 최종 모델 아님"}
++
++
++def main():
++    if len(sys.argv) != 1:
++        raise ValueError("고정 ImageNet 변환 작업자는 파일 경로나 옵션을 받지 않습니다.")
++    torch.set_num_threads(2)
++    blob = sys.stdin.buffer.read(SOURCE_BYTES + 1)
++    safe, record = convert_legacy_bytes(blob)
++    sys.stderr.write("IMAGENET_CONVERSION_PROVENANCE " + json.dumps(record) + "\n")
++    sys.stderr.flush()
++    sys.stdout.buffer.write(safe)
++    sys.stdout.buffer.flush()
++
++
++if __name__ == "__main__":
++    main()
+--- 1차/experiment/training/losses.py
++++ 3차/experiment/training/losses.py
+@@ -0,0 +1,52 @@
++"""PML 0.9.94의 정규화된 비제곱 contrastive/CBM128을 이식합니다."""
++
++import torch
++from torch import nn
++from torch.nn import functional as F
++
++
++def contrastive_loss(embeddings, labels, reference=None, reference_labels=None, self_columns=None):
++    reference = embeddings if reference is None else reference
++    reference_labels = labels if reference_labels is None else reference_labels
++    left = F.normalize(embeddings.float(), p=2, dim=1)
++    right = F.normalize(reference.float(), p=2, dim=1)
++    distance = torch.cdist(left, right, p=2)
++    positive = labels[:, None] == reference_labels[None, :]
++    negative = ~positive
++    if self_columns is None and reference is embeddings:
++        positive.fill_diagonal_(False)
++    elif self_columns is not None:
++        positive[torch.arange(len(labels), device=labels.device), self_columns] = False
++    losses = (distance[positive], F.relu(1. - distance[negative]))
++    result = embeddings.sum() * 0.
++    for values in losses:
++        nonzero = values[values > 0]
++        if nonzero.numel():
++            result = result + nonzero.mean()
++    return result
++
++
++class CrossBatchContrastive(nn.Module):
++    def __init__(self, embedding_size=128, memory_size=128):
++        super().__init__()
++        self.register_buffer("memory", torch.zeros(memory_size, embedding_size))
++        self.register_buffer("labels", torch.zeros(memory_size, dtype=torch.long))
++        self.register_buffer("cursor", torch.zeros((), dtype=torch.long))
++        self.register_buffer("count", torch.zeros((), dtype=torch.long))
++
++    def forward(self, embeddings, labels):
++        if not self.training:
++            # 검증 영상이 다음 학습 배치의 메모리로 유입되는 원본 부작용을 차단합니다.
++            return contrastive_loss(embeddings, labels)
++        size = len(embeddings)
++        if size > len(self.memory):
++            raise ValueError("배치 크기가 cross-batch memory보다 큽니다.")
++        indices = (torch.arange(size, device=embeddings.device) + self.cursor) % len(self.memory)
++        with torch.no_grad():
++            self.memory[indices] = embeddings.detach().to(self.memory.dtype)
++            self.labels[indices] = labels
++            self.cursor.copy_((self.cursor + size) % len(self.memory))
++            self.count.copy_(torch.minimum(self.count + size, self.count.new_tensor(len(self.memory))))
++        count = int(self.count)
++        return contrastive_loss(embeddings, labels, self.memory[:count].clone(),
++                                self.labels[:count], self_columns=indices)
+--- 1차/experiment/training/state.py
++++ 3차/experiment/training/state.py
+@@ -0,0 +1,82 @@
++"""가중치·최적화 상태·난수 상태를 원자적으로 저장하고 입력 결합을 검사합니다."""
++
++from datetime import datetime, timezone
++import hashlib
++import json
++import os
++from pathlib import Path
++import random
++import uuid
++
++import numpy as np
++import torch
++
++
++def digest(path):
++    value = hashlib.sha256()
++    with open(path, "rb") as file:
++        for block in iter(lambda: file.read(8 * 1024 * 1024), b""):
++            value.update(block)
++    return value.hexdigest()
++
++
++def atomic_json(path, value):
++    path = Path(path)
++    path.parent.mkdir(parents=True, exist_ok=True)
++    temp = path.with_name(path.name + "." + uuid.uuid4().hex + ".tmp")
++    temp.write_text(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False), encoding="utf-8")
++    os.replace(temp, path)
++
++
++def atomic_torch_save(value, path):
++    path = Path(path)
++    path.parent.mkdir(parents=True, exist_ok=True)
++    temp = path.with_name(path.name + "." + uuid.uuid4().hex + ".tmp")
++    torch.save(value, temp)
++    os.replace(temp, path)
++
++
++def rng_state():
++    np_state = np.random.get_state()
++    return {"python": random.getstate(), "numpy": [np_state[0], np_state[1].tolist(), *np_state[2:]],
++            "torch": torch.get_rng_state(),
++            "cuda": torch.cuda.get_rng_state_all() if torch.cuda.is_available() else []}
++
++
++def restore_rng(value):
++    random.setstate(value["python"])
++    np_state = value["numpy"]
++    np.random.set_state((np_state[0], np.asarray(np_state[1], dtype=np.uint32), *np_state[2:]))
++    torch.set_rng_state(value["torch"])
++    if value["cuda"] and torch.cuda.is_available():
++        torch.cuda.set_rng_state_all(value["cuda"])
++
++
++def save_checkpoint(path, model, optimizer, *, metadata, scheduler=None, scaler=None, memory=None):
++    payload = {"model": model.state_dict(), "optimizer": optimizer.state_dict(), "rng": rng_state(),
++               "metadata": metadata, "scheduler": scheduler.state_dict() if scheduler else None,
++               "scaler": scaler.state_dict() if scaler else None,
++               "memory": memory.state_dict() if memory else None}
++    atomic_torch_save(payload, path)
++
++
++def load_checkpoint(path, model, optimizer, *, binding, scheduler=None, scaler=None, memory=None):
++    payload = torch.load(path, map_location="cpu", weights_only=True)
++    if payload["metadata"]["binding"] != binding:
++        raise ValueError("재개할 체크포인트의 소스·설정·데이터 분할이 현재 실행과 다릅니다.")
++    model.load_state_dict(payload["model"], strict=True)
++    optimizer.load_state_dict(payload["optimizer"])
++    for obj, key in ((scheduler, "scheduler"), (scaler, "scaler"), (memory, "memory")):
++        if obj is not None and payload[key] is not None:
++            obj.load_state_dict(payload[key])
++    restore_rng(payload["rng"])
++    return payload["metadata"]
++
++
++def progress(output, **value):
++    value["updated_at"] = datetime.now(timezone.utc).isoformat()
++    atomic_json(Path(output) / "progress.json", value)
++    # JSONL은 실제 LF 하나로만 레코드를 나눕니다.
++    with open(Path(output) / "events.jsonl", "a", encoding="utf-8", newline="\n") as file:
++        file.write(json.dumps(value, ensure_ascii=False, allow_nan=False) + "\n")
++    print(json.dumps(value, ensure_ascii=False, allow_nan=False), flush=True)
+--- 1차/package.json
++++ 3차/package.json
+@@ -1 +0,0 @@
+-{"name":"cxr-privacy-lab","version":"1.0.0","private":true,"type":"module","scripts":{"start":"node server.mjs","test":"node --test tests/server.test.mjs"}}
+--- 1차/run_experiment.py
++++ 3차/run_experiment.py
+@@ -1,7 +1,7 @@
+-"""독립 실행·중단·환경 준비와 원본 3단계 평가를 관리합니다."""
+-
++"""3차의 데이터 검증·새 모델 학습·새 가중치 평가를 순서대로 관리합니다."""
+ from __future__ import annotations
+ 
++from datetime import datetime, timezone
+ import hashlib
+ import json
+ import os
+@@ -10,11 +10,10 @@
+ import sys
+ import time
+ import uuid
+-from datetime import datetime, timezone
+ 
+ HERE = Path(__file__).resolve().parent
+ BASE = HERE.parent / "research"
+-CONTROL = BASE / "control"
++CONTROL = HERE / "work/control"
+ PYTHON = HERE.parent / "runtime/Scripts/python.exe"
+ 
+ 
+@@ -23,13 +22,14 @@
+ 
+ 
+ def atomic_json(path, value):
++    path.parent.mkdir(parents=True, exist_ok=True)
+     temp = path.with_suffix(".tmp")
+     temp.write_text(json.dumps(value, ensure_ascii=False, indent=2), encoding="utf-8")
+     os.replace(temp, path)
+ 
+ 
+ def stop_child(child):
+-    """이 실행에서 직접 시작한 프로세스 트리만 종료합니다."""
++    """이 실행이 시작한 프로세스와 후손만 종료합니다."""
+     if child.poll() is not None:
+         return
+     if os.name == "nt":
+@@ -40,96 +40,144 @@
+     child.wait(timeout=30)
+ 
+ 
+-def main():
+-    CONTROL.mkdir(parents=True, exist_ok=True)
+-    lock = (CONTROL / "run.lock").open("a+b")
+-    lock.seek(0)
+-    if lock.read(1) == b"":
+-        lock.write(b"0")
+-        lock.flush()
+-    lock.seek(0)
++def acquire_lock(path):
++    path.parent.mkdir(parents=True, exist_ok=True)
++    handle = path.open("a+b")
++    handle.seek(0)
++    if not handle.read(1):
++        handle.write(b"0")
++        handle.flush()
++    handle.seek(0)
+     try:
+         if os.name == "nt":
+             import msvcrt
+-            msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
++            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+         else:
+             import fcntl
+-            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
++            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+     except OSError:
+-        print("[실행 거절] 이미 실행 중인 실험이 있습니다.", flush=True)
++        handle.close()
++        raise
++    return handle
++
++
++def main(prepare_only=False, validated_snapshot=None):
++    CONTROL.mkdir(parents=True, exist_ok=True)
++    try:
++        # 이전 차수 관리자와도 같은 데이터 준비를 동시에 실행하지 않습니다.
++        lock = acquire_lock(BASE / "control/run.lock")
++    except OSError:
++        print("[실행 거절] 데이터 경로를 사용하는 실험이 있습니다.", flush=True)
+         return 2
+-
+     run_id = str(uuid.uuid4())
++    output = HERE / "work/runs" / run_id
++    output.mkdir(parents=True, exist_ok=False)
+     state = {"run_id": run_id, "pid": os.getpid(), "status": "running",
+-             "phase": "환경 및 데이터 준비", "started_at": timestamp(),
+-             "finished_at": None, "exit_code": None, "error": None}
+-    atomic_json(CONTROL / "run.json", state)
++             "phase": "학습 실행환경 확인", "revision": 3,
++             "mode": "데이터 준비 전용" if prepare_only else "새 모델 재학습 후 평가", "output": str(output),
++             "started_at": timestamp(), "finished_at": None, "exit_code": None, "error": None}
+     children = []
++    flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+     env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8", PYTHONUNBUFFERED="1",
+-               MPLBACKEND="Agg")
+-    flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
++               MPLBACKEND="Agg", TORCH_HOME=str(HERE / "work/cache/torch"))
++    log = (CONTROL / "experiment.log").open("a", encoding="utf-8", buffering=1)
++    owned_log = (output / "experiment.log").open("x", encoding="utf-8", buffering=1)
+ 
+     def update(**values):
+         state.update(values)
+         atomic_json(CONTROL / "run.json", state)
++        atomic_json(output / "run.json", state)
++
++    def message(value):
++        log.write(value + "\n")
++        owned_log.write(value + "\n")
++        print(value, flush=True)
+ 
+     def cancelled():
+-        stop_file = CONTROL / "stop.request"
+         try:
+-            return stop_file.read_text(encoding="utf-8").strip() == run_id
++            return (CONTROL / "stop.request").read_text(encoding="utf-8").strip() == run_id
+         except FileNotFoundError:
+             return False
+ 
+-    log = (CONTROL / "experiment.log").open("a", encoding="utf-8", buffering=1)
+-    package_log = (CONTROL / "environment.log").open("a", encoding="utf-8", buffering=1)
+-
+-    def message(value):
+-        log.write(f"{value}\n")
+-        log.flush()
+-
+-    def launch(argv, output=log):
+-        message("[실행] " + json.dumps([str(x) for x in argv], ensure_ascii=False))
+-        child = subprocess.Popen([str(x) for x in argv], cwd=HERE / "experiment", env=env,
+-                                 stdout=output, stderr=subprocess.STDOUT, creationflags=flags)
++    commands = []
++
++    def execute(argv, phase):
++        if cancelled():
++            raise InterruptedError("사용자가 실험 중단을 요청했습니다.")
++        update(phase=phase)
++        command = [str(x) for x in argv]
++        commands.append({"phase": phase, "argv": command, "cwd": str(HERE / "experiment"), "at": timestamp()})
++        atomic_json(output / "commands.json", commands)
++        message("[실행] " + json.dumps(command, ensure_ascii=False))
++        child = subprocess.Popen(command, cwd=HERE / "experiment", env=env,
++                                 stdout=log, stderr=subprocess.STDOUT, creationflags=flags)
+         children.append(child)
+-        return child
+-
+-    def wait(child, phase):
+-        update(phase=phase)
+         while child.poll() is None:
+             if cancelled():
+                 raise InterruptedError("사용자가 실험 중단을 요청했습니다.")
+             time.sleep(1)
++        if cancelled():
++            raise InterruptedError("사용자가 실험 중단을 요청했습니다.")
+         if child.returncode:
+-            raise RuntimeError(f"{phase}: 종료 코드 {child.returncode}. 실행 기록을 확인하세요.")
++            raise RuntimeError(f"{phase}: 종료 코드 {child.returncode}. 원본 실행 기록을 확인하세요.")
+ 
+     try:
+-        message(f"\n[새 실행] {timestamp()} / {run_id}")
+-        message("[평가 방식] 공개 최종 가중치 평가 재현이며 새 모델 학습이 아닙니다.")
+-        requirements = HERE / "experiment/requirements.txt"
+-        signature = hashlib.sha256(requirements.read_bytes() + b"torch2.7.1_tv0.22.1_cu126_py312").hexdigest()
+-        marker = CONTROL / "environment_ready.json"
+-        ready = marker.exists() and json.loads(marker.read_text(encoding="utf-8")).get("signature") == signature
+-        # 공식 데이터 다운로드는 표준 라이브러리만 사용하므로 환경 설치와 병행합니다.
+-        download = launch([PYTHON, "-u", HERE / "experiment/download_datasets.py", "--project", BASE])
+-        if not ready:
+-            torch_install = launch([PYTHON, "-m", "pip", "install", "torch==2.7.1", "torchvision==0.22.1",
+-                                    "--index-url", "https://download.pytorch.org/whl/cu126"], package_log)
+-            wait(torch_install, "CUDA 실행환경 설치 · 데이터 다운로드 병행")
+-            packages = launch([PYTHON, "-m", "pip", "install", "-r", requirements], package_log)
+-            wait(packages, "실험 의존성 설치 · 데이터 다운로드 병행")
+-            check = launch([PYTHON, "-c", "import torch, torchvision, numpy, sklearn, pandas, PIL; "
+-                            "assert torch.cuda.is_available(), 'CUDA 사용 불가'; "
+-                            "x=torch.ones(4,device='cuda'); assert x.sum().item()==4; "
+-                            "print('[CUDA 검증]',torch.__version__,torch.cuda.get_device_name(0),flush=True)"])
+-            wait(check, "CUDA 실제 연산 검사")
+-            atomic_json(marker, {"signature": signature, "verified_at": timestamp(), "python": sys.version})
+-        wait(download, "NIH·COVID-19 다운로드 및 원본 검증")
+-        evaluation = launch([PYTHON, "-u", HERE / "experiment/main.py", "--project", BASE,
+-                             "--stage", "all", "--skip-download"])
+-        wait(evaluation, "1→2→3단계 평가 실행")
+-        update(status="completed", phase="모든 단계 평가 완료", exit_code=0, finished_at=timestamp())
+-        message("[완료] 원본·블러·모자이크 평가 프로세스가 정상 종료했습니다.")
++        update()
++        message(f"\n[새 실행] {timestamp()} / {run_id} / 3차")
++        message("[학습 방식] 공개 CXR 최종 가중치 없이 새 학습. 논문상 ImageNet 초기화와 구분합니다.")
++        if prepare_only:
++            message("[준비 전용] 이번 실행에서는 데이터 준비와 검증만 수행합니다. 학습을 시작하지 않습니다.")
++        source = {}
++        for folder in [HERE / "experiment", HERE / "app"]:
++            for file in sorted(folder.rglob("*")):
++                if file.is_file() and "__pycache__" not in file.parts:
++                    source[file.relative_to(HERE).as_posix()] = hashlib.sha256(file.read_bytes()).hexdigest()
++        atomic_json(output / "source_manifest.json", source)
++        execute([PYTHON, "-B", "-X", "utf8", "-c",
++                 "import torch,torchvision,training.engine; assert torch.cuda.is_available(); "
++                 "x=torch.ones(4,device='cuda'); assert x.sum().item()==4; "
++                 "print('[CUDA 검증]',torch.__version__,torch.cuda.get_device_name(0),flush=True)"],
++                "학습 실행환경과 CUDA 실제 연산 확인")
++        if validated_snapshot is None:
++            previous_reports = set((BASE / "validation_runs").glob("*/report.json"))
++            execute([PYTHON, "-B", "-X", "utf8", "-u", HERE / "experiment/download_datasets.py", "--project", BASE],
++                    "데이터 준비·영상 전수 검증·환자 분리 확인")
++            new_reports = set((BASE / "validation_runs").glob("*/report.json")) - previous_reports
++            if len(new_reports) != 1:
++                raise RuntimeError("이번 준비 실행의 검증 보고서를 하나로 특정할 수 없습니다.")
++            validated_snapshot = new_reports.pop().parent.resolve(strict=True)
++            update(validation_snapshot=str(validated_snapshot))
++        else:
++            validated_snapshot = Path(validated_snapshot).resolve(strict=True)
++            if not validated_snapshot.is_relative_to((BASE / "validation_runs").resolve()):
++                raise ValueError("현재 연구 경로 안의 검증 스냅샷만 사용할 수 있습니다.")
++            execute([PYTHON, "-B", "-X", "utf8", "-u", "-c",
++                     "from pathlib import Path; import sys; from cxr_reid.dataset_validation import validate_prepared_snapshot; "
++                     "validate_prepared_snapshot(Path(sys.argv[1]),Path(sys.argv[2])); print('[데이터 검증 완료] 모든 원영상 SHA256 재확인',flush=True)",
++                     BASE, validated_snapshot], "검증 스냅샷과 현재 원영상 SHA256 전수 재확인")
++        if prepare_only:
++            update(status="completed", phase="데이터 준비와 검증 완료 · 학습은 아직 시작하지 않음", exit_code=0, finished_at=timestamp())
++            message("[준비 완료] 데이터 준비 전용 실행이며 모델 학습은 수행하지 않았습니다.")
++            return 0
++        execute([PYTHON, "-B", "-X", "utf8", "-u", HERE / "experiment/train_from_scratch.py",
++                 "--project", BASE, "--output", output / "training", "--seed", "3", "--tasks", "both",
++                 "--validated-snapshot", validated_snapshot, "--activation-checkpointing"],
++                "검증 모델·검색 모델 처음부터 학습")
++        artifacts = json.loads((output / "training/artifacts.json").read_text(encoding="utf-8"))
++        checkpoints = []
++        for key in ["verification_checkpoint", "retrieval_checkpoint"]:
++            candidate = Path(artifacts[key]).resolve(strict=True)
++            if not candidate.is_relative_to((output / "training").resolve()) or not candidate.is_file():
++                raise ValueError("현재 실행이 생성한 학습 체크포인트가 아닙니다.")
++            checkpoints.append(candidate)
++        evaluation = [PYTHON, "-B", "-X", "utf8", "-u", HERE / "experiment/main.py", "--project", BASE,
++                 "--stage", "all", "--skip-download", "--run-id", run_id,
++                 "--verification-checkpoint", checkpoints[0], "--retrieval-checkpoint", checkpoints[1]]
++        if validated_snapshot is not None:
++            evaluation.extend(["--validated-snapshot", validated_snapshot])
++        execute(evaluation, "새 학습 가중치로 1→2→3단계 평가 실행")
++        update(status="completed", phase="새 모델 학습과 모든 평가 완료", exit_code=0, finished_at=timestamp())
++        message("[완료] 새 학습과 원본·블러·모자이크 평가가 정상 종료했습니다.")
+         return 0
+     except InterruptedError as error:
+         for child in children:
+@@ -145,9 +193,14 @@
+         return 1
+     finally:
+         log.close()
+-        package_log.close()
++        owned_log.close()
+         lock.close()
+ 
+ 
+ if __name__ == "__main__":
+-    sys.exit(main())
++    import argparse
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--prepare-only", action="store_true", help="데이터 준비와 검증만 수행합니다")
++    parser.add_argument("--validated-snapshot", type=Path, help="원영상 SHA256 전수 재확인으로 기존 검증의 디코드 결과를 재사용합니다")
++    args = parser.parse_args()
++    sys.exit(main(prepare_only=args.prepare_only, validated_snapshot=args.validated_snapshot))
+--- 1차/server.mjs
++++ 3차/server.mjs
+@@ -39,7 +39,8 @@
+ export function createDashboard(options = {}) {
+   const root = options.root || ROOT;
+   const research = options.research || path.resolve(root, '../research');
+-  const control = path.join(research, 'control');
++  const control = options.control || (options.research ? path.join(research, 'control') : path.join(root, 'work', 'control'));
++  const previewControl = options.research ? control : path.join(research, 'control');
+   const launch = options.launch || (() => spawn(path.resolve(root, '../runtime/Scripts/python.exe'), ['-B', '-X', 'utf8', path.join(root, 'run_experiment.py')], { cwd: root, windowsHide: true, stdio: 'ignore' }));
+   let pending = false, localChild = null, gpuCache = { name: '확인 중', utilization: null }, gpuAt = 0;
+   async function state() {
+@@ -51,9 +52,14 @@
+   async function status() {
+     const current = await state();
+     const results = [];
++    // 현재 실행의 결과만 읽으며 과거 가중치 평가와 새 학습 결과를 섞지 않습니다.
++    const runId=current.run?.run_id;
++    const validRun=typeof runId==='string' && /^[a-zA-Z0-9_-]{1,80}$/.test(runId);
++    const resultRoot=validRun ? path.join(research,'results','runs',runId) : (options.research ? path.join(research,'results') : null);
+     for (const folder of ['stage_1_original', 'stage_2_blur', 'stage_3_mosaic']) {
+       try {
+-        const file = path.join(research, 'results', folder, 'summary.csv');
++        if (!resultRoot) continue;
++        const file = path.join(resultRoot, folder, 'summary.csv');
+         const stat = await fs.stat(file);
+         if (stat.size <= 2 * 1024 * 1024) for (const row of parseCSV(await fs.readFile(file, 'utf8'))) results.push({ ...row, source: folder });
+       } catch (e) { if (e.code !== 'ENOENT') throw e; }
+@@ -72,10 +78,11 @@
+     }
+     const previews={};
+     for (const name of ['original','blur','mosaic']) {
+-      try { const info=await fs.stat(path.join(control,'previews',`${name}.png`)); previews[name]=info.isFile()&&info.size>0; }
++      try { const info=await fs.stat(path.join(previewControl,'previews',`${name}.png`)); previews[name]=info.isFile()&&info.size>0; }
+       catch(e) { if(e.code!=='ENOENT')throw e; previews[name]=false; }
+     }
+-    return { ...current, gpu: gpuCache, results, downloads, previews, log: await tail(path.join(control, 'experiment.log')), environment_log: await tail(path.join(control, 'environment.log')), environment_ready: !!(await json(path.join(control, 'environment_ready.json'))), updated_at: new Date().toISOString() };
++    const training=validRun ? await json(path.join(root,'work','runs',runId,'training','progress.json')) : null;
++    return { ...current, revision:3, training, gpu: gpuCache, results, downloads, previews, log: await tail(path.join(control, 'experiment.log')), environment_log: await tail(path.join(research,'control','environment.log')), environment_ready: !!(await json(path.join(research,'control','environment_ready.json'))), updated_at: new Date().toISOString() };
+   }
+   const server = http.createServer(async (req, res) => {
+     const send = (code, data) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(data)); };
+@@ -86,7 +93,7 @@
+       const previewFiles={'/api/preview/original.png':'original.png','/api/preview/blur.png':'blur.png','/api/preview/mosaic.png':'mosaic.png'};
+       if (req.method==='GET' && Object.hasOwn(previewFiles,req.url)) {
+         try {
+-          const file=path.join(control,'previews',previewFiles[req.url]);const info=await fs.stat(file);
++          const file=path.join(previewControl,'previews',previewFiles[req.url]);const info=await fs.stat(file);
+           if(!info.isFile() || info.size>10*1024*1024)return send(404,{error:'미리보기를 준비하고 있습니다.'});
+           const data=await fs.readFile(file);
+           res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});return res.end(data);
+@@ -128,5 +135,5 @@
+ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+   const server=createDashboard();
+   server.on('error', error => { console.error(`[대시보드 시작 실패] ${error.code}: ${error.message}`); process.exitCode=1; });
+-  server.listen(8786, '127.0.0.1', () => console.log('CXR Privacy Lab: http://127.0.0.1:8786'));
++  server.listen(8787, '127.0.0.1', () => console.log('CXR Privacy Lab 3차: http://127.0.0.1:8787'));
+ }
+--- 1차/tests/server.test.mjs
++++ 3차/tests/server.test.mjs
+@@ -66,3 +66,20 @@
+  for(const name of [...css.matchAll(/var\((--[\w-]+)\)/g)].map(x=>x[1]))assert.ok(names(light).includes(name),name);
+  assert.match(css,/prefers-reduced-motion:reduce/);assert.match(css,/\.paused \.image-panel\{animation-play-state:paused\}/);assert.match(js,/localStorage.getItem\('cxr-theme'\)/);assert.match(js,/localStorage.setItem\('cxr-theme',theme\)/);assert.match(js,/timeZone:'Asia\/Seoul'/);
+ });
++test('현재 학습 실행의 결과만 읽고 이전 고정 경로 결과를 섞지 않습니다',()=>fixture(async f=>{
++ await fs.writeFile(path.join(f.control,'run.json'),JSON.stringify({run_id:'new-run',pid:process.pid,status:'running',phase:'검증 모델·검색 모델 처음부터 학습'}));
++ for(const [folder,value] of [['results/stage_1_original','0.99'],['results/runs/old-run/stage_1_original','0.98'],['results/runs/new-run/stage_1_original','0.25']]){
++  const target=path.join(f.research,folder);await fs.mkdir(target,{recursive:true});await fs.writeFile(path.join(target,'summary.csv'),`auc\n${value}\n`);
++ }
++ const s=await(await f.request('/api/status')).json();assert.equal(s.results.length,1);assert.equal(s.results[0].auc,'0.25');assert.equal(describeExperiment(s).status,'학습 시작 준비 중');assert.ok(describeExperiment(s).stages.every(x=>!x.active));
++}));
++test('실행 ID의 경로 탈출은 결과 읽기로 연결되지 않습니다',()=>fixture(async f=>{
++ await fs.writeFile(path.join(f.control,'run.json'),JSON.stringify({run_id:'../../outside',status:'stopped'}));
++ const s=await(await f.request('/api/status')).json();assert.equal(s.results.length,0);assert.equal(s.training,null);
++}));
++test('준비 전용 완료와 GPU 대기를 실제 학습·평가 완료로 표시하지 않습니다',()=>{
++ const s={active:false,run:{status:'completed',mode:'데이터 준비 전용'},results:[],log:{text:''}};
++ assert.equal(describeExperiment(s).status,'데이터 준비 완료');
++ s.active=true;s.run={status:'running',phase:'검증 모델·검색 모델 처음부터 학습'};s.training={status:'waiting_for_gpu'};
++ assert.equal(describeExperiment(s).status,'GPU 여유 메모리 대기');assert.ok(describeExperiment(s).stages.every(x=>!x.active));
++});
+--- 1차/tests/test_runner.py
++++ 3차/tests/test_runner.py
+@@ -1,4 +1,4 @@
+-"""실데이터를 건드리지 않고 실행 관리자 실패·중단 경계를 검사합니다."""
++"""새 학습이 성공해야 현재 실행의 가중치로 평가하는지 격리 검사합니다."""
+ import importlib.util
+ import json
+ from pathlib import Path
+@@ -11,63 +11,77 @@
+ runner = importlib.util.module_from_spec(spec)
+ spec.loader.exec_module(runner)
+ 
+-
+ class RunnerContract(unittest.TestCase):
+-    def scenario(self, returncodes, cancel=False):
++    def scenario(self, returncodes, cancel=False, foreign=False):
+         with tempfile.TemporaryDirectory() as tmp:
+-            here = Path(tmp) / '1차'
++            here = Path(tmp) / '3차'
+             (here / 'experiment').mkdir(parents=True)
+-            (here / 'experiment/requirements.txt').write_text('fixture', encoding='utf-8')
+-            control = Path(tmp) / 'research/control'
+-            stopped = []
+-            started = []
++            control = here / 'control'
++            stopped, started = [], []
+             class Child:
+                 def __init__(self, argv, **kwargs):
+                     self.argv = argv
+                     self.pid = 9000 + len(started)
+                     self.returncode = returncodes[len(started)]
+                     started.append(self)
++                    if any(str(x).endswith('download_datasets.py') for x in argv) and self.returncode == 0:
++                        research = Path(argv[argv.index('--project') + 1])
++                        report = research / 'validation_runs' / 'fixture-snapshot' / 'report.json'
++                        report.parent.mkdir(parents=True)
++                        report.write_text('{}',encoding='utf-8')
++                    if any(str(x).endswith('train_from_scratch.py') for x in argv) and self.returncode == 0:
++                        output = Path(argv[argv.index('--output') + 1])
++                        output.mkdir(parents=True)
++                        items = {}
++                        for key in ['verification_checkpoint', 'retrieval_checkpoint']:
++                            dest = (here / 'foreign.pth') if foreign else output / (key + '.pth')
++                            dest.write_bytes(b'fixture')
++                            items[key] = str(dest)
++                        (output / 'artifacts.json').write_text(json.dumps(items), encoding='utf-8')
+                     if cancel:
+                         state = json.loads((control / 'run.json').read_text(encoding='utf-8'))
+                         (control / 'stop.request').write_text(state['run_id'], encoding='utf-8')
+                 def poll(self):
+                     return self.returncode
+-            with patch.multiple(runner, HERE=here, BASE=control.parent, CONTROL=control,
+-                                PYTHON=Path('fixture-python')), \
+-                 patch.object(runner.subprocess, 'Popen', Child), \
+-                 patch.object(runner, 'stop_child', lambda child: stopped.append(child.pid)):
+-                result = runner.main()
+-            state = json.loads((control / 'run.json').read_text(encoding='utf-8'))
+-            return result, state, started, stopped, (control / 'environment_ready.json').exists()
++            with patch.multiple(runner, HERE=here, BASE=Path(tmp)/'research', CONTROL=control, PYTHON=Path('fixture-python')), patch.object(runner.subprocess,'Popen',Child), patch.object(runner,'stop_child',lambda c:stopped.append(c.pid)):
++                code = runner.main()
++            state = json.loads((control/'run.json').read_text(encoding='utf-8'))
++            return code,state,started,stopped
+ 
+-    def test_success_requires_all_processes(self):
+-        code, state, started, stopped, marker = self.scenario([0, 0, 0, 0, 0])
+-        self.assertEqual((code, state['status']), (0, 'completed'))
+-        self.assertEqual(len(started), 5)
+-        self.assertIn('--skip-download', started[-1].argv)
+-        self.assertTrue(marker)
++    def test_new_training_precedes_evaluation_and_uses_its_weights(self):
++        code,state,started,stopped = self.scenario([0,0,0,0])
++        self.assertEqual((code,state['status']),(0,'completed'))
++        self.assertEqual(len(started),4)
++        self.assertIn('--output',started[2].argv)
++        self.assertIn('--verification-checkpoint',started[3].argv)
++        self.assertIn('--validated-snapshot',started[2].argv)
++        self.assertIn('--activation-checkpointing',started[2].argv)
++        self.assertIn(state['run_id'],' '.join(started[3].argv))
++        self.assertFalse(any('--resume' in arg for child in started for arg in child.argv))
+         self.assertFalse(stopped)
+ 
+-    def test_environment_failure_cannot_start_evaluation(self):
+-        code, state, started, stopped, marker = self.scenario([None, 1])
+-        self.assertEqual((code, state['status']), (1, 'failed'))
+-        self.assertEqual(len(started), 2)
+-        self.assertEqual(set(stopped), {9000, 9001})
+-        self.assertFalse(marker)
++    def test_training_failure_cannot_start_evaluation(self):
++        code,state,started,stopped=self.scenario([0,0,1])
++        self.assertEqual((code,state['status']),(1,'failed'))
++        self.assertEqual(len(started),3)
++        self.assertIn('학습',state['error'])
+ 
+-    def test_dataset_failure_cannot_become_completion(self):
+-        code, state, started, stopped, marker = self.scenario([1, 0, 0, 0])
+-        self.assertEqual((code, state['status']), (1, 'failed'))
+-        self.assertEqual(len(started), 4)
+-        self.assertIn('NIH', state['error'])
++    def test_dataset_failure_cannot_start_training(self):
++        code,state,started,stopped=self.scenario([0,1])
++        self.assertEqual((code,state['status']),(1,'failed'))
++        self.assertEqual(len(started),2)
+ 
+-    def test_cancel_stops_owned_children_and_retains_state(self):
+-        code, state, started, stopped, marker = self.scenario([None, None], cancel=True)
+-        self.assertEqual((code, state['status']), (130, 'stopped'))
+-        self.assertEqual(set(stopped), {9000, 9001})
++    def test_foreign_checkpoint_is_rejected(self):
++        code,state,started,stopped=self.scenario([0,0,0],foreign=True)
++        self.assertEqual((code,state['status']),(1,'failed'))
++        self.assertEqual(len(started),3)
++        self.assertIn('현재 실행',state['error'])
++
++    def test_cancel_targets_only_owned_processes(self):
++        code,state,started,stopped=self.scenario([None],cancel=True)
++        self.assertEqual((code,state['status']),(130,'stopped'))
++        self.assertEqual(stopped,[9000])
+         self.assertIsNotNone(state['finished_at'])
+-        self.assertFalse(marker)
+-
+ 
+ if __name__ == '__main__':
+     unittest.main()

@@ -1,0 +1,202 @@
+[
+  {
+    "path": "CHANGELOG.md",
+    "before_bytes": 0,
+    "after_bytes": 2582,
+    "before_sha256": null,
+    "after_sha256": "76cd7855106dabd2b0130f1a285250fd17e2b564d891761029b1d146e2e3a9ae",
+    "changed": true
+  },
+  {
+    "path": "README.md",
+    "before_bytes": 1739,
+    "after_bytes": 3765,
+    "before_sha256": "a7b585db3be9121f2bb1d693f124fa0c0ce5403239a5eb336362b474db41f775",
+    "after_sha256": "28b450fe154dfa9a63e391ee956ba40a39d712b2952e9e51675043a7f8ae3695",
+    "changed": true
+  },
+  {
+    "path": "START_DASHBOARD.cmd",
+    "before_bytes": 362,
+    "after_bytes": 66,
+    "before_sha256": "719c4366073e50259c668ffe1ffb5ed99e477fc1993918418f194315388aea6e",
+    "after_sha256": "6afd54c4e5406176d351478c4ed39afee7231532306eff3e0955ac6fbee3c49a",
+    "changed": true
+  },
+  {
+    "path": "app/app.js",
+    "before_bytes": 7477,
+    "after_bytes": 8520,
+    "before_sha256": "133aadd0cb5cda3a46d8854223de3b165deaeadb5e757792a5f07426aebd9488",
+    "after_sha256": "0997fddfdd2d4f60b8335102f69fa7ad5e27f646c5bad86e7d22c2a06ea556c1",
+    "changed": true
+  },
+  {
+    "path": "app/assets/NanumGothic-Bold.ttf",
+    "before_bytes": 2073868,
+    "after_bytes": 2073868,
+    "before_sha256": "f96298f9fb18e364d2370f4c3ce948ac67a2b61af992d7234bc15c42b033c674",
+    "after_sha256": "f96298f9fb18e364d2370f4c3ce948ac67a2b61af992d7234bc15c42b033c674",
+    "changed": false
+  },
+  {
+    "path": "app/assets/OFL.txt",
+    "before_bytes": 4534,
+    "after_bytes": 4534,
+    "before_sha256": "eeacf16032901d0ed0456876ec77b8f0fda6b3fecec7d972f8543eb602e6c30f",
+    "after_sha256": "eeacf16032901d0ed0456876ec77b8f0fda6b3fecec7d972f8543eb602e6c30f",
+    "changed": false
+  },
+  {
+    "path": "app/index.html",
+    "before_bytes": 6418,
+    "after_bytes": 7034,
+    "before_sha256": "b47c91f2f2fed89e13e270c218e37e3b97c5e2589812f52aef856d42e627b51c",
+    "after_sha256": "f6e34b4cdf8e7ee22bf5e1184334265ad617bcb3cd00ea6114b3fb0441976202",
+    "changed": true
+  },
+  {
+    "path": "app/state.mjs",
+    "before_bytes": 1279,
+    "after_bytes": 1773,
+    "before_sha256": "2fb153945749228317fac6357e00bd4122c52fb38e7e36a04f0139aecbae3e0b",
+    "after_sha256": "e6b323b8405686e25a9f144e3f3cff09200c5b7ea153c1299ca5d8d9e72ca017",
+    "changed": true
+  },
+  {
+    "path": "app/style.css",
+    "before_bytes": 13915,
+    "after_bytes": 14238,
+    "before_sha256": "2b49069f85c43a20aed294e5c17a66981d680343764b77457138e9e77f9511f9",
+    "after_sha256": "54f825ba6149cccdcc0d53c77fa7f965abb83652de4e5c1e6ac1f653ee9055c3",
+    "changed": true
+  },
+  {
+    "path": "docs/training_protocol.md",
+    "before_bytes": 0,
+    "after_bytes": 3856,
+    "before_sha256": null,
+    "after_sha256": "1ced76489e9f5ea6dca49d2879c44d2b20847bd9597b999b86c8609a81b0a71b",
+    "changed": true
+  },
+  {
+    "path": "experiment/train_from_scratch.py",
+    "before_bytes": 0,
+    "after_bytes": 2838,
+    "before_sha256": null,
+    "after_sha256": "662b5566315c79539b71a4ae1464f8844209fea215ad818975f0a3a66c6aa873",
+    "changed": true
+  },
+  {
+    "path": "experiment/training/LICENSE",
+    "before_bytes": 0,
+    "after_bytes": 35149,
+    "before_sha256": null,
+    "after_sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "changed": true
+  },
+  {
+    "path": "experiment/training/LICENSE_PML",
+    "before_bytes": 0,
+    "after_bytes": 1090,
+    "before_sha256": null,
+    "after_sha256": "8487a9eae44e63ce55bb6d8a471a7fdadee6d1f9f2e923c2f1042e0ba9af85f9",
+    "changed": true
+  },
+  {
+    "path": "experiment/training/NOTICE.md",
+    "before_bytes": 0,
+    "after_bytes": 1934,
+    "before_sha256": null,
+    "after_sha256": "93b551279b00c341735e32d702c4aba67c24a026ce504c8f7df5cf05df2e773e",
+    "changed": true
+  },
+  {
+    "path": "experiment/training/__init__.py",
+    "before_bytes": 0,
+    "after_bytes": 114,
+    "before_sha256": null,
+    "after_sha256": "6b20212f0635b80452bf0d90379d1131a42aff92d91a4737827e6a646a9cab9d",
+    "changed": true
+  },
+  {
+    "path": "experiment/training/data.py",
+    "before_bytes": 0,
+    "after_bytes": 8334,
+    "before_sha256": null,
+    "after_sha256": "a5656015943422445d9e058c6e0f402c56e04264f8cdf8df7f4d803160b8a794",
+    "changed": true
+  },
+  {
+    "path": "experiment/training/engine.py",
+    "before_bytes": 0,
+    "after_bytes": 28088,
+    "before_sha256": null,
+    "after_sha256": "f9c15f7b63557ec3e5c5011d77cf3fbfb7212adeef39d5d7b8729246c18ba21d",
+    "changed": true
+  },
+  {
+    "path": "experiment/training/imagenet.py",
+    "before_bytes": 0,
+    "after_bytes": 9326,
+    "before_sha256": null,
+    "after_sha256": "b68d32dc78b3aa6c6b03586725e172fd12042b70d34efe5de09049a53a8db233",
+    "changed": true
+  },
+  {
+    "path": "experiment/training/losses.py",
+    "before_bytes": 0,
+    "after_bytes": 2565,
+    "before_sha256": null,
+    "after_sha256": "04bde71e1a3b1ac7bd19cada40fb1a9da56e5a1741dbeafe0319adc88304cc99",
+    "changed": true
+  },
+  {
+    "path": "experiment/training/state.py",
+    "before_bytes": 0,
+    "after_bytes": 3304,
+    "before_sha256": null,
+    "after_sha256": "111cb7c67969d84f58f8141a8d4b30ea8cf438803e6c17e0838238fb27ad1774",
+    "changed": true
+  },
+  {
+    "path": "package.json",
+    "before_bytes": 157,
+    "after_bytes": 0,
+    "before_sha256": "ee28c5378f21e8ea088e0d8451f851cea677a0e0fa20bf9047b7945b95955611",
+    "after_sha256": null,
+    "changed": true
+  },
+  {
+    "path": "run_experiment.py",
+    "before_bytes": 6463,
+    "after_bytes": 10281,
+    "before_sha256": "bc05e2347b49919918583c818b62629106d330e05a81bf585d6922b389dc62d0",
+    "after_sha256": "b62311283e487d0f3dcd929469b4cfe759591d020c3a6a6ee4a1972b7556993e",
+    "changed": true
+  },
+  {
+    "path": "server.mjs",
+    "before_bytes": 9229,
+    "after_bytes": 9961,
+    "before_sha256": "e54e01aafbff48e50342d3fa5eafab481a7c3966b0a922eec9d4d1e38a5dcafc",
+    "after_sha256": "ed9e21f5a8966039e39e3d73e8fc4cd0133c0a7ddca4918541849ffd7b018184",
+    "changed": true
+  },
+  {
+    "path": "tests/server.test.mjs",
+    "before_bytes": 8080,
+    "after_bytes": 9866,
+    "before_sha256": "3d6c9d64fa9f6895924cb0de8ebb3bcb6a34400c82d11ffd237673e370abec46",
+    "after_sha256": "bd162c6e64a424a1fc81139a2a9b163e58f3d8cec7a66f37837a3c8d5b40fd1c",
+    "changed": true
+  },
+  {
+    "path": "tests/test_runner.py",
+    "before_bytes": 3372,
+    "after_bytes": 4587,
+    "before_sha256": "9052b0cf8492bb5391b065c12f22eed77876737e656f631d141bf55bfdda9f69",
+    "after_sha256": "ee266a8141c6ed2d676eccaa185af8dd7fbfba93e473fdc54e83e20188e51fe1",
+    "changed": true
+  }
+]

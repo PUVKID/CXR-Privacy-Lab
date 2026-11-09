@@ -1,0 +1,19 @@
+research/
+runtime/
+연구 자료/
+실행 환경/
+원본 자료/
+작업 기록/
+화면 검증/
+1차/experiment/
+3차/experiment/*
+!3차/experiment/training/
+!3차/experiment/train_from_scratch.py
+4차/실험 코드/*
+!4차/실험 코드/training/
+!4차/실험 코드/train_from_scratch.py
+**/work/
+**/__pycache__/
+**/.codex/
+**/*.pth
+**/*.pt

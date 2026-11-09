@@ -1,0 +1,894 @@
+--- 3차/README.md
++++ 4차/README.md
+@@ -1,33 +1,57 @@
+-# 🩻 3차 — 학습부터 다시 수행하는 흉부 X선 재식별 실험
+-
+-공개 CXR 최종 가중치를 평가하는 경로와 새로운 학습 경로를 분리했습니다. 데이터 준비·검증이 끝나면 검증 모델, 검색 모델 출력부, 검색 모델 전체를 순서대로 학습하고 이 실행에서 생성한 가중치로 원본·블러·모자이크를 평가합니다. ImageNet 초기화는 논문상 설정이며 CXR 최종 가중치 재사용과 구분합니다.
+-
+-## 🧪 실행
+-
+-프로젝트 상위의 `runtime/Scripts/python.exe`로 `run_experiment.py`를 실행합니다. 대시보드는 Node.js로 `server.mjs`를 실행하고 로컬 포트 8787에서 확인합니다. 데이터는 기존 프로젝트의 `research/`를 사용하고 실행별 학습·체크포인트·기록은 `3차/work/runs/<실행 UUID>/`에 새로 저장합니다. 과거 실행에서 자동 재개하지 않습니다.
+-
+-학습 전 데이터의 실제 확보·손상·환자 분리 검증과 GPU 연산 확인이 필요합니다. 화면의 준비 중은 학습 중을 뜻하지 않습니다. 모델 학습 실패나 현재 실행이 생성하지 않은 가중치에서는 평가를 시작하지 않습니다. 기존 1차와 감사 보고서 2차는 보존합니다.
+-
+-학습은 원 논문 시드3과 배치32를 사용합니다. 현재 GPU에서는 검색 네트워크의 활성값 재계산을 켜고, 재계산 중 BatchNorm 통계와 난수 상태를 보존합니다. 혼합정밀도 초기 배율의 overflow는 가중치 갱신 없이 상태를 복원하고 배율을 낮춘 뒤 같은 배치를 재시도합니다. 유한 손실·기울기를 확인한 뒤 optimizer와 스케줄러를 한 번 갱신합니다. 이 포팅 조건을 원 논문 실행환경과 구분해 기록합니다.
+-
+-원 공식 검색 코드의 validation CBM 메모리 갱신은 이번 구현에서 차단합니다. 검증 영상이 다음 학습 큐에 섞이지 않도록 한 의도된 변경이며, 원 논문 주요 학습 조건에 누수 방어를 보완한 재학습으로 구분합니다. 모든 코드 동작과 환경이 원본과 동일한 재현이라고 표현하지 않습니다.
+-
+-## 📊 지표 해석
+-
+-프라이버시 점수 `100 × (1 − CMC@1)`는 고정된 공격 모델과 검색 집합에서의 1순위 재식별 실패율입니다. 익명성 보장·차등 프라이버시·법적 적합성·진단 효용을 뜻하지 않습니다. 자기 원본은 검색에서 제외하며 같은 환자의 다른 촬영 영상으로 재식별을 평가합니다. 환자별 영상 수와 질의 분모를 함께 기록합니다.
+-
+-## 🔎 검증과 공개 경계
+-
+-검사와 독립 검토 결과는 실제 실행 뒤 별도로 기록합니다. 합성 GPU 역전파 성공과 실제 NIH 학습, 학습 종료와 원 논문 수치 재현은 각각 구분합니다. Windows·Python3.12·PyTorch2.7.1 환경은 원 논문 환경과 동일하지 않습니다.
+-
+-의료 원영상·영상별 목록·환자 식별자·학습 가중치·실행 로그·개인 지침은 공개하지 않습니다. 제공 패키지 자체의 재배포 권한이 확인되지 않은 평가 엔진은 로컬에서 보존하며 공개 대상에서 보류합니다.
+-
+-## 📚 근거
+-
+-- [Packhäuser 등 원 논문](https://doi.org/10.1038/s41598-022-19045-3)
+-- [원 저자 공식 코드](https://github.com/kaipackhaeuser/CXR-Patient-ReID/tree/880168f564afa07936a8d8fb3b868b140ab937d9)
+-- [PyTorch 체크포인트 저장 안내](https://docs.pytorch.org/tutorials/beginner/saving_loading_models.html)
+-
+-[학습 포팅 조건](docs/training_protocol.md) · [전체 변경 비교](COMPARISON.md) · [변경 기록](CHANGELOG.md)
+-
+-측정하지 않은 성능이나 예상 완료 시각은 표시하지 않습니다.
++# 🩻 4차 — 중복 영상을 제외하고 다시 학습하는 흉부 엑스레이 재식별 실험
++
++공개 CXR 최종 가중치를 평가하는 경로와 새로운 학습 경로를 분리했습니다. 데이터 준비·검증이 끝나면 검증 모델, 검색 모델 출력부, 검색 모델 전체를 순서대로 학습하고 이 실행에서 생성한 가중치로 원본·블러·모자이크를 평가합니다. ImageNet 초기화는 논문상 설정이며 CXR 최종 가중치 재사용과 구분합니다.
++
++## 🧪 실행
++
++프로젝트 상위의 `실행 환경/Scripts/python.exe`로 `run_experiment.py`를 실행합니다. 대시보드는 Node.js로 `server.mjs`를 실행하고 로컬 포트 8787에서 확인합니다. 데이터는 기존 프로젝트의 `연구 자료/`를 사용하고 실행별 학습·체크포인트·기록은 `4차/work/runs/<실행 UUID>/`에 새로 저장합니다. 과거 실행에서 자동 재개하지 않습니다.
++
++학습 전 데이터의 실제 확보·손상·환자 분리 검증과 GPU 연산 확인이 필요합니다. 화면의 준비 중은 학습 중을 뜻하지 않습니다. 모델 학습 실패나 현재 실행이 생성하지 않은 가중치에서는 평가를 시작하지 않습니다. 기존 1차와 감사 보고서 2차는 보존합니다.
++
++학습은 원 논문 시드3과 배치32를 사용합니다. 현재 GPU에서는 검색 네트워크의 활성값 재계산을 켜고, 재계산 중 BatchNorm 통계와 난수 상태를 보존합니다. 혼합정밀도 초기 배율의 overflow는 가중치 갱신 없이 상태를 복원하고 배율을 낮춘 뒤 같은 배치를 재시도합니다. 유한 손실·기울기를 확인한 뒤 optimizer와 스케줄러를 한 번 갱신합니다. 이 포팅 조건을 원 논문 실행환경과 구분해 기록합니다.
++
++원 공식 검색 코드의 validation CBM 메모리 갱신은 이번 구현에서 차단합니다. 검증 영상이 다음 학습 큐에 섞이지 않도록 한 의도된 변경이며, 원 논문 주요 학습 조건에 누수 방어를 보완한 재학습으로 구분합니다. 모든 코드 동작과 환경이 원본과 동일한 재현이라고 표현하지 않습니다.
++
++## 📊 지표 해석
++
++프라이버시 점수 `100 × (1 − CMC@1)`는 고정된 공격 모델과 검색 집합에서의 1순위 재식별 실패율입니다. 익명성 보장·차등 프라이버시·법적 적합성·진단 효용을 뜻하지 않습니다. 자기 원본은 검색에서 제외하며 같은 환자의 다른 촬영 영상으로 재식별을 평가합니다. 환자별 영상 수와 질의 분모를 함께 기록합니다.
++
++## 🔎 검증과 공개 경계
++
++검사와 독립 검토 결과는 실제 실행 뒤 별도로 기록합니다. 합성 GPU 역전파 성공과 실제 NIH 학습, 학습 종료와 원 논문 수치 재현은 각각 구분합니다. Windows·Python3.12·PyTorch2.7.1 환경은 원 논문 환경과 동일하지 않습니다.
++
++의료 원영상·영상별 목록·환자 식별자·학습 가중치·실행 로그·개인 지침은 공개하지 않습니다. 제공 패키지 자체의 재배포 권한이 확인되지 않은 평가 엔진은 로컬에서 보존하며 공개 대상에서 보류합니다.
++
++## 📚 근거
++
++- [Packhäuser 등 원 논문](https://doi.org/10.1038/s41598-022-19045-3)
++- [원 저자 공식 코드](https://github.com/kaipackhaeuser/CXR-Patient-ReID/tree/880168f564afa07936a8d8fb3b868b140ab937d9)
++- [PyTorch 체크포인트 저장 안내](https://docs.pytorch.org/tutorials/beginner/saving_loading_models.html)
++
++[학습 포팅 조건](문서/학습_조건.md) · [전체 변경 비교](이전_차수_비교.md) · [변경 기록](변경_기록.md)
++
++측정하지 않은 성능이나 예상 완료 시각은 표시하지 않습니다.
++
++## 🗂️ 한글 폴더와 시작 방법
++
++프로젝트 폴더는 `흉부 엑스레이 환자 재식별 실험`이며 기존 1~3차를 보존합니다. 4차의 화면은 `화면/`, 실험은 `실험 코드/`, 검사는 `검사/`, 문서는 `문서/`에 있습니다. 공통 폴더는 `연구 자료/`, `실행 환경/`, `공개 코드/`, `화면 검증/`, `작업 기록/`입니다. 내부 `work/`는 실행 중 변경되는 작업 기록 폴더로 유지합니다.
++
++- 대시보드: `대시보드_시작.cmd` → `http://127.0.0.1:8787`
++- 데이터 준비와 새 학습·평가: `실험 코드/전체_실험_시작.cmd`
++- 다운로드·전수 검사만: `실험 코드/데이터_준비.cmd`
++- 확보된 데이터 검사만: `실험 코드/데이터_검사.cmd`
++- 단계별 수동 평가: `실험 코드/흉부_엑스레이_3단계_실험.ipynb`. 4차 또는 실험 코드 폴더에서 열고 새 학습 가중치 두 개를 지정합니다.
++
++현재 RAM 여유가 낮게 관측되어 실행 관리자는 학습에 `--num-workers 0`을 지정합니다. 입력을 같은 프로세스에서 처리하며 배치32·손실·분할·시드3·에폭 기준은 변경하지 않습니다. 이는 검사 import 지연을 해결했다는 주장이 아닙니다. 4차의 학습 시작·첫 가중치 갱신·완료는 실제 실행 증거를 따로 확인합니다.
++
++Python 모듈·패키지·의존성 및 도구 고정 이름(`cxr_reid`, `training`, `main.py`, `requirements.txt`, `settings.json`, `test_*.py`, `.codex`, `README.md` 등)은 실행 계약 때문에 유지합니다. 의료 원영상과 비공개 기록은 공개하지 않습니다.
++
++모션 버튼의 전역 호버 배경 충돌을 분리하고 44px 클릭 영역, 고정 스위치 크기, 키보드 포커스와 양쪽 테마의 경계를 보완했습니다. 실제 화면 검증 결과와 소스 검사는 구분합니다.
++
++## 🔎 실제 데이터에서 확인한 중복
++
++NIH 원본 112,120장을 모두 디코딩한 결과 손상은 0개, 정확히 같은 픽셀의 중복은 25그룹 51장이었습니다. 이 중 14그룹은 환자 기록 충돌·분할 중복 또는 평가의 동일 영상 비교 문제로 준비 단계에서 차단됐습니다. 원본과 이 실패 기록은 보존합니다.
++
++서로 다른 환자로 기록된 동일 영상 8그룹 17장은 모두 실험 목록에서 제외하고, 같은 환자의 동일 영상 17그룹 34장은 파일명 순으로 한 장씩 남깁니다. 총 34장을 제외한 112,086장이 파생 허용 집합입니다. 원 논문과 달라진 데이터 조건이며, 공식 목록을 그대로 사용한 성능 재현으로 표현하지 않습니다.
++
++검증 모델의 분할은 학습 75,690장·검증 10,811장·시험 25,585장입니다. 학습은 남은 양성 395,926쌍과 에폭마다 생성하는 음성 395,926쌍을 사용합니다. 검색 학습은 중복 제외 후 새로 생긴 단일 영상 환자도 학습 자격에서 구분해 61,735장입니다. 최종 준비 검증과 실제 실행 기록에서 이 수량과 동일 픽셀 잔여 중복 0을 다시 확인해야 합니다.
+--- 3차/run_experiment.py
++++ 4차/run_experiment.py
+@@ -1,4 +1,4 @@
+-"""3차의 데이터 검증·새 모델 학습·새 가중치 평가를 순서대로 관리합니다."""
++"""4차의 데이터 검증·새 모델 학습·새 가중치 평가를 순서대로 관리합니다."""
+ from __future__ import annotations
+ 
+ from datetime import datetime, timezone
+@@ -12,9 +12,9 @@
+ import uuid
+ 
+ HERE = Path(__file__).resolve().parent
+-BASE = HERE.parent / "research"
++BASE = HERE.parent / "연구 자료"
+ CONTROL = HERE / "work/control"
+-PYTHON = HERE.parent / "runtime/Scripts/python.exe"
++PYTHON = HERE.parent / "실행 환경/Scripts/python.exe"
+ 
+ 
+ def timestamp():
+@@ -73,7 +73,7 @@
+     output = HERE / "work/runs" / run_id
+     output.mkdir(parents=True, exist_ok=False)
+     state = {"run_id": run_id, "pid": os.getpid(), "status": "running",
+-             "phase": "학습 실행환경 확인", "revision": 3,
++             "phase": "학습 실행환경 확인", "revision": 4,
+              "mode": "데이터 준비 전용" if prepare_only else "새 모델 재학습 후 평가", "output": str(output),
+              "started_at": timestamp(), "finished_at": None, "exit_code": None, "error": None}
+     children = []
+@@ -106,10 +106,10 @@
+             raise InterruptedError("사용자가 실험 중단을 요청했습니다.")
+         update(phase=phase)
+         command = [str(x) for x in argv]
+-        commands.append({"phase": phase, "argv": command, "cwd": str(HERE / "experiment"), "at": timestamp()})
++        commands.append({"phase": phase, "argv": command, "cwd": str(HERE / "실험 코드"), "at": timestamp()})
+         atomic_json(output / "commands.json", commands)
+         message("[실행] " + json.dumps(command, ensure_ascii=False))
+-        child = subprocess.Popen(command, cwd=HERE / "experiment", env=env,
++        child = subprocess.Popen(command, cwd=HERE / "실험 코드", env=env,
+                                  stdout=log, stderr=subprocess.STDOUT, creationflags=flags)
+         children.append(child)
+         while child.poll() is None:
+@@ -123,12 +123,12 @@
+ 
+     try:
+         update()
+-        message(f"\n[새 실행] {timestamp()} / {run_id} / 3차")
++        message(f"\n[새 실행] {timestamp()} / {run_id} / 4차")
+         message("[학습 방식] 공개 CXR 최종 가중치 없이 새 학습. 논문상 ImageNet 초기화와 구분합니다.")
+         if prepare_only:
+             message("[준비 전용] 이번 실행에서는 데이터 준비와 검증만 수행합니다. 학습을 시작하지 않습니다.")
+         source = {}
+-        for folder in [HERE / "experiment", HERE / "app"]:
++        for folder in [HERE / "실험 코드", HERE / "화면"]:
+             for file in sorted(folder.rglob("*")):
+                 if file.is_file() and "__pycache__" not in file.parts:
+                     source[file.relative_to(HERE).as_posix()] = hashlib.sha256(file.read_bytes()).hexdigest()
+@@ -140,7 +140,8 @@
+                 "학습 실행환경과 CUDA 실제 연산 확인")
+         if validated_snapshot is None:
+             previous_reports = set((BASE / "validation_runs").glob("*/report.json"))
+-            execute([PYTHON, "-B", "-X", "utf8", "-u", HERE / "experiment/download_datasets.py", "--project", BASE],
++            execute([PYTHON, "-B", "-X", "utf8", "-u", HERE / "실험 코드/download_datasets.py", "--project", BASE,
++                     "--reuse-nih-pixel-manifest", BASE / "validation_runs/원본_전수검사/nih_pixels.private.json"],
+                     "데이터 준비·영상 전수 검증·환자 분리 확인")
+             new_reports = set((BASE / "validation_runs").glob("*/report.json")) - previous_reports
+             if len(new_reports) != 1:
+@@ -159,9 +160,9 @@
+             update(status="completed", phase="데이터 준비와 검증 완료 · 학습은 아직 시작하지 않음", exit_code=0, finished_at=timestamp())
+             message("[준비 완료] 데이터 준비 전용 실행이며 모델 학습은 수행하지 않았습니다.")
+             return 0
+-        execute([PYTHON, "-B", "-X", "utf8", "-u", HERE / "experiment/train_from_scratch.py",
++        execute([PYTHON, "-B", "-X", "utf8", "-u", HERE / "실험 코드/train_from_scratch.py",
+                  "--project", BASE, "--output", output / "training", "--seed", "3", "--tasks", "both",
+-                 "--validated-snapshot", validated_snapshot, "--activation-checkpointing"],
++                 "--validated-snapshot", validated_snapshot, "--activation-checkpointing", "--num-workers", "0"],
+                 "검증 모델·검색 모델 처음부터 학습")
+         artifacts = json.loads((output / "training/artifacts.json").read_text(encoding="utf-8"))
+         checkpoints = []
+@@ -170,7 +171,7 @@
+             if not candidate.is_relative_to((output / "training").resolve()) or not candidate.is_file():
+                 raise ValueError("현재 실행이 생성한 학습 체크포인트가 아닙니다.")
+             checkpoints.append(candidate)
+-        evaluation = [PYTHON, "-B", "-X", "utf8", "-u", HERE / "experiment/main.py", "--project", BASE,
++        evaluation = [PYTHON, "-B", "-X", "utf8", "-u", HERE / "실험 코드/main.py", "--project", BASE,
+                  "--stage", "all", "--skip-download", "--run-id", run_id,
+                  "--verification-checkpoint", checkpoints[0], "--retrieval-checkpoint", checkpoints[1]]
+         if validated_snapshot is not None:
+--- 3차/server.mjs
++++ 4차/server.mjs
+@@ -38,10 +38,10 @@
+ function alive(pid) { if (!Number.isInteger(pid) || pid < 1) return false; try { process.kill(pid, 0); return true; } catch { return false; } }
+ export function createDashboard(options = {}) {
+   const root = options.root || ROOT;
+-  const research = options.research || path.resolve(root, '../research');
++  const research = options.research || path.resolve(root, '../연구 자료');
+   const control = options.control || (options.research ? path.join(research, 'control') : path.join(root, 'work', 'control'));
+   const previewControl = options.research ? control : path.join(research, 'control');
+-  const launch = options.launch || (() => spawn(path.resolve(root, '../runtime/Scripts/python.exe'), ['-B', '-X', 'utf8', path.join(root, 'run_experiment.py')], { cwd: root, windowsHide: true, stdio: 'ignore' }));
++  const launch = options.launch || (() => spawn(path.resolve(root, '../실행 환경/Scripts/python.exe'), ['-B', '-X', 'utf8', path.join(root, 'run_experiment.py')], { cwd: root, windowsHide: true, stdio: 'ignore' }));
+   let pending = false, localChild = null, gpuCache = { name: '확인 중', utilization: null }, gpuAt = 0;
+   async function state() {
+     const run = await json(path.join(control, 'run.json'));
+@@ -82,7 +82,7 @@
+       catch(e) { if(e.code!=='ENOENT')throw e; previews[name]=false; }
+     }
+     const training=validRun ? await json(path.join(root,'work','runs',runId,'training','progress.json')) : null;
+-    return { ...current, revision:3, training, gpu: gpuCache, results, downloads, previews, log: await tail(path.join(control, 'experiment.log')), environment_log: await tail(path.join(research,'control','environment.log')), environment_ready: !!(await json(path.join(research,'control','environment_ready.json'))), updated_at: new Date().toISOString() };
++    return { ...current, revision:4, training, gpu: gpuCache, results, downloads, previews, log: await tail(path.join(control, 'experiment.log')), environment_log: await tail(path.join(research,'control','environment.log')), environment_ready: !!(await json(path.join(research,'control','environment_ready.json'))), updated_at: new Date().toISOString() };
+   }
+   const server = http.createServer(async (req, res) => {
+     const send = (code, data) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(data)); };
+@@ -126,7 +126,7 @@
+       if (req.method !== 'GET') return send(405, { error: '허용하지 않는 방식입니다.' });
+       const files = { '/': ['index.html', 'text/html'], '/style.css': ['style.css', 'text/css'], '/app.js': ['app.js', 'text/javascript'], '/state.mjs': ['state.mjs','text/javascript'], '/assets/NanumGothic-Bold.ttf': ['assets/NanumGothic-Bold.ttf', 'font/ttf'], '/assets/OFL.txt': ['assets/OFL.txt', 'text/plain'] };
+       const entry = files[req.url]; if (!entry) return send(404, { error: '파일이 없습니다.' });
+-      const data = await fs.readFile(path.join(root, 'app', entry[0]));
++      const data = await fs.readFile(path.join(root, '화면', entry[0]));
+       res.writeHead(200, { 'Content-Type': `${entry[1]}; charset=utf-8`, 'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'", 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer' }); res.end(data);
+     } catch (e) { send(500, { error: e.code === 'ENOENT' ? '필요한 실행 파일이 없습니다.' : '로컬 요청 처리에 실패했습니다.' }); }
+   });
+@@ -135,5 +135,5 @@
+ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+   const server=createDashboard();
+   server.on('error', error => { console.error(`[대시보드 시작 실패] ${error.code}: ${error.message}`); process.exitCode=1; });
+-  server.listen(8787, '127.0.0.1', () => console.log('CXR Privacy Lab 3차: http://127.0.0.1:8787'));
++  server.listen(8787, '127.0.0.1', () => console.log('흉부 엑스레이 환자 재식별 실험 4차: http://127.0.0.1:8787'));
+ }
+--- 3차/tests/server.test.mjs
++++ 4차/검사/server.test.mjs
+@@ -6,7 +6,7 @@
+ import { spawn } from 'node:child_process';
+ import http from 'node:http';
+ import { createDashboard, parseCSV, tail } from '../server.mjs';
+-import { describeExperiment } from '../app/state.mjs';
++import { describeExperiment } from '../화면/state.mjs';
+ 
+ async function fixture(fn) {
+  const dir=await fs.mkdtemp(path.join(os.tmpdir(),'cxr-dashboard-'));const research=path.join(dir,'research');const control=path.join(research,'control');await fs.mkdir(control,{recursive:true});
+@@ -61,7 +61,7 @@
+  s.log.text='[새 실행] 현재\n[오류] CUDA 검사 실패';assert.ok(describeExperiment(s).stages.every(x=>x.label==='준비 실패로 대기'));
+ });
+ test('양쪽 테마의 모든 색 변수와 모션 축소·저장 설정이 있습니다',async()=>{
+- const css=await fs.readFile(new URL('../app/style.css',import.meta.url),'utf8');const js=await fs.readFile(new URL('../app/app.js',import.meta.url),'utf8');
++ const css=await fs.readFile(new URL('../화면/style.css',import.meta.url),'utf8');const js=await fs.readFile(new URL('../화면/app.js',import.meta.url),'utf8');
+  const light=css.match(/:root\{([^}]+)\}/)[1];const dark=css.match(/:root\[data-theme=dark\]\{([^}]+)\}/)[1];const names=text=>[...text.matchAll(/(--[\w-]+):/g)].map(x=>x[1]).sort();assert.deepEqual(names(dark),names(light));
+  for(const name of [...css.matchAll(/var\((--[\w-]+)\)/g)].map(x=>x[1]))assert.ok(names(light).includes(name),name);
+  assert.match(css,/prefers-reduced-motion:reduce/);assert.match(css,/\.paused \.image-panel\{animation-play-state:paused\}/);assert.match(js,/localStorage.getItem\('cxr-theme'\)/);assert.match(js,/localStorage.setItem\('cxr-theme',theme\)/);assert.match(js,/timeZone:'Asia\/Seoul'/);
+@@ -83,3 +83,25 @@
+  s.active=true;s.run={status:'running',phase:'검증 모델·검색 모델 처음부터 학습'};s.training={status:'waiting_for_gpu'};
+  assert.equal(describeExperiment(s).status,'GPU 여유 메모리 대기');assert.ok(describeExperiment(s).stages.every(x=>!x.active));
+ });
++
++test('모션 조작부는 상태별 크기를 고정하고 전역 호버 배경에서 분리합니다',async()=>{
++ const css=await fs.readFile(new URL('../화면/style.css',import.meta.url),'utf8');
++ assert.match(css,/\.motion\{[^}]*min-height:44px;min-width:44px;[^}]*flex-shrink:0;[^}]*background:transparent/);
++ assert.match(css,/\.motion:hover,\.motion:active,\.motion:disabled\{background:transparent\}/);
++ assert.match(css,/\.motion \.switch\{flex-shrink:0;/);
++ assert.match(css,/\.motion:focus-visible\{outline:3px solid var\(--focus\);outline-offset:2px\}/);
++ assert.match(css,/\.paused \.switch\{background:var\(--switch-off\)\}/);
++ assert.match(css,/\.section-title\{flex-wrap:wrap\}/);
++ for(const selector of ['.motion:hover','.motion:active','.motion:focus-visible','.motion:disabled']){
++  const block=css.match(new RegExp(selector.replaceAll('.', '\\.')+'\\{([^}]+)\\}'));
++  if(block)assert.doesNotMatch(block[1],/(?:^|;)(?:width|height|padding|right|left|transform):/);
++ }
++});
++
++test('한글 화면 폴더에서만 고정 정적 파일을 제공합니다',()=>fixture(async f=>{
++ const folder=path.join(f.dir,'화면');await fs.mkdir(folder);
++ await fs.writeFile(path.join(folder,'index.html'),'<title>흉부 엑스레이 4차 검사</title>');
++ const res=await f.request('/');assert.equal(res.status,200);assert.match(await res.text(),/흉부 엑스레이 4차 검사/);
++ assert.match(res.headers.get('content-security-policy'),/default-src 'self'/);
++ for(const name of ['/화면/index.html','/../server.mjs','/%2e%2e%2fserver.mjs'])assert.equal((await f.request(name)).status,404);
++}));
+--- 3차/tests/test_runner.py
++++ 4차/검사/test_runner.py
+@@ -14,13 +14,14 @@
+ class RunnerContract(unittest.TestCase):
+     def scenario(self, returncodes, cancel=False, foreign=False):
+         with tempfile.TemporaryDirectory() as tmp:
+-            here = Path(tmp) / '3차'
+-            (here / 'experiment').mkdir(parents=True)
++            here = Path(tmp) / '4차'
++            (here / '실험 코드').mkdir(parents=True)
+             control = here / 'control'
+             stopped, started = [], []
+             class Child:
+                 def __init__(self, argv, **kwargs):
+                     self.argv = argv
++                    self.cwd = kwargs['cwd']
+                     self.pid = 9000 + len(started)
+                     self.returncode = returncodes[len(started)]
+                     started.append(self)
+@@ -43,7 +44,7 @@
+                         (control / 'stop.request').write_text(state['run_id'], encoding='utf-8')
+                 def poll(self):
+                     return self.returncode
+-            with patch.multiple(runner, HERE=here, BASE=Path(tmp)/'research', CONTROL=control, PYTHON=Path('fixture-python')), patch.object(runner.subprocess,'Popen',Child), patch.object(runner,'stop_child',lambda c:stopped.append(c.pid)):
++            with patch.multiple(runner, HERE=here, BASE=Path(tmp)/'연구 자료', CONTROL=control, PYTHON=Path('fixture-python')), patch.object(runner.subprocess,'Popen',Child), patch.object(runner,'stop_child',lambda c:stopped.append(c.pid)):
+                 code = runner.main()
+             state = json.loads((control/'run.json').read_text(encoding='utf-8'))
+             return code,state,started,stopped
+@@ -52,10 +53,14 @@
+         code,state,started,stopped = self.scenario([0,0,0,0])
+         self.assertEqual((code,state['status']),(0,'completed'))
+         self.assertEqual(len(started),4)
++        audit_arg=started[1].argv[started[1].argv.index('--reuse-nih-pixel-manifest')+1]
++        self.assertEqual(Path(audit_arg).parts[-3:],('validation_runs','원본_전수검사','nih_pixels.private.json'))
+         self.assertIn('--output',started[2].argv)
+         self.assertIn('--verification-checkpoint',started[3].argv)
+         self.assertIn('--validated-snapshot',started[2].argv)
+         self.assertIn('--activation-checkpointing',started[2].argv)
++        self.assertEqual(started[2].argv[started[2].argv.index('--num-workers')+1], '0')
++        self.assertTrue(all(child.cwd.name == '실험 코드' for child in started))
+         self.assertIn(state['run_id'],' '.join(started[3].argv))
+         self.assertFalse(any('--resume' in arg for child in started for arg in child.argv))
+         self.assertFalse(stopped)
+--- 3차/docs/training_protocol.md
++++ 4차/문서/학습_조건.md
+@@ -1,30 +1,36 @@
+-# 새 CXR 모델 학습과 평가 조건
++# 중복 영상을 제외한 재학습 조건
+ 
+-## 원 논문과 맞춘 조건
++원 저자 커밋 `880168f564afa07936a8d8fb3b868b140ab937d9`의 모델·손실·최적화 조건을 기준으로 이식했습니다. 공개 CXR 최종 모델은 초기값으로 사용하지 않습니다. 원 논문상의 ImageNet 파일 `resnet50-19c8e357.pth`, 새 출력층과 빈 optimizer 상태에서 시작합니다.
+ 
+-원 저자 고정 커밋 `880168f564afa07936a8d8fb3b868b140ab937d9`을 기준으로 모델 구조·학습 분할·손실과 최적화 조건을 이식합니다. 공개 CXR 최종 가중치는 학습 초기값으로 쓰지 않습니다. 원 논문의 ImageNet 초기화 파일 `resnet50-19c8e357.pth`와 새 head 초기화·새 optimizer를 사용하며 파일 SHA를 기록합니다.
++## 데이터와 누수 방어
+ 
+-| 항목 | 조건 |
++원본 112,120장의 실제 디코딩과 픽셀 해시 검사에서 25그룹 51장의 정확 중복을 확인했습니다. 서로 다른 환자로 기록된 동일 영상 8그룹 17장을 전부 제외하고, 같은 환자의 17그룹 34장은 파일명 순으로 한 장만 남깁니다. 총 제외34장, 파생 허용 집합112,086장입니다. 원본·공식 목록과 기존 차단 기록을 보존하며 이를 공식 목록 그대로의 재현으로 표현하지 않습니다.
++
++| 항목 | 정제 후 조건 |
+ | --- | --- |
+-| 검증 모델 | 입력256, 배치32, BCEWithLogitsLoss, Adam lr0.0001, 최대100에폭, validation BCE 기준 patience5 |
+-| 검증 쌍 | 양성396,147쌍과 매 에폭 다시 구성한 음성396,147쌍. validation은 별도 환자 집합에서 음성 재구성 |
+-| 검증 분할 | 학습75,708장·validation10,816장·test25,596장. 검색 분할의 수량과 구분 |
+-| 검색 모델 | 입력1024, 배치32, 학습61,755장, 환자별 블록8 샘플러, 밝기·대비0.4 증강 |
+-| 검색 손실 | PML0.9.94 기준 정규화 L2 ContrastiveLoss, CBM128, 자기 비교 제외 |
+-| 검색 최적화 | SGD momentum0.9, weight_decay0.00001, OneCycle max_lr0.158489 |
+-| 검색 단계 | 출력부30에폭 → 같은 실행의 가중치로 전체50에폭. 각 단계의 optimizer·scheduler·CBM은 새로 구성 |
+-| 선택과 평가 | 검증 모델은 validation BCE 기준, 검색은 공식 경로의 마지막 에폭. 시험 영상과 COVID를 학습·선택에 사용하지 않음 |
++| 검증 모델 영상 | 학습75,690·검증10,811·시험25,585장 |
++| 검증 학습 쌍 | 양성395,926쌍과 매 에폭 새 음성395,926쌍, 총791,852쌍 |
++| 검증 선택 집합 | 별도 환자의 양성25,000쌍과 새 음성25,000쌍 |
++| 검증 시험 쌍 | 공식 쌍을 허용 영상에 투영한99,962쌍 |
++| 검색 학습 | 중복 제외 후 단일 영상이 된 환자도 학습 자격에서 제외,61,735장 |
++| 검색 검증·시험 | 검증10,810·시험25,584장. 유효 질의8,631·24,212개 |
+ 
+-Windows·Python3.12·PyTorch2.7.1 포팅은 논문 당시 Linux 환경과 동일하지 않습니다. GPU 메모리를 절약하기 위한 활성값 재계산을 선택할 경우 같은 배치·난수·BatchNorm 상태와 기울기를 보존하는지 검사하고 실행 설정에 기록합니다. 배치 크기를 묵시적으로 줄이지 않습니다.
++검색 공식 목록에는 원래 두 영상이 배정되지 않았으므로 검증 모델의 전체 수량과 구분합니다. 새 단일 영상2장은 전체 데이터 삭제가 아니라 검색 학습 자격 제외입니다. 동일 픽셀 우회와 자기 원본 비교를 차단하고, 단일 영상 환자는 질의 분모에서 제외하되 검색 집합에 포함하는 조건을 기록합니다. 근사 중복·환자 ID 오류 전수 보장은 별도 문제이며 이번 정확 픽셀 검사의 한계를 명시합니다.
+ 
+-공식 검색 코드에서는 validation에서도 PML0.9.94의 CBM 손실을 호출해 메모리 큐를 갱신하는 경로가 있습니다. 이번 구현은 검증 영상이 다음 학습의 메모리에 섞이지 않도록 validation에서 큐를 갱신하지 않습니다. validation은 검색 지표를 별도로 계산하며 모델 선택에 시험 집합을 쓰지 않습니다. 이 누수 방어와 AMP 재시도·활성값 재계산은 원 공식 실행과의 의도된 차이이며, 모든 학습 동작을 그대로 복제했다고 주장하지 않습니다.
++## 학습과 선택
++
++검증 모델은 입력256·배치32·BCEWithLogitsLoss·Adam lr0.0001·최대100에폭·검증 BCE 기준 patience5를 사용합니다. 검색 모델은 입력1024·배치32·환자 블록8·밝기/대비0.4 증강, 정규화 L2 ContrastiveLoss와 CBM128을 사용합니다. SGD momentum0.9·weight_decay0.00001·OneCycle max_lr0.158489, 출력부30에폭 후 전체50에폭으로 이어집니다. 각 검색 단계의 optimizer·스케줄러·메모리는 새로 구성합니다.
++
++검색 모델은 공식 경로의 마지막 에폭을 사용하고 시험·COVID 영상으로 학습이나 선택을 하지 않습니다. 원 공식 코드의 검증 중 CBM 메모리 갱신은 차단해 검증 영상이 다음 학습의 큐에 섞이지 않게 했습니다. 이 차이와 중복 제외는 의도된 누수 방어입니다.
+ 
+ ## 실행과 기록
+ 
+-`train_from_scratch.py --project <연구 폴더> --output <새 실행 폴더> --seed 3 --tasks both --validated-snapshot <완료 검증 스냅샷>`이 새 학습 진입점입니다. 먼저 상위 실행기의 `--prepare-only`로 데이터 준비·전수 검증을 완료하고, 그 실행이 기록한 `validation_snapshot` 경로를 전달합니다. 학습 진입점은 현재 원영상의 SHA256을 다시 대조합니다. `--preflight`는 입력 검사, `--smoke-gpu`는 합성 영상의 역전파 검사로 정식 학습과 구분합니다. 실제 학습은 데이터의 전수 무결성·환자 분리를 먼저 확인한 뒤 시작합니다.
++상위 실행기의 준비 전용 실행으로 검증을 완료한 뒤 그 실행의 `validation_snapshot`을 학습에 전달합니다. 새 학습 진입점은 `train_from_scratch.py --project <연구 자료> --output <새 실행 폴더> --seed 3 --tasks both --validated-snapshot <완료 검증 스냅샷> --activation-checkpointing --num-workers 0`입니다. 완료한 픽셀 검사 근거를 재사용하더라도 고정 해시·명세·내용과 현재 모든 원영상의 SHA256이 일치해야 합니다. 원본 차단 값을 정상으로 바꾸는 방식으로 재사용하지 않습니다.
+ 
+-진행 상태, 초기화 출처, optimizer와 난수 상태, 가중치 해시와 선택 근거를 실행별로 저장합니다. 재개는 동일 실행에 명시적으로 요청하고 입력·소스·설정이 일치할 때만 허용합니다. 평가에는 해당 실행이 생성한 순수 state_dict를 전달합니다.
++`--preflight`는 입력 검사, `--smoke-gpu`는 합성 영상 역전파 검사입니다. 정식 NIH 학습과 구분합니다. 실행별 초기화·설정·가중치 해시·진행·선택 근거를 보존하며 자동으로 이전 실행을 재개하지 않습니다.
++
++Windows·Python3.12·PyTorch2.7.1 포팅이며 논문 당시 환경과 같지 않습니다. 활성값 재계산은 난수·BatchNorm 통계를 보존하도록 검사합니다. 혼합정밀도 overflow에서는 가중치 갱신 없이 상태와 같은 배치를 복원해 배율을 낮추고, 유한 기울기에서 optimizer·스케줄러를 한 번 갱신합니다. 입력 작업자0은 추가 프로세스 메모리를 줄이기 위한 실행 조건이며 배치32와 연구 분할을 바꾸지 않습니다.
+ 
+ ## 해석 범위
+ 
+-현재 실험 범위는 NIH와 COVID-19의 재식별 및 블러·모자이크 비교입니다. CheXpert와 원 논문의 모든 부가 분석까지 포함한 완전 재현으로 표현하지 않습니다. 프라이버시 점수는 고정 공격에서의 Rank-1 실패율이며 영상의 진단 효용이나 익명성을 보장하지 않습니다. 라이선스·포팅 출처는 학습 코드 폴더의 NOTICE와 LICENSE를 확인하십시오.
++현재 범위는 NIH·COVID 재식별과 블러·모자이크 비교입니다. CheXpert 및 모든 부가 분석을 포함한 완전 재현으로 표현하지 않습니다. 프라이버시 점수는 고정 공격에서의 Rank-1 실패율이며 진단 효용·익명성을 보장하지 않습니다. 학습 종료와 논문 수치 재현은 실제 결과가 확보된 뒤 판정합니다.
+--- 3차/CHANGELOG.md
++++ 4차/변경_기록.md
+@@ -1,26 +1,14 @@
+-# 3차 변경 기록
+-
+-## 변경 목적
+-
+-감사에서 확인한 데이터 검증·검색 정규화·실행 보존 문제를 고치고 공개 CXR 최종 가중치 평가에서 새 모델 학습 후 평가로 실행 순서를 변경합니다.
+-
+-## 현재 확정한 변경
+-
+-- 실행 관리자는 CUDA 확인 → 데이터 준비와 검증 → 새 모델 학습 → 해당 실행의 가중치로 평가 순서를 강제합니다.
+-- 실행 UUID마다 새 출력 폴더를 만들고 공개 CXR 가중치나 이전 실행의 학습 체크포인트로 자동 재개하지 않습니다.
+-- 과거 실행의 결과를 현재 결과 표에 섞지 않으며 학습 상태·에폭·단계·손실을 별도로 표시합니다.
+-- 기존 Host·Origin 검사, 임의 명령·경로 입력 거부, 실행 ID 중단, 모션과 다크·라이트 전환을 유지합니다.
+-- 지표 설명은 고정 공격에서의 재식별 실패율로 한정합니다.
+-
+-## 연구 엔진과 학습 포팅
+-
+-- Verification·Retrieval의 공식 목록 차이를 별도 검증하고, 영상 전수 디코드와 정확 픽셀 중복·환자 분리 검사를 추가했습니다.
+-- 검색 L2 정규화와 고유 영상 키 동률 규칙을 적용하고 질의 분모·영벡터·동률을 기록합니다.
+-- 캐시 v4는 모델·영상·전처리·환경과 payload SHA·dtype·shape를 확인합니다. 불일치 파일은 격리 보존합니다.
+-- 결과를 실행별로 보존하고 재개 시 조건별 영수증·파일 해시를 확인합니다.
+-- 고정 원격 소스·메타데이터·다운로드 해시, 완료 partial416 처리와 중단 추출 prefix 보존·복원을 구현했습니다.
+-- CMD·노트북을 현재 경로와 학습 가중치 명시 선택에 맞췄습니다. 메모리·디스크 검사와 그래프 수식 글리프를 보완했습니다.
+-- PML0.9.94의 손실·임베딩 gradient·CBM 큐를 직접 대조한 131개 검사를 통과했습니다. 실제 GPU에서 배치32인 검증·검색 출력부·검색 전체의 합성 역전파를 확인했습니다.
+-- 검색 모델 전체 학습에 활성값 재계산을 적용하며 BatchNorm 상태·난수·기울기 보존을 검사했습니다. AMP 초기 overflow는 상태 복구·배율 backoff 후 같은 배치를 재시도하고 유한 갱신만 적용합니다.
+-
+-엔진·학습 구현의 실제 전체 파일 비교를 [비교 설명](COMPARISON.md)에 연결합니다. 합성 검사와 실제 NIH 학습·논문 성능 재현을 구분하며 문서의 존재를 학습 실행·완료나 원격 반영 증거로 사용하지 않습니다.
++# 4차 변경 기록
++
++사용자 요청에 따라 한글 프로젝트 폴더로 통합하고 3차의 소스에서 4차를 구성했습니다. 기존 차수·원본·대용량 결과·캐시를 보존합니다.
++
++- 화면·실험 코드·검사·문서 폴더와 시작 CMD·노트북·사용자 안내 파일을 한글 이름으로 정리했습니다.
++- 서버·실행 관리자·설정·검사·그래프 폰트·노트북 경로를 상대 경로와 새 공통 폴더에 맞췄습니다. 서버 8787·보안 allowlist·실행 잠금·중단 계약을 유지했습니다.
++- 현재 RAM 여유를 고려해 학습 입력 작업자를 0으로 명시했습니다. 학습 배치·손실·시드·에폭·검사 제한시간을 유지하고, 원래 환자의 분할 소속을 바꾸지 않습니다. 중복 제외로 달라진 영상·쌍 수는 별도로 기록합니다.
++- 모션 버튼에 투명 상태 배경·44px 클릭 영역·스위치 축소 방지·테마별 트랙/손잡이 경계를 적용했습니다. 작은 화면 제목 행은 공간이 부족하면 줄바꿈합니다.
++- CMD 검사는 한글 경로를 위해 UTF-8 무BOM·CRLF·코드페이지65001을 확인하며, Python 진입점·실행 환경·실패 중단 검사는 유지합니다. 한글 정적 폴더 allowlist와 모션 상태 계약 검사도 추가했습니다.
++- 과거 프로토콜·계획·검증 보고서는 문서에 보존 표시와 함께 남겼습니다. 과거 관측을 4차 결과로 바꾸지 않았습니다.
++- NIH112,120장 디코딩 오류0과 픽셀 중복25그룹을 실제 확인했습니다. 환자 충돌8그룹17장 전체 제외 및 같은 환자17그룹에서17장 제외로112,086장의 파생 허용 집합을 정합니다. 원본·기존14그룹 차단 보고서는 보존하고, 학습·검증·시험 및 검색이 같은 파생 목록을 사용하게 합니다.
++- 새 실험은 검증 영상의 CBM 혼입 차단과 정확 중복 제외가 추가된 재학습입니다. 원 논문과 동일한 전체 데이터·환경의 성능 재현으로 표현하지 않습니다.
++
++검사 결과·독립 검토·공개 반영 영수증은 실제 실행 뒤 별도로 보존합니다. 원본 평가 엔진의 재배포 권한 불명확 상태와 의료 원본 비공개는 유지합니다.
+--- /dev/null
++++ 4차/실험 코드/cxr_reid/cleaning.py
+@@ -0,0 +1,152 @@
++"""고정된 전수 디코딩 근거에서 동일 픽셀 중복 제거 목록을 결정적으로 파생합니다."""
++
++from collections import Counter, defaultdict
++import json
++from pathlib import Path
++import re
++
++from .provenance import digest, signature
++
++
++POLICY = "exact_pixel_cross_patient_drop_all_same_patient_first_filename_v1"
++SCHEMA = "nih_exact_pixel_cleaning_v1"
++TRUSTED_RAW = {
++    "sha256": "2ded62030dc4d54214b2bf045741b90b114df129501886701d28a919798228ff",
++    "validation_engine": "bff38251c0e5d2040512245bebcbefbff443ce71e74c5ef57258e02c6a9b059f",
++    "content_fingerprint": "0d76a4f98f90ed6641d1346eabb01af41391f7aa021804554014151fef94f58b",
++    "images": 112120,
++}
++
++
++def canonical_selection(records):
++    groups = defaultdict(list)
++    for name, row in records.items():
++        if (Path(name).name != name or any(char in name for char in (":", "/", "\\"))
++                or set(row) != {"sha256", "pixel_sha256", "patient_id", "split"}
++                or any(not isinstance(row[k], str) for k in row)
++                or any(not re.fullmatch(r"[0-9a-f]{64}", row[k]) for k in ("sha256", "pixel_sha256"))):
++            raise ValueError("픽셀 근거의 영상 경로·레코드 형식이 유효하지 않습니다.")
++        groups[row["pixel_sha256"]].append(name)
++    excluded, duplicated = [], []
++    cross_groups = cross_images = same_groups = 0
++    for pixel, names in sorted(groups.items()):
++        if len(names) < 2:
++            continue
++        names = sorted(names)
++        patients = {records[n]["patient_id"] for n in names}
++        if len(patients) > 1:
++            reason, dropped, canonical = "patient_identity_conflict", names, None
++            cross_groups += 1
++            cross_images += len(names)
++        else:
++            if len({records[n]["split"] for n in names}) != 1:
++                raise ValueError("같은 환자가 서로 다른 분할에 있습니다. 정제로 분할 누수를 우회하지 않습니다.")
++            reason, dropped, canonical = "same_patient_exact_pixel_duplicate", names[1:], names[0]
++            same_groups += 1
++        duplicated.append({"pixel_sha256": pixel, "images": names, "canonical": canonical})
++        excluded.extend({"name": n, "reason": reason, "canonical": canonical, "pixel_sha256": pixel} for n in dropped)
++    excluded.sort(key=lambda row: row["name"])
++    excluded_names = {row["name"] for row in excluded}
++    allowed = sorted(set(records) - excluded_names)
++    if len({records[n]["pixel_sha256"] for n in allowed}) != len(allowed):
++        raise ValueError("정제 후에도 동일 픽셀이 남아 있습니다.")
++    summary = {"raw_images": len(records), "allowed_images": len(allowed),
++               "excluded_images": len(excluded), "cross_patient_groups": cross_groups,
++               "cross_patient_excluded_images": cross_images, "same_patient_groups": same_groups,
++               "same_patient_excluded_images": len(excluded) - cross_images,
++               "excluded_by_split": dict(sorted(Counter(records[n]["split"] for n in excluded_names).items())),
++               "remaining_duplicate_groups": 0}
++    return {"policy": POLICY, "allowed_names": allowed, "excluded": excluded,
++            "duplicate_groups": duplicated, "summary": summary,
++            "allowed_names_sha256": signature(allowed)}
++
++
++def read_trusted_raw(path):
++    raw = Path(path).read_bytes()
++    import hashlib
++    if hashlib.sha256(raw).hexdigest() != TRUSTED_RAW["sha256"]:
++        raise ValueError("기존 전수 디코딩 근거의 고정 SHA256가 다릅니다.")
++    data = json.loads(raw)
++    if (data.get("validation_engine") != TRUSTED_RAW["validation_engine"]
++            or data.get("content_fingerprint") != TRUSTED_RAW["content_fingerprint"]
++            or signature(data["records"]) != TRUSTED_RAW["content_fingerprint"]
++            or data.get("images") != TRUSTED_RAW["images"]
++            or data.get("decoded_attempts") != TRUSTED_RAW["images"]
++            or len(data["records"]) != TRUSTED_RAW["images"] or data.get("decode_errors")):
++        raise ValueError("기존 전수 디코딩 근거의 엔진·내용·수량 계약이 다릅니다.")
++    return data
++
++
++def source_path(base, relative):
++    path = Path(relative)
++    if path.is_absolute() or ".." in path.parts:
++        raise ValueError("검사 근거의 상대 경로가 유효하지 않습니다.")
++    resolved = (Path(base) / path).resolve()
++    if not resolved.is_relative_to((Path(base) / "validation_runs").resolve()):
++        raise ValueError("검사 근거는 validation_runs 안에 있어야 합니다.")
++    return resolved
++
++
++def derive_manifest(base, source, *, engine):
++    base, source = Path(base).resolve(), Path(source).resolve()
++    if not source.is_relative_to(base / "validation_runs"):
++        raise ValueError("원 전수 검사 근거는 validation_runs 안에 있어야 합니다.")
++    raw = read_trusted_raw(source)
++    # 원래 images/blocked/records는 바꾸지 않고 별도 정책 필드만 더합니다.
++    return {**raw, "derived_schema": SCHEMA, "derivation_engine": engine,
++            "source_decode_audit": {"relative_path": source.relative_to(base).as_posix(), **TRUSTED_RAW},
++            "cleaning": canonical_selection(raw["records"])}
++
++
++def validate_derived_manifest(base, data, *, engine):
++    if data.get("derived_schema") != SCHEMA or data.get("derivation_engine") != engine:
++        raise ValueError("파생 정제 근거의 스키마·엔진이 다릅니다.")
++    audit = data.get("source_decode_audit", {})
++    if {k: audit.get(k) for k in TRUSTED_RAW} != TRUSTED_RAW:
++        raise ValueError("파생 정제 근거의 원 검사 출처가 다릅니다.")
++    raw = read_trusted_raw(source_path(base, audit.get("relative_path", "")))
++    if any(data.get(k) != value for k, value in raw.items()):
++        raise ValueError("파생 근거가 보존해야 할 원 전수 검사 내용을 바꿨습니다.")
++    expected = canonical_selection(raw["records"])
++    if signature(data.get("cleaning")) != signature(expected):
++        raise ValueError("제외·허용 목록이 고정 정제 정책을 다시 계산한 결과와 다릅니다.")
++    return set(expected["allowed_names"])
++
++
++def selection_from_report(base, report, *, engine):
++    nih = report.get("NIH") or report.get("datasets", {}).get("NIH_ChestXray14", {})
++    selection = nih.get("selection")
++    if not selection:
++        raise ValueError("누수 제거 후 재학습에는 검증된 정제 목록이 필요합니다.")
++    manifest = source_path(base, selection["manifest_relative"])
++    if digest(manifest) != selection["manifest_sha256"]:
++        raise ValueError("보고서의 정제 근거 파일 SHA256가 다릅니다.")
++    data = json.loads(manifest.read_text(encoding="utf-8"))
++    allowed = validate_derived_manifest(base, data, engine=engine)
++    if (selection.get("policy") != POLICY
++            or selection.get("allowed_names_sha256") != signature(sorted(allowed))
++            or signature(selection.get("summary")) != signature(data["cleaning"]["summary"])):
++        raise ValueError("보고서와 정제 목록의 정책·내용이 다릅니다.")
++    return allowed
++
++
++def project_pairs(pairs, allowed):
++    allowed = set(allowed)
++    return [(a, b, label) for a, b, label in pairs if a in allowed and b in allowed]
++
++
++def project_rows(rows, allowed, *, multi_image_only=False):
++    selected = [(name, patient) for name, patient in rows if name in allowed]
++    if multi_image_only:
++        counts = Counter(patient for _, patient in selected)
++        selected = [(name, patient) for name, patient in selected if counts[patient] > 1]
++    return selected
++
++
++def project_protocol(names, pairs, retrieval, allowed):
++    """세 학습·선택 분할을 평가와 같은 전역 허용 집합에 투영합니다."""
++    allowed = set(allowed)
++    return ({phase: [name for name in items if name in allowed] for phase, items in names.items()},
++            {phase: project_pairs(items, allowed) for phase, items in pairs.items()},
++            {phase: project_rows(items, allowed, multi_image_only=(phase == "train"))
++             for phase, items in retrieval.items()})
+--- 3차/experiment/training/data.py
++++ 4차/실험 코드/training/data.py
+@@ -11,6 +11,7 @@
+ from torchvision import transforms
+ 
+ from cxr_reid.data import read_pair_manifest, read_retrieval_manifest
++from cxr_reid.cleaning import project_protocol
+ 
+ 
+ def patient(name):
+@@ -113,7 +114,7 @@
+     return result
+ 
+ 
+-def load_protocol(official):
++def load_protocol(official, *, allowed_names=None):
+     """서로 다른 verification/retrieval 분할 목록을 섞지 않습니다."""
+     official = Path(official)
+     vr, rr = official / "PatientVerification", official / "PatientRetrieval/csv_files"
+@@ -139,6 +140,11 @@
+         for name, label in rows:
+             if patient(name) != str(int(label)):
+                 raise ValueError("검색 CSV의 환자 ID와 원본 영상 이름이 다릅니다.")
++    if allowed_names is not None:
++        names,pairs,retrieval=project_protocol(names,pairs,retrieval,allowed_names)
++        assert_patient_disjoint(*names.values())
++        for phase in pairs:check_pairs(pairs[phase],names[phase])
++        assert_patient_disjoint(*[[name for name,_ in items] for items in retrieval.values()])
+     return names, pairs, retrieval
+ 
+ 
+--- 3차/experiment/training/engine.py
++++ 4차/실험 코드/training/engine.py
+@@ -22,7 +22,8 @@
+ 
+ from cxr_reid.models import VerificationNetwork, ExtractorRes50, RetrievalHead
+ from cxr_reid.evaluation import calculate_retrieval_metrics
+-from cxr_reid.dataset_validation import validate_prepared_snapshot
++from cxr_reid.dataset_validation import validate_prepared_snapshot, validation_engine_signature
++from cxr_reid.cleaning import selection_from_report, POLICY
+ from .data import PairDataset, RetrievalDataset, load_protocol, randomized_pairs, mining_order
+ from .losses import CrossBatchContrastive
+ from .imagenet import ensure_safe_initialization
+@@ -34,7 +35,8 @@
+     "source_commit": "880168f564afa07936a8d8fb3b868b140ab937d9",
+     "initialization": IMAGENET_URL, "published_cxr_initialization": False,
+     "batch_size": 32, "verification_resolution": 256, "retrieval_resolution": 1024,
+-    "verification_pairs": 792294, "verification_validation_pairs": 50000,
++    "verification_pairs_official": 792294, "verification_validation_pairs_official": 50000,
++    "dataset_cleaning_policy": POLICY, "rnp_pair_count": "남은 양성 쌍 수의 두 배",
+     "verification_epochs": 100, "verification_patience": 5, "verification_lr": .0001,
+     "retrieval_phase1_epochs": 30, "retrieval_phase2_epochs": 50,
+     "retrieval_lr": .158489, "weight_decay": 1e-5, "memory_size": 128,
+@@ -191,7 +193,7 @@
+     manifests += sorted((official / "PatientRetrieval/csv_files").glob("*.csv"))
+     sources = {f"training/{p.name}": digest(p) for p in sorted(Path(__file__).parent.glob("*.py"))}
+     experiment = Path(__file__).parent.parent
+-    for name in ("models.py", "evaluation.py", "inference.py", "image_ops.py", "data.py", "dataset_validation.py"):
++    for name in ("models.py", "evaluation.py", "inference.py", "image_ops.py", "data.py", "dataset_validation.py", "cleaning.py"):
+         sources[f"cxr_reid/{name}"] = digest(experiment / "cxr_reid" / name)
+     sources["train_from_scratch.py"] = digest(experiment / "train_from_scratch.py")
+     snapshot = getattr(args, "validated_snapshot", None)
+@@ -223,7 +225,7 @@
+     model.eval()
+     if phase == "verification":
+         positives = [pair for pair in pairs["validation"] if pair[2] == 1]
+-        current = randomized_pairs(positives, names["validation"], 50000,
++        current = randomized_pairs(positives, names["validation"], 2*len(positives),
+                                    seed=args.seed + 1000000 + epoch)
+         total, count = 0., 0
+         for left, right, target in loader(PairDataset(images, current), args, seed=epoch):
+@@ -247,6 +249,7 @@
+ 
+ 
+ def phase_train(args, phase, protocol_data, state, image_init, run_binding, previous_weights=None):
++    names, pairs, retrieval = protocol_data
+     seed_all(args.seed)
+     memory_gate(args, phase)
+     is_verification = phase == "verification"
+@@ -262,13 +265,13 @@
+     if is_verification:
+         optimizer = torch.optim.Adam(model.parameters(), lr=.0001)
+         epochs, scheduler, memory = 100, None, None
+-        full_batches = math.ceil(792294 / 32)
++        full_batches = math.ceil(2*sum(label==1 for _,_,label in pairs['train']) / 32)
+     else:
+         groups = [{"params": [p for n, p in model.named_parameters() if p.requires_grad and not any(t in n for t in ("bias", "bn"))], "weight_decay": 1e-5},
+                   {"params": [p for n, p in model.named_parameters() if p.requires_grad and any(t in n for t in ("bias", "bn"))], "weight_decay": 0.}]
+         optimizer = torch.optim.SGD(groups, lr=.158489, momentum=.9, weight_decay=1e-5)
+         epochs = 30 if phase == "retrieval_phase1" else 50
+-        full_batches = math.ceil(61755 / 32)
++        full_batches = math.ceil(len(retrieval['train']) / 32)
+         scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=.158489,
+             total_steps=full_batches * epochs + 1, pct_start=.3, anneal_strategy="cos",
+             cycle_momentum=True, base_momentum=.85, max_momentum=.95, div_factor=25., final_div_factor=10000.)
+@@ -295,7 +298,7 @@
+     for epoch in range(metadata["epoch"], epochs):
+         if is_verification:
+             positives = [pair for pair in pairs["train"] if pair[2] == 1]
+-            current = randomized_pairs(positives, names["train"], 792294, seed=args.seed + epoch)
++            current = randomized_pairs(positives, names["train"], 2*len(positives), seed=args.seed + epoch)
+             dataset = PairDataset(images, current)
+             order = np.random.RandomState(args.seed + epoch).permutation(len(dataset)).tolist()
+         else:
+@@ -380,13 +383,15 @@
+ def preflight(args):
+     if not args.preflight and not getattr(args, "validated_snapshot", None):
+         raise ValueError("정식 학습에는 전수검증을 완료한 --validated-snapshot이 필요합니다.")
++    allowed=None
+     if getattr(args, "validated_snapshot", None):
+         progress(args.output, phase="data_validation", status="validating", epoch=0, epochs=0, step=0, loss=None)
+-        validate_prepared_snapshot(args.project, args.validated_snapshot)
++        normalized=validate_prepared_snapshot(args.project, args.validated_snapshot)
++        allowed=selection_from_report(args.project,normalized,engine=validation_engine_signature())
+     official = args.project / "official"
+-    protocol_data = load_protocol(official)
++    protocol_data = load_protocol(official,allowed_names=allowed)
+     run_binding, details = binding(args, official)
+-    names, _, retrieval = protocol_data
++    names, pairs, retrieval = protocol_data
+     images = args.project / "data/NIH_ChestXray14/images"
+     required = set(names["train"] + names["validation"])
+     required.update(name for phase in ("train", "validation") for name, _ in retrieval[phase])
+@@ -395,6 +400,9 @@
+                "missing_training_validation_images": missing,
+                "verification_counts": {key: len(value) for key, value in names.items()},
+                "retrieval_counts": {key: len(value) for key, value in retrieval.items()},
++               "verification_official_projected_pair_counts":{key:len(value) for key,value in pairs.items()},
++               "verification_rnp_pair_counts":{key:2*sum(label==1 for _,_,label in value) for key,value in pairs.items() if key!='test'},
++               "cleaning_policy":POLICY if allowed is not None else '원본 준비 진단; 정식 학습 아님',
+                "test_images_used_for_training": False}
+     atomic_json(args.output / "preflight.json", summary)
+     if missing:
+--- /dev/null
++++ 4차/실험 코드/검사/test_cleaning.py
+@@ -0,0 +1,166 @@
++"""중복 정제의 동일 허용 집합·불변 근거·오염 차단을 검사합니다."""
++
++from contextlib import contextmanager
++import copy
++import hashlib
++import json
++from pathlib import Path
++import tempfile
++import unittest
++from unittest.mock import patch
++
++from cxr_reid import cleaning
++from cxr_reid.dataset_validation import verify_current_file_hashes
++from cxr_reid.provenance import signature
++
++
++def records_fixture():
++    rows = [("1_a.png", "1", "train", "a"), ("1_b.png", "1", "train", "a"),
++            ("1_c.png", "1", "train", "c"), ("2_a.png", "2", "train", "x"),
++            ("3_a.png", "3", "validation", "x"), ("4_a.png", "4", "test", "t"),
++            ("4_b.png", "4", "test", "t"), ("5_a.png", "5", "train", "g")]
++    return {name: {"sha256": hashlib.sha256(name.encode()).hexdigest(),
++                   "pixel_sha256": hashlib.sha256(pixel.encode()).hexdigest(),
++                   "patient_id": patient, "split": split} for name, patient, split, pixel in rows}
++
++
++@contextmanager
++def trusted_fixture():
++    tmp = Path(__file__).resolve().parents[2] / "work/tmp"
++    tmp.mkdir(parents=True, exist_ok=True)
++    with tempfile.TemporaryDirectory(dir=tmp) as directory:
++        base = Path(directory)
++        path = base / "validation_runs/origin/nih_pixels.private.json"
++        path.parent.mkdir(parents=True)
++        records = records_fixture()
++        raw = {"records": records, "images": len(records), "decoded_attempts": len(records),
++               "validation_engine": "synthetic-origin-engine", "content_fingerprint": signature(records),
++               "blocking_duplicate_groups": 2, "decode_errors": []}
++        blob = json.dumps(raw).encode()
++        path.write_bytes(blob)
++        proof = {"sha256": hashlib.sha256(blob).hexdigest(), "validation_engine": raw["validation_engine"],
++                 "content_fingerprint": raw["content_fingerprint"], "images": len(records)}
++        # 합성 입력의 신뢰 근거를 주입하는 단위 검사이며 실제 고정 baseline을 변경하지 않습니다.
++        with patch.object(cleaning, "TRUSTED_RAW", proof):
++            yield base, path, raw
++
++
++class CleaningContract(unittest.TestCase):
++    def test_conflicting_identity_drops_every_image_and_same_patient_keeps_first_filename(self):
++        result = cleaning.canonical_selection(records_fixture())
++        self.assertEqual(result["allowed_names"], ["1_a.png", "1_c.png", "4_a.png", "5_a.png"])
++        self.assertEqual(result["summary"]["excluded_images"], 4)
++        self.assertEqual(result["summary"]["cross_patient_excluded_images"], 2)
++        self.assertEqual(result["summary"]["remaining_duplicate_groups"], 0)
++
++    def test_record_order_never_changes_canonical_or_exclusion_policy(self):
++        rows = records_fixture()
++        self.assertEqual(cleaning.canonical_selection(rows), cleaning.canonical_selection(dict(reversed(list(rows.items())))))
++
++    def test_same_patient_cross_split_is_blocked_instead_of_canonicalized(self):
++        rows = records_fixture()
++        rows["1_b.png"]["split"] = "validation"
++        with self.assertRaisesRegex(ValueError, "다른 분할"):
++            cleaning.canonical_selection(rows)
++
++    def test_pairs_rows_and_singleton_training_eligibility_share_the_allowed_set(self):
++        rows = records_fixture()
++        allowed = cleaning.canonical_selection(rows)["allowed_names"]
++        pairs = [("1_a.png", "1_b.png", 1), ("1_a.png", "1_c.png", 1),
++                 ("1_a.png", "2_a.png", 0), ("1_a.png", "5_a.png", 0)]
++        self.assertEqual(cleaning.project_pairs(pairs, allowed), [pairs[1], pairs[3]])
++        manifest = [(name, row["patient_id"]) for name, row in rows.items()]
++        self.assertEqual(len(cleaning.project_rows(manifest, allowed)), 4)
++        self.assertEqual(cleaning.project_rows(manifest, allowed, multi_image_only=True),
++                         [("1_a.png", "1"), ("1_c.png", "1")])
++        names, projected, retrieval = cleaning.project_protocol(
++            {"train": list(rows)}, {"train": pairs}, {"train": manifest}, allowed)
++        self.assertEqual(names["train"], allowed)
++        self.assertEqual(projected["train"], [pairs[1], pairs[3]])
++        self.assertEqual(retrieval["train"], [("1_a.png", "1"), ("1_c.png", "1")])
++
++    def test_untrusted_or_malicious_bytes_are_rejected_before_json_parsing(self):
++        with trusted_fixture() as (_, source, _):
++            source.write_bytes(b"arbitrary non-json or pickle bytes")
++            with patch.object(cleaning.json, "loads") as parser:
++                with self.assertRaisesRegex(ValueError, "고정 SHA256"):
++                    cleaning.read_trusted_raw(source)
++                parser.assert_not_called()
++
++    def test_origin_blocking_evidence_is_unchanged_and_valid_derived_policy_is_accepted(self):
++        with trusted_fixture() as (base, source, raw):
++            before = source.read_bytes()
++            result = cleaning.derive_manifest(base, source, engine="current-engine")
++            self.assertEqual(result["blocking_duplicate_groups"], 2)
++            self.assertEqual(result["records"], raw["records"])
++            self.assertEqual(source.read_bytes(), before)
++            self.assertEqual(len(cleaning.validate_derived_manifest(base, result, engine="current-engine")), 4)
++
++    def test_stale_derivation_engine_is_rejected(self):
++        with trusted_fixture() as (base, source, _):
++            result = cleaning.derive_manifest(base, source, engine="old-engine")
++            with self.assertRaisesRegex(ValueError, "스키마·엔진"):
++                cleaning.validate_derived_manifest(base, result, engine="new-engine")
++
++    def test_rehashed_exclusion_list_contamination_is_rejected(self):
++        with trusted_fixture() as (base, source, _):
++            result = cleaning.derive_manifest(base, source, engine="current-engine")
++            result["cleaning"]["allowed_names"].append("2_a.png")
++            result["cleaning"]["allowed_names_sha256"] = signature(result["cleaning"]["allowed_names"])
++            with self.assertRaisesRegex(ValueError, "고정 정제 정책"):
++                cleaning.validate_derived_manifest(base, result, engine="current-engine")
++
++    def test_changed_source_split_or_pixel_record_is_rejected(self):
++        with trusted_fixture() as (base, source, _):
++            result = cleaning.derive_manifest(base, source, engine="current-engine")
++            result["records"]["1_a.png"]["split"] = "test"
++            with self.assertRaisesRegex(ValueError, "원 전수 검사 내용"):
++                cleaning.validate_derived_manifest(base, result, engine="current-engine")
++
++    def test_original_bytes_are_checked_even_for_excluded_images(self):
++        with trusted_fixture() as (base, _, raw):
++            images = base / "images"
++            images.mkdir()
++            for name in raw["records"]:
++                (images / name).write_bytes(name.encode())
++            self.assertEqual(verify_current_file_hashes(images, raw["records"], workers=2), 8)
++            (images / "2_a.png").write_bytes(b"changed excluded source")
++            with self.assertRaisesRegex(ValueError, "원영상 바이트"):
++                verify_current_file_hashes(images, raw["records"], workers=2)
++
++    def test_origin_path_escape_is_rejected(self):
++        with trusted_fixture() as (base, _, _):
++            with self.assertRaises(ValueError):
++                cleaning.source_path(base, "../outside/manifest.json")
++
++    def test_report_payload_hash_and_allowed_summary_are_both_bound(self):
++        with trusted_fixture() as (base, source, _):
++            data = cleaning.derive_manifest(base, source, engine="current-engine")
++            target = base / "validation_runs/new/nih_pixels.private.json"
++            target.parent.mkdir(parents=True)
++            target.write_text(json.dumps(data), encoding="utf-8")
++            selection = {"manifest_relative": target.relative_to(base).as_posix(),
++                         "manifest_sha256": hashlib.sha256(target.read_bytes()).hexdigest(),
++                         "policy": cleaning.POLICY,
++                         "allowed_names_sha256": data["cleaning"]["allowed_names_sha256"],
++                         "summary": data["cleaning"]["summary"]}
++            report = {"NIH": {"selection": selection}}
++            self.assertEqual(len(cleaning.selection_from_report(base, report, engine="current-engine")), 4)
++            changed = copy.deepcopy(report)
++            changed["NIH"]["selection"]["summary"]["excluded_images"] = 0
++            with self.assertRaisesRegex(ValueError, "정책·내용"):
++                cleaning.selection_from_report(base, changed, engine="current-engine")
++            target.write_bytes(target.read_bytes() + b" ")
++            with self.assertRaisesRegex(ValueError, "파일 SHA256"):
++                cleaning.selection_from_report(base, report, engine="current-engine")
++
++    def test_matching_file_sha_cannot_override_an_unrelated_origin_engine(self):
++        with trusted_fixture() as (_, source, _):
++            proof = dict(cleaning.TRUSTED_RAW, validation_engine="unrelated-engine")
++            with patch.object(cleaning, "TRUSTED_RAW", proof):
++                with self.assertRaisesRegex(ValueError, "엔진·내용·수량"):
++                    cleaning.read_trusted_raw(source)
++
++
++if __name__ == "__main__":
++    unittest.main()
+--- 3차/app/index.html
++++ 4차/화면/index.html
+@@ -1,7 +1,7 @@
+ <!doctype html>
+ <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CXR Privacy Lab — 흉부 X선 재식별·프라이버시 실험</title><link rel="stylesheet" href="/style.css"><script type="module" src="/app.js"></script></head>
+ <body><aside><a class="brand" href="#overview"><span class="brand-icon">♧</span><span>CXR Privacy Lab<small>흉부 X선 재식별<br>연구 플랫폼</small></span></a><nav aria-label="주 탐색"><a href="#overview" class="selected" data-icon="home">개요</a><a href="#stages" data-icon="layers">실험 단계</a><a href="#datasets" data-icon="database">데이터셋</a><a href="#results" data-icon="chart">결과</a><a href="#logs" data-icon="file">실행 기록</a></nav><div class="local">로컬 실험 워크스페이스<br><span>외부 업로드 없음</span></div></aside>
+-<main id="overview"><header><div><h1>흉부 X선 프라이버시 실험</h1><p>3차 · 새 모델 학습 후 원본·블러·모자이크 재식별 성능 비교</p></div><div class="actions"><button id="theme" aria-pressed="false" title="화면 테마 전환">다크 모드</button><span id="status" role="status">실행 상태 확인 중</span><button class="primary" id="start">▶ &nbsp; 실험 시작</button><button id="stop">■ &nbsp; 중단</button></div></header><div id="notice" role="alert" hidden></div>
++<main id="overview"><header><div><h1>흉부 X선 프라이버시 실험</h1><p>4차 · 새 모델 학습 후 원본·블러·모자이크 재식별 성능 비교</p></div><div class="actions"><button id="theme" aria-pressed="false" title="화면 테마 전환">다크 모드</button><span id="status" role="status">실행 상태 확인 중</span><button class="primary" id="start">▶ &nbsp; 실험 시작</button><button id="stop">■ &nbsp; 중단</button></div></header><div id="notice" role="alert" hidden></div>
+ <section class="metrics" aria-label="핵심 상태"><article class="metric"><span class="metric-icon" data-icon="chip"></span><div><h2>GPU</h2><strong id="gpu">확인 중</strong><small id="gpu-detail">실제 장치 조회</small></div></article><article class="metric"><span class="metric-icon" data-icon="database"></span><div><h2>데이터셋</h2><strong>NIH + COVID-19</strong><small id="download-summary">파일 상태 확인 중</small></div></article><article class="metric"><span class="metric-icon" data-icon="trophy"></span><div><h2>평가 결과</h2><strong id="result-count">아직 없음</strong><small>실제 평가 산출물 기준</small></div></article></section>
+ <section class="panel training-panel" aria-label="새 모델 학습 상태"><div class="section-title"><h2>새 모델 학습</h2><span>검증 모델 → 검색 모델 출력부 → 전체 네트워크</span></div><p id="training-state">데이터 검증 후 새 학습 시작</p><p id="training-detail">공개 CXR 최종 가중치 사용 안 함 · 논문상 ImageNet 초기화</p></section><section class="panel pipeline" id="stages"><div class="section-title"><div><h2>영상 변환과 평가 흐름</h2><p class="section-caption">변환 미리보기 · 평가 결과 아님</p></div><button class="motion" id="motion" aria-pressed="false">모션 정지 <span class="switch"></span></button></div><div class="scene"><article class="stage" data-stage="1"><div class="stage-heading"><span>01</span><h3>원본 평가</h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-original" alt="원본 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">원본 영상</span></div></div><p class="stage-description">원본 영상의 재식별 성능 확인</p><span class="stage-status">평가 대기</span></article><article class="stage" data-stage="2"><div class="stage-heading"><span>02</span><h3>블러 평가</h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-blur" alt="블러 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">블러 영상</span></div></div><p class="stage-description">원본에 블러를 적용해 10수준 비교</p><span class="stage-status">평가 대기</span></article><article class="stage" data-stage="3"><div class="stage-heading"><span>03</span><h3>모자이크 평가</h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-mosaic" alt="모자이크 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">모자이크 영상</span></div></div><p class="stage-description">원본을 모자이크 처리해 10수준 비교</p><span class="stage-status">평가 대기</span></article></div><div class="pipeline-bottom"><p class="phase" id="phase">실험 상태를 확인하고 있습니다.</p><a href="#results">평가 결과 보기 <span aria-hidden="true">↗</span></a></div><p class="preview-note">동일한 원본 영상에서 각 변환을 독립적으로 적용합니다. 미리보기는 변환 예시이며, 실제 평가 수치는 아래 결과 표에 표시됩니다.</p></section><div class="middle"><section class="panel" id="datasets"><div class="section-title"><h2>데이터 준비</h2></div><div class="check"><span id="check-model">○</span><b>모델 로드</b><small>새 학습 가중치 · 구성 확인</small></div><div class="check"><span id="check-data">○</span><b>데이터 소스 확인</b><small>NIH, COVID-19 파일 준비</small></div><div class="check"><span id="check-validation">○</span><b>데이터 검증</b><small>실제 검증 로그 기준</small></div><div id="downloads" class="downloads">아직 다운로드 파일이 없습니다.</div></section><section class="panel" id="logs"><div class="section-title"><div class="log-tabs" role="tablist" aria-label="기록 종류"><button role="tab" id="experiment-tab" aria-selected="true" aria-controls="terminal">실시간 기록</button><button role="tab" id="environment-tab" aria-selected="false" aria-controls="terminal">환경 설치 기록</button></div><span class="live"><i></i> 3초 갱신</span></div><pre id="terminal" tabindex="0" aria-label="실험 실행 기록">기록을 불러오고 있습니다.</pre><small id="log-info">최근 기록만 표시합니다.</small></section></div>
+ <section class="panel result-panel" id="results"><div class="section-title"><h2>결과</h2><span id="updated"></span></div><div class="table-scroll"><table><thead><tr><th>단계</th><th>수준</th><th>AUC</th><th>정밀도@1 / CMC Rank-1</th><th>프라이버시 점수</th><th>상태</th></tr></thead><tbody id="result-rows"></tbody></table></div><div class="empty" id="empty"><span data-icon="file"></span><p>평가 후 실제 결과가 표시됩니다.</p></div><p class="result-note">1단계는 원본의 정밀도@1, 2·3단계는 CMC Rank-1을 표시합니다. 프라이버시 점수는 100 × (1 − CMC@1), 즉 고정된 공격 모델·검색 집합에서의 1순위 재식별 실패율입니다. 익명성 보장이나 종합적인 개인정보 보호 수준을 뜻하지 않습니다. 자기 원본은 검색 대상에서 제외합니다.</p></section><footer>CXR Privacy Lab — 흉부 X선 재식별·프라이버시 실험 · 데이터는 이 컴퓨터에 보관됩니다.</footer></main></body></html>
+--- 3차/app/style.css
++++ 4차/화면/style.css
+@@ -1,10 +1,10 @@
+ @font-face{font-family:Nanum;src:url('/assets/NanumGothic-Bold.ttf') format('truetype');font-weight:700;font-display:swap}
+-:root{color-scheme:light;--bg:#fff;--sidebar:#f4f7fb;--surface:#fff;--text:#26364a;--muted:#7b8a9e;--accent:#607da2;--accent-strong:#4e6a90;--soft:#edf2f8;--selected:#dfe8f4;--border:#e0e6ed;--shadow:#3451710d;--deep-shadow:#253b6024;--image-frame:#b5c6dc;--image-edge:#829ab9;--image-back:#a2b6d0;--image-caption:#f0f4fa;--film:#121c2b;--terminal:#1c293a;--terminal-text:#d8e5f5;--error:#ad666a;--notice-bg:#fff1e8;--notice-text:#975e3a;--button-text:#fff;--focus:#789ac7}
+-:root[data-theme=dark]{color-scheme:dark;--bg:#151c27;--sidebar:#1a2432;--surface:#1d2838;--text:#e4ebf5;--muted:#a1b0c5;--accent:#91acca;--accent-strong:#a8bfdb;--soft:#2a3a50;--selected:#334963;--border:#35465e;--shadow:#0002;--deep-shadow:#0006;--image-frame:#607a9b;--image-edge:#3f5674;--image-back:#4e6685;--image-caption:#293c55;--film:#0b111b;--terminal:#101822;--terminal-text:#cfdded;--error:#e19ca1;--notice-bg:#422e2c;--notice-text:#f0c3a8;--button-text:#172335;--focus:#a8c8f0}
+-*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:24px}body{margin:0;color:var(--text);background:var(--bg);font-family:Nanum,sans-serif;font-weight:700;font-size:15px}button,a{font:inherit}button{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:11px;min-height:44px;padding:10px 19px;transition:background .2s}button:hover{background:var(--soft)}button:disabled{opacity:.45;cursor:not-allowed}a{color:inherit;text-decoration:none}svg{display:block}aside{width:226px;position:fixed;inset:0 auto 0 0;background:var(--sidebar);padding:30px 10px;display:flex;flex-direction:column}.brand{display:flex;align-items:flex-start;gap:10px;margin:0 10px 35px;font-size:23px;letter-spacing:-1.2px}.brand-icon{background:var(--accent);color:var(--button-text);border-radius:11px;display:grid;place-items:center;min-width:43px;width:43px;height:47px}.brand-icon svg{width:34px;height:34px}.brand small{font-size:13px;line-height:1.6;letter-spacing:0;display:block;margin-top:7px;color:var(--muted)}nav{display:grid;gap:9px}nav a{display:flex;gap:19px;align-items:center;font-size:19px;padding:14px 20px;border-radius:12px}nav a.selected{background:var(--selected)}nav svg{width:24px;height:24px;color:var(--accent)}.local{margin:auto 17px 0;font-size:11px;line-height:1.9;color:var(--muted)}main{margin-left:226px;padding:29px 25px 20px;max-width:1900px}header{display:flex;justify-content:space-between;align-items:center;gap:20px;margin:0 5px 26px}h1{font-size:37px;letter-spacing:-1.8px;margin:0 0 10px;line-height:1.3}header p{margin:0;color:var(--muted);font-size:15px;line-height:1.6}.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.primary{background:var(--accent);color:var(--button-text);border-color:var(--accent);box-shadow:0 2px 0 var(--accent-strong);font-size:17px}.primary:hover{background:var(--accent-strong)}.actions>span{background:var(--soft);color:var(--accent-strong);padding:12px 15px;border-radius:12px;font-size:13px}.actions button:last-child{font-size:16px}#theme{font-size:12px;min-height:36px;padding:8px 12px}.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:21px}.metric,.panel{border:1px solid var(--border);background:var(--surface);border-radius:16px;box-shadow:0 3px 8px var(--shadow)}.metric{display:flex;gap:19px;align-items:center;padding:19px 21px;min-height:105px}.metric-icon{width:57px;height:57px;border-radius:18px;background:var(--soft);color:var(--accent);display:grid;place-items:center;flex-shrink:0}.metric-icon svg{width:32px;height:32px}.metric h2{font-size:14px;margin:0 0 8px}.metric strong{font-size:25px;letter-spacing:-.7px;display:block;overflow-wrap:anywhere}.metric small{display:block;color:var(--muted);font-size:10px;line-height:1.6;margin-top:7px}.panel{padding:17px 19px;scroll-margin-top:20px}.section-title{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:15px}.section-title h2{margin:0;display:flex;gap:11px;align-items:center;font-size:23px;letter-spacing:-1px}.section-title h2:before{content:'';width:5px;height:24px;border-radius:5px;background:var(--accent);display:block}.section-title>span{font-size:11px;color:var(--muted)}.section-caption{margin:8px 0 0 16px;font-size:11px;color:var(--muted)}.motion{border:0;display:flex;align-items:center;gap:10px;padding:0;font-size:12px;min-height:30px;white-space:nowrap}.switch{width:42px;height:24px;border-radius:20px;background:var(--accent);position:relative}.switch:after{content:'';width:18px;height:18px;position:absolute;top:3px;right:4px;background:var(--surface);border-radius:50%}.paused .switch{background:var(--border)}.paused .switch:after{right:20px}
++:root{color-scheme:light;--bg:#fff;--sidebar:#f4f7fb;--surface:#fff;--text:#26364a;--muted:#7b8a9e;--accent:#607da2;--accent-strong:#4e6a90;--soft:#edf2f8;--selected:#dfe8f4;--border:#e0e6ed;--shadow:#3451710d;--deep-shadow:#253b6024;--image-frame:#b5c6dc;--image-edge:#829ab9;--image-back:#a2b6d0;--image-caption:#f0f4fa;--film:#121c2b;--terminal:#1c293a;--terminal-text:#d8e5f5;--error:#ad666a;--notice-bg:#fff1e8;--notice-text:#975e3a;--button-text:#fff;--focus:#789ac7;--switch-off:#b0bdce;--switch-thumb:#fff}
++:root[data-theme=dark]{color-scheme:dark;--bg:#151c27;--sidebar:#1a2432;--surface:#1d2838;--text:#e4ebf5;--muted:#a1b0c5;--accent:#91acca;--accent-strong:#a8bfdb;--soft:#2a3a50;--selected:#334963;--border:#35465e;--shadow:#0002;--deep-shadow:#0006;--image-frame:#607a9b;--image-edge:#3f5674;--image-back:#4e6685;--image-caption:#293c55;--film:#0b111b;--terminal:#101822;--terminal-text:#cfdded;--error:#e19ca1;--notice-bg:#422e2c;--notice-text:#f0c3a8;--button-text:#172335;--focus:#a8c8f0;--switch-off:#526780;--switch-thumb:#151c27}
++*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:24px}body{margin:0;color:var(--text);background:var(--bg);font-family:Nanum,sans-serif;font-weight:700;font-size:15px}button,a{font:inherit}button{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:11px;min-height:44px;padding:10px 19px;transition:background .2s}button:hover{background:var(--soft)}button:disabled{opacity:.45;cursor:not-allowed}a{color:inherit;text-decoration:none}svg{display:block}aside{width:226px;position:fixed;inset:0 auto 0 0;background:var(--sidebar);padding:30px 10px;display:flex;flex-direction:column}.brand{display:flex;align-items:flex-start;gap:10px;margin:0 10px 35px;font-size:23px;letter-spacing:-1.2px}.brand-icon{background:var(--accent);color:var(--button-text);border-radius:11px;display:grid;place-items:center;min-width:43px;width:43px;height:47px}.brand-icon svg{width:34px;height:34px}.brand small{font-size:13px;line-height:1.6;letter-spacing:0;display:block;margin-top:7px;color:var(--muted)}nav{display:grid;gap:9px}nav a{display:flex;gap:19px;align-items:center;font-size:19px;padding:14px 20px;border-radius:12px}nav a.selected{background:var(--selected)}nav svg{width:24px;height:24px;color:var(--accent)}.local{margin:auto 17px 0;font-size:11px;line-height:1.9;color:var(--muted)}main{margin-left:226px;padding:29px 25px 20px;max-width:1900px}header{display:flex;justify-content:space-between;align-items:center;gap:20px;margin:0 5px 26px}h1{font-size:37px;letter-spacing:-1.8px;margin:0 0 10px;line-height:1.3}header p{margin:0;color:var(--muted);font-size:15px;line-height:1.6}.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.primary{background:var(--accent);color:var(--button-text);border-color:var(--accent);box-shadow:0 2px 0 var(--accent-strong);font-size:17px}.primary:hover{background:var(--accent-strong)}.actions>span{background:var(--soft);color:var(--accent-strong);padding:12px 15px;border-radius:12px;font-size:13px}.actions button:last-child{font-size:16px}#theme{font-size:12px;min-height:36px;padding:8px 12px}.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:21px}.metric,.panel{border:1px solid var(--border);background:var(--surface);border-radius:16px;box-shadow:0 3px 8px var(--shadow)}.metric{display:flex;gap:19px;align-items:center;padding:19px 21px;min-height:105px}.metric-icon{width:57px;height:57px;border-radius:18px;background:var(--soft);color:var(--accent);display:grid;place-items:center;flex-shrink:0}.metric-icon svg{width:32px;height:32px}.metric h2{font-size:14px;margin:0 0 8px}.metric strong{font-size:25px;letter-spacing:-.7px;display:block;overflow-wrap:anywhere}.metric small{display:block;color:var(--muted);font-size:10px;line-height:1.6;margin-top:7px}.panel{padding:17px 19px;scroll-margin-top:20px}.section-title{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:15px}.section-title h2{margin:0;display:flex;gap:11px;align-items:center;font-size:23px;letter-spacing:-1px}.section-title h2:before{content:'';width:5px;height:24px;border-radius:5px;background:var(--accent);display:block}.section-title>span{font-size:11px;color:var(--muted)}.section-caption{margin:8px 0 0 16px;font-size:11px;color:var(--muted)}.motion{border:1px solid transparent;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 8px;font-size:12px;min-height:44px;min-width:44px;white-space:nowrap;flex-shrink:0;background:transparent;color:var(--text);user-select:none}.motion:hover,.motion:active,.motion:disabled{background:transparent}.motion:hover{color:var(--accent-strong)}.motion:focus-visible{outline:3px solid var(--focus);outline-offset:2px}.motion:disabled{opacity:.65}.motion .switch{flex-shrink:0;box-shadow:inset 0 0 0 1px var(--accent-strong)}.switch{width:42px;height:24px;border-radius:20px;background:var(--accent);position:relative}.switch:after{content:'';width:18px;height:18px;position:absolute;top:3px;right:4px;background:var(--switch-thumb);border:1px solid var(--image-edge);border-radius:50%}.paused .switch{background:var(--switch-off)}.paused .switch:after{right:20px}
+ .pipeline{padding:20px 25px;margin-bottom:18px;overflow:hidden}.scene{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:45px;padding:3px 20px 15px;position:relative}.stage{position:relative;min-width:0;text-align:center}.stage:not(:last-child):after{content:'→';position:absolute;right:-35px;top:47%;font-size:25px;color:var(--image-frame)}.stage.active:not(:last-child):after,.stage.done:not(:last-child):after{color:var(--accent-strong)}.stage-heading{display:flex;align-items:center;justify-content:center;gap:8px;margin:10px 0 8px}.stage-heading>span{font-size:11px;color:var(--accent)}h3{font-size:17px;margin:0;letter-spacing:-.5px}.image-space{perspective:950px;padding:15px 6px 22px}.image-panel{position:relative;isolation:isolate;width:100%;max-width:265px;margin:auto;padding:9px 9px 0;border:1px solid var(--image-frame);border-radius:10px;background:var(--image-frame);box-shadow:7px 9px 0 var(--image-edge),11px 15px 0 var(--image-back),15px 20px 24px var(--deep-shadow);transform-style:preserve-3d;transform:rotateY(-8deg) rotateX(3deg);animation:panel-tilt 9s ease-in-out infinite;transition:background .2s}.stage:nth-child(2) .image-panel{animation-delay:-3s}.stage:nth-child(3) .image-panel{animation-delay:-6s}.image-surface{width:100%;height:clamp(190px,18vw,270px);position:relative;background:var(--film);border:1px solid var(--image-edge);border-radius:5px;overflow:hidden;display:grid;place-items:center}.image-surface img{width:100%;height:100%;object-fit:contain;display:block}.image-surface img[hidden]{display:none}.preview-fallback{color:var(--muted);font-size:12px;padding:12px;line-height:1.8}.image-caption{display:block;padding:9px 4px;background:var(--image-caption);margin:0 -9px;border-radius:0 0 9px 9px;font-size:12px;color:var(--text)}.stage-description{color:var(--muted);font-size:11px;line-height:1.6;margin:8px 0 10px;min-height:18px}.stage-status{display:inline-block;color:var(--muted);border:1px solid var(--border);background:var(--soft);border-radius:20px;padding:6px 15px;font-size:11px}.stage.active .stage-status,.stage.done .stage-status{color:var(--accent-strong);border-color:var(--accent)}.stage.active .image-panel{outline:2px solid var(--accent);outline-offset:4px}.stage.failed .stage-status{color:var(--error);border-color:var(--error)}.stage.failed .image-panel{outline:2px solid var(--error);outline-offset:4px}.pipeline-bottom{border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:15px;padding-top:13px}.phase{margin:0;color:var(--accent-strong);font-size:13px;line-height:1.7}.pipeline-bottom a{font-size:12px;white-space:nowrap;color:var(--accent-strong)}.preview-note{font-size:10px;line-height:1.8;color:var(--muted);margin:7px 0 0}.middle{display:grid;grid-template-columns:.95fr 1.05fr;gap:17px;margin-bottom:17px}.check{display:grid;grid-template-columns:27px 130px 1fr;align-items:center;gap:8px;border-top:1px solid var(--border);padding:12px 6px}.check span{font-size:22px;color:var(--accent)}.check b{font-size:14px}.check small{font-size:11px;color:var(--muted);line-height:1.6}.downloads{font-size:10px;color:var(--muted);line-height:1.8;margin:5px 6px 0;max-height:68px;overflow:auto;overflow-wrap:anywhere}pre{background:var(--terminal);color:var(--terminal-text);border:1px solid var(--border);border-radius:10px;padding:14px;font:700 12px/1.8 Nanum,sans-serif;white-space:pre-wrap;word-break:break-word;height:159px;overflow:auto;margin:0}#log-info{font-size:10px;color:var(--muted);display:block;margin-top:8px}.live{color:var(--accent)!important;display:flex;align-items:center;gap:6px;white-space:nowrap}.live i{background:var(--accent);width:6px;height:6px;border-radius:50%}.log-tabs{display:flex;gap:5px}.log-tabs button{padding:9px 15px;border-radius:8px;font-size:13px;min-height:35px}.log-tabs button[aria-selected=true]{background:var(--accent);color:var(--button-text);border-color:var(--accent)}.result-panel{padding:17px}.table-scroll{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px;text-align:center}th{background:var(--soft);padding:13px 12px;white-space:nowrap}th:first-child{border-radius:9px 0 0 9px}th:last-child{border-radius:0 9px 9px 0}td{padding:13px 10px;border-bottom:1px solid var(--border);color:var(--text)}.empty{text-align:center;padding:17px 0;color:var(--muted)}.empty svg{width:28px;height:28px;margin:auto}.empty p{font-size:13px;margin:9px}.result-note{font-size:10px;color:var(--muted);line-height:1.8;margin:10px 4px 0}footer{font-size:10px;color:var(--muted);text-align:center;padding-top:15px;line-height:1.8}#notice{background:var(--notice-bg);color:var(--notice-text);padding:14px;border-radius:10px;margin-bottom:15px}button:focus-visible,a:focus-visible,pre:focus-visible{outline:3px solid var(--focus);outline-offset:4px}.paused .image-panel{animation-play-state:paused}
+ @keyframes panel-tilt{0%,100%{transform:rotateY(-8deg) rotateX(3deg) translateY(0)}50%{transform:rotateY(3deg) rotateX(-2deg) translateY(-4px)}}
+ @media(max-width:1350px){header{align-items:flex-start;flex-direction:column;gap:17px}.actions{width:100%}.metric{gap:12px;padding:17px 15px}.metric strong{font-size:21px}.metric-icon{width:45px;height:49px}.check{grid-template-columns:23px 105px 1fr}.check b{font-size:12px}.check small{font-size:10px}.log-tabs button{font-size:12px;padding:9px 11px}.scene{padding:3px 8px 15px;gap:35px}.stage:not(:last-child):after{right:-28px}.image-surface{height:clamp(170px,18vw,235px)}}
+ @media(max-width:1050px){aside{width:190px}.brand{font-size:19px;gap:7px;margin-left:5px;margin-right:5px}.brand-icon{min-width:36px;width:36px;height:41px}.brand small{font-size:11px}nav a{font-size:17px;padding:13px 16px;gap:15px}main{margin-left:190px;padding:24px 18px}h1{font-size:33px}.metrics{gap:10px}.metric{gap:10px;padding:15px 12px;align-items:flex-start}.metric strong{font-size:18px}.metric-icon{width:35px;height:40px}.metric-icon svg{width:25px;height:25px}.metric h2{font-size:12px}.metric small{font-size:9px}.middle{grid-template-columns:1fr}.pipeline{padding:18px 17px}.scene{gap:25px;padding:3px 0 12px}.stage:not(:last-child):after{font-size:18px;right:-21px}.image-space{padding-left:0;padding-right:9px}.image-panel{padding:6px 6px 0;box-shadow:5px 7px 0 var(--image-edge),8px 11px 0 var(--image-back),10px 15px 19px var(--deep-shadow)}.image-caption{margin:0 -6px;font-size:10px}.image-surface{height:175px}.stage-heading{gap:5px}h3{font-size:14px}.stage-description{font-size:10px;min-height:33px}.stage-status{font-size:10px;padding:5px 10px}.check{grid-template-columns:28px 140px 1fr}.check b{font-size:14px}.check small{font-size:12px}}
+-@media(max-width:700px){aside{position:static;width:100%;padding:16px;display:block}.brand{font-size:24px;margin:0 0 15px;align-items:center;gap:10px}.brand small{font-size:11px;margin-top:3px}.brand-icon{width:45px;height:45px}.local{display:none}nav{display:flex;gap:2px;overflow-x:auto}nav a{font-size:12px;padding:10px 8px;gap:6px;white-space:nowrap;flex:1;justify-content:center}nav svg{width:17px;height:17px}main{margin:0;padding:20px 13px}header{margin:0 2px 20px}h1{font-size:29px;letter-spacing:-1.4px}header p{font-size:12px}.actions{justify-content:flex-start;gap:8px}.actions>span{order:-1;font-size:12px}.actions button{padding:9px 12px;font-size:14px;min-height:40px}#theme{margin-left:auto}.actions .primary{order:2}.actions #stop{order:3}.metrics{grid-template-columns:1fr;gap:8px;margin-bottom:15px}.metric{padding:13px 18px;min-height:80px;gap:17px;align-items:center}.metric-icon{width:47px;height:47px}.metric strong{font-size:22px}.metric small{font-size:10px;margin-top:4px}.metric h2{margin-bottom:5px}.panel{padding:16px}.section-title h2{font-size:21px}.section-caption{font-size:10px}.motion{font-size:10px;gap:6px}.switch{width:35px;height:21px}.switch:after{width:15px;height:15px}.paused .switch:after{right:17px}.scene{grid-template-columns:1fr;gap:25px;padding:7px 25px 12px}.stage{padding-bottom:20px}.stage:not(:last-child):after{content:'↓';right:calc(50% - 8px);top:auto;bottom:-18px;font-size:23px}.stage-heading{margin-bottom:8px}h3{font-size:19px}.stage-heading>span{font-size:13px}.image-space{padding:12px 20px 23px}.image-panel{max-width:270px;padding:8px 8px 0;box-shadow:6px 8px 0 var(--image-edge),10px 13px 0 var(--image-back),13px 18px 25px var(--deep-shadow)}.image-caption{margin:0 -8px;font-size:12px}.image-surface{height:255px}.stage-description{min-height:0;font-size:12px;margin:10px 0}.stage-status{font-size:11px}.pipeline-bottom{align-items:flex-start}.phase{font-size:11px}.pipeline-bottom a{font-size:10px}.preview-note{font-size:9px}.check{grid-template-columns:23px 118px 1fr}.check b{font-size:13px}.check small{font-size:10px}.log-tabs button{font-size:12px;padding:8px 10px}.section-title>span{font-size:9px}.middle{gap:14px}th{font-size:11px}td{font-size:11px}.result-note{font-size:9px}}
++@media(max-width:700px){aside{position:static;width:100%;padding:16px;display:block}.brand{font-size:24px;margin:0 0 15px;align-items:center;gap:10px}.brand small{font-size:11px;margin-top:3px}.brand-icon{width:45px;height:45px}.local{display:none}nav{display:flex;gap:2px;overflow-x:auto}nav a{font-size:12px;padding:10px 8px;gap:6px;white-space:nowrap;flex:1;justify-content:center}nav svg{width:17px;height:17px}main{margin:0;padding:20px 13px}header{margin:0 2px 20px}h1{font-size:29px;letter-spacing:-1.4px}header p{font-size:12px}.actions{justify-content:flex-start;gap:8px}.actions>span{order:-1;font-size:12px}.actions button{padding:9px 12px;font-size:14px;min-height:40px}#theme{margin-left:auto}.actions .primary{order:2}.actions #stop{order:3}.metrics{grid-template-columns:1fr;gap:8px;margin-bottom:15px}.metric{padding:13px 18px;min-height:80px;gap:17px;align-items:center}.metric-icon{width:47px;height:47px}.metric strong{font-size:22px}.metric small{font-size:10px;margin-top:4px}.metric h2{margin-bottom:5px}.panel{padding:16px}.section-title{flex-wrap:wrap}.section-title h2{font-size:21px}.section-caption{font-size:10px}.motion{font-size:10px;gap:6px}.switch{width:35px;height:21px}.switch:after{width:15px;height:15px}.paused .switch:after{right:17px}.scene{grid-template-columns:1fr;gap:25px;padding:7px 25px 12px}.stage{padding-bottom:20px}.stage:not(:last-child):after{content:'↓';right:calc(50% - 8px);top:auto;bottom:-18px;font-size:23px}.stage-heading{margin-bottom:8px}h3{font-size:19px}.stage-heading>span{font-size:13px}.image-space{padding:12px 20px 23px}.image-panel{max-width:270px;padding:8px 8px 0;box-shadow:6px 8px 0 var(--image-edge),10px 13px 0 var(--image-back),13px 18px 25px var(--deep-shadow)}.image-caption{margin:0 -8px;font-size:12px}.image-surface{height:255px}.stage-description{min-height:0;font-size:12px;margin:10px 0}.stage-status{font-size:11px}.pipeline-bottom{align-items:flex-start}.phase{font-size:11px}.pipeline-bottom a{font-size:10px}.preview-note{font-size:9px}.check{grid-template-columns:23px 118px 1fr}.check b{font-size:13px}.check small{font-size:10px}.log-tabs button{font-size:12px;padding:8px 10px}.section-title>span{font-size:9px}.middle{gap:14px}th{font-size:11px}td{font-size:11px}.result-note{font-size:9px}}
+ @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}}.training-panel{margin-bottom:24px;padding:24px 28px}.training-panel p{line-height:1.8}.training-panel #training-state{font-size:21px}.training-panel .section-title span{color:var(--muted);font-size:12px}@media(max-width:600px){.training-panel .section-title{display:block}.training-panel #training-state{font-size:17px}}
