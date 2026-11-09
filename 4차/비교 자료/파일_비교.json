@@ -81,9 +81,9 @@
     "before_path": "3차/CHANGELOG.md",
     "after_path": "4차/변경_기록.md",
     "before_bytes": 2582,
-    "after_bytes": 2295,
+    "after_bytes": 2425,
     "before_sha256": "76cd7855106dabd2b0130f1a285250fd17e2b564d891761029b1d146e2e3a9ae",
-    "after_sha256": "972811067e09186b210698306a4f9e94211613271b596950fa799e8dc0bd259a",
+    "after_sha256": "4c565cd5f79cbf0ba0a4c032f3682662b24eee5967062af95b430bf91df32950",
     "changed": true,
     "renamed": true
   },
