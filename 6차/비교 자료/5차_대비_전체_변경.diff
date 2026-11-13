@@ -1,0 +1,1363 @@
+--- 5차/README.md
++++ 6차/README.md
+@@ -1,67 +1,33 @@
+-# 🩻 5차 — 중복 영상을 제외하고 다시 학습하는 흉부 엑스레이 재식별 실험
++# 🩻 6차 — 단계와 강도를 골라 보는 재식별 실험
+ 
+-공개 CXR 최종 가중치를 평가하는 경로와 새로운 학습 경로를 분리했습니다. 데이터 준비·검증이 끝나면 검증 모델, 검색 모델 출력부, 검색 모델 전체를 순서대로 학습하고 이 실행에서 생성한 가중치로 원본·블러·모자이크를 평가합니다. ImageNet 초기화는 논문상 설정이며 CXR 최종 가중치 재사용과 구분합니다.
++1단계 원본, 2단계 블러, 3단계 모자이크를 선택하고 각 강도의 조건·진행·실제 결과를 확인하는 대시보드입니다. **화면은6차, 연결한 실험은 기존5차 실행**입니다. 화면 개편만으로 기존 실행을 다시 시작하지 않습니다. 2026-11-13 확인 시 연결 실험은 CUDA 오류로 중단된 상태입니다.
+ 
+-## 🧪 실행
++## 🧪 학습과 평가
+ 
+-프로젝트 상위의 `실행 환경/Scripts/python.exe`로 `run_experiment.py`를 실행합니다. 대시보드는 Node.js로 `server.mjs`를 실행하고 로컬 포트 8787에서 확인합니다. 데이터는 기존 프로젝트의 `연구 자료/`를 사용하고 실행별 학습·체크포인트·기록은 `5차/work/runs/<실행 UUID>/`에 새로 저장합니다. 과거 실행에서 자동 재개하지 않습니다.
++검증 모델 학습 → 검색 모델 출력부 학습 → 검색 모델 전체 학습을 마친 뒤, 같은 실행에서 만든 두 모델로21조건을 평가합니다. 강도마다 모델을 다시 학습하는 구조는 아닙니다. 강도별 재학습은 별도 실험 설계입니다.
+ 
+-학습 전 데이터의 실제 확보·손상·환자 분리 검증과 GPU 연산 확인이 필요합니다. 화면의 준비 중은 학습 중을 뜻하지 않습니다. 모델 학습 실패나 현재 실행이 생성하지 않은 가중치에서는 평가를 시작하지 않습니다. 기존 1차와 감사 보고서 2차는 보존합니다.
++| 평가 단계 | 선택 조건 | 변환 |
++| --- | --- | --- |
++| 1단계 원본 | 원본0 | 변환 없이 검증·검색 |
++| 2단계 블러 | 0,2,4,8,16,32,64,128,256,512 | 원영상 픽셀 기준 Gaussian 반경 |
++| 3단계 모자이크 | 1,4,8,16,32,64,128,256,512,1024 | 목표 타일 크기(px) |
+ 
+-학습은 원 논문 시드3과 배치32를 사용합니다. 현재 GPU에서는 검색 네트워크의 활성값 재계산을 켜고, 재계산 중 BatchNorm 통계와 난수 상태를 보존합니다. 혼합정밀도 초기 배율의 overflow는 가중치 갱신 없이 상태를 복원하고 배율을 낮춘 뒤 같은 배치를 재시도합니다. 유한 손실·기울기를 확인한 뒤 optimizer와 스케줄러를 한 번 갱신합니다. 이 포팅 조건을 원 논문 실행환경과 구분해 기록합니다.
++변형은 질의에만 적용하고 검색 갤러리는 원본으로 고정합니다. 자기 원본은 검색에서 제외합니다. 블러0과 모자이크1도 각 단계의 별도 조건입니다. 원본 모델의 논문 재현과 블러·모자이크 확장 비교를 구분합니다. [단계별 실험 구조](문서/단계별_실험_구조.md)에서 실제 코드와 지표를 확인합니다.
+ 
+-원 공식 검색 코드의 validation CBM 메모리 갱신은 이번 구현에서 차단합니다. 검증 영상이 다음 학습 큐에 섞이지 않도록 한 의도된 변경이며, 원 논문 주요 학습 조건에 누수 방어를 보완한 재학습으로 구분합니다. 모든 코드 동작과 환경이 원본과 동일한 재현이라고 표현하지 않습니다.
++## 🖱️ 화면 사용
+ 
+-## 📊 지표 해석
++단계 선택 → 강도 선택 → 상세 정보 순서로 확인합니다. 결과가 없는 조건도 선택할 수 있고 미측정으로 표시합니다. 현재 실행의 같은 단계·강도 결과만 연결하며 선택은3초 갱신 뒤에도 유지합니다. 학습3과정과 평가3단계는 별도로 보여 줍니다.
+ 
+-프라이버시 점수 `100 × (1 − CMC@1)`는 고정된 공격 모델과 검색 집합에서의 1순위 재식별 실패율입니다. 익명성 보장·차등 프라이버시·법적 적합성·진단 효용을 뜻하지 않습니다. 자기 원본은 검색에서 제외하며 같은 환자의 다른 촬영 영상으로 재식별을 평가합니다. 환자별 영상 수와 질의 분모를 함께 기록합니다.
++백분율은 **소수 첫째 자리 반올림** 표시입니다. 저장 원비율과 전체 자릿수는 펼쳐 확인하고 반올림100.0%와 실제 원비율1을 구분합니다. AUC·손실·학습률 원값도 유지하며 결과 CSV·JSON을 표시 목적으로 변경하지 않습니다. 흰색·회청색, 나눔고딕 Bold700, 양쪽 테마·모션 제어를 유지합니다.
+ 
+-## 🔎 검증과 공개 경계
++## ▶️ 실행과 보존
+ 
+-검사와 독립 검토 결과는 실제 실행 뒤 별도로 기록합니다. 합성 GPU 역전파 성공과 실제 NIH 학습, 학습 종료와 원 논문 수치 재현은 각각 구분합니다. Windows·Python3.12·PyTorch2.7.1 환경은 원 논문 환경과 동일하지 않습니다.
++`대시보드_시작.cmd` 또는 Node.js로 `6차/server.mjs`를 실행하고 `http://127.0.0.1:8787/`에 접속합니다. 화면6차는 고정한5차 실행 관리자의 현재 상태·학습·결과를 연결합니다. 시작·중단도 같은 실행 관리자를 사용해 중복 실행을 막습니다. 원본과1~5차는 보존합니다. 실험 코드와 학습 설정은5차의 보존 사본이며 이번 변경으로 강도별 재학습을 추가한 것은 아닙니다.
+ 
+-의료 원영상·영상별 목록·환자 식별자·학습 가중치·실행 로그·개인 지침은 공개하지 않습니다. 제공 패키지 자체의 재배포 권한이 확인되지 않은 평가 엔진은 로컬에서 보존하며 공개 대상에서 보류합니다.
++## 🔎 검증과 해석
+ 
+-## 📚 근거
++[보고서 항목별 이행표](보고서_항목별_이행표.md)에서 코드 수정·검사와 실제 학습·성능 재현의 확인 상태를 구분합니다. NIH34장·COVID4장 제외, 검증 메모리 혼입 방어와 Windows 포팅으로 원 논문의 모든 조건을 그대로 복제한 전체 재현은 아닙니다. 프라이버시 점수는 고정 공격의 Rank-1 실패율을0~100으로 환산한 조작적 지표이며 익명성·진단 효용을 보장하지 않습니다.
+ 
+-- [Packhäuser 등 원 논문](https://doi.org/10.1038/s41598-022-19045-3)
+-- [원 저자 공식 코드](https://github.com/kaipackhaeuser/CXR-Patient-ReID/tree/880168f564afa07936a8d8fb3b868b140ab937d9)
+-- [PyTorch 체크포인트 저장 안내](https://docs.pytorch.org/tutorials/beginner/saving_loading_models.html)
++의료 원영상·영상별 목록·가중치·운영 기록과 재배포 권한 미확인 엔진은 공개하지 않습니다.
+ 
+-[학습 포팅 조건](문서/학습_조건.md) · [COVID 정제 조건](문서/코로나_외부검증_정제.md) · [전체 변경 비교](이전_차수_비교.md) · [변경 기록](변경_기록.md)
+-
+-측정하지 않은 성능이나 예상 완료 시각은 표시하지 않습니다.
+-
+-## 🧹 5차의 데이터 검증 경계
+-
+-4차 준비 실행은 COVID 시험 영상에서 서로 다른 환자 기록의 정확 픽셀 중복을 발견해 중단됐으며, 그 실행에서 실제 학습은 시작하지 않았습니다. 5차는 NIH의 파생 정제 정책을 유지하고 COVID의 충돌 영상도 원본을 보존한 채 평가용 파생 집합에서 제외합니다. 원본 공식 수량과 정제 후 평가 분모를 구분하며, 준비 완료·학습 첫 갱신·학습 종료는 각각 실제 기록으로 확인합니다.
+-
+-이전 준비 결과를 사용할 때에도 `run_experiment.py --validated-snapshot <현재 연구 자료 안의 검증 스냅샷>`은 현재 원영상 전체 SHA256과 정제 명세 검증을 먼저 수행합니다. 검증이 실패하면 새 학습이나 평가를 시작하지 않습니다. 실제 가중치 갱신이 0회이면 화면에 첫 갱신 대기를 표시하며, 갱신 수가 기록되지 않았다면 확인 전으로 표시합니다.
+-
+-## 🗂️ 한글 폴더와 시작 방법
+-
+-프로젝트 폴더는 `흉부 엑스레이 환자 재식별 실험`이며 기존 1~4차를 보존합니다. 5차의 화면은 `화면/`, 실험은 `실험 코드/`, 검사는 `검사/`, 문서는 `문서/`에 있습니다. 공통 폴더는 `연구 자료/`, `실행 환경/`, `공개 코드/`, `화면 검증/`, `작업 기록/`입니다. 내부 `work/`는 실행 중 변경되는 작업 기록 폴더로 유지합니다.
+-
+-- 대시보드: `대시보드_시작.cmd` → `http://127.0.0.1:8787`
+-- 데이터 준비와 새 학습·평가: `실험 코드/전체_실험_시작.cmd`
+-- 다운로드·전수 검사만: `실험 코드/데이터_준비.cmd`
+-- 확보된 데이터 검사만: `실험 코드/데이터_검사.cmd`
+-- 단계별 수동 평가: `실험 코드/흉부_엑스레이_3단계_실험.ipynb`. 5차 또는 실험 코드 폴더에서 열고 새 학습 가중치 두 개를 지정합니다.
+-
+-현재 RAM 여유가 낮게 관측되어 실행 관리자는 학습에 `--num-workers 0`을 지정합니다. 입력을 같은 프로세스에서 처리하며 배치32·손실·분할·시드3·에폭 기준은 변경하지 않습니다. 이는 검사 import 지연을 해결했다는 주장이 아닙니다. 5차의 학습 시작·첫 가중치 갱신·완료는 실제 실행 증거를 따로 확인합니다.
+-
+-Python 모듈·패키지·의존성 및 도구 고정 이름(`cxr_reid`, `training`, `main.py`, `requirements.txt`, `settings.json`, `test_*.py`, `.codex`, `README.md` 등)은 실행 계약 때문에 유지합니다. 의료 원영상과 비공개 기록은 공개하지 않습니다.
+-
+-모션 버튼의 전역 호버 배경 충돌을 분리하고 44px 클릭 영역, 고정 스위치 크기, 키보드 포커스와 양쪽 테마의 경계를 보완했습니다. 실제 화면 검증 결과와 소스 검사는 구분합니다.
+-
+-## 🔎 실제 데이터에서 확인한 중복
+-
+-NIH 원본 112,120장을 모두 디코딩한 결과 손상은 0개, 정확히 같은 픽셀의 중복은 25그룹 51장이었습니다. 이 중 14그룹은 환자 기록 충돌·분할 중복 또는 평가의 동일 영상 비교 문제로 준비 단계에서 차단됐습니다. 원본과 이 실패 기록은 보존합니다.
+-
+-서로 다른 환자로 기록된 동일 영상 8그룹 17장은 모두 실험 목록에서 제외하고, 같은 환자의 동일 영상 17그룹 34장은 파일명 순으로 한 장씩 남깁니다. 총 34장을 제외한 112,086장이 파생 허용 집합입니다. 원 논문과 달라진 데이터 조건이며, 공식 목록을 그대로 사용한 성능 재현으로 표현하지 않습니다.
+-
+-검증 모델의 분할은 학습 75,690장·검증 10,811장·시험 25,585장입니다. 학습은 남은 양성 395,926쌍과 에폭마다 생성하는 음성 395,926쌍을 사용합니다. 검색 학습은 중복 제외 후 새로 생긴 단일 영상 환자도 학습 자격에서 구분해 61,735장입니다. 최종 준비 검증과 실제 실행 기록에서 이 수량과 동일 픽셀 잔여 중복 0을 다시 확인해야 합니다.
+-
+-## 수치 표시와 원값 보존
+-
+-백분율은 소수 둘째 자리까지 버려 표시하고, 같은 행에서 저장된 원비율과 전체 정밀도의 원값을 펼쳐 확인할 수 있게 합니다. 검색 성공률은 원비율을 백분율로 바꾸고 프라이버시 점수는 이미 0~100인 단위를 유지합니다. AUC·손실·학습률의 표시 자릿수와 원값도 구분합니다. 표시 과정에서 CSV·JSON 결과 원본을 바꾸거나 미측정 값을 0으로 대체하지 않습니다.
++[변경 기록](변경_기록.md) · [5차와 전체 비교](이전_차수_비교.md) · [학습 조건 보존](문서/학습_조건.md) · [원 논문](https://doi.org/10.1038/s41598-022-19045-3)
+--- 5차/server.mjs
++++ 6차/server.mjs
+@@ -1,139 +1,193 @@
+-import http from 'node:http';
+-import { promises as fs } from 'node:fs';
+-import path from 'node:path';
+-import { fileURLToPath } from 'node:url';
+-import { spawn, execFile } from 'node:child_process';
+-
+-const ROOT = path.dirname(fileURLToPath(import.meta.url));
+-const LIMIT = 65536;
+-export async function tail(file, limit = LIMIT) {
+-  let handle;
+-  try {
+-    handle = await fs.open(file, 'r');
+-    const { size } = await handle.stat();
+-    const start = Math.max(0, size - limit);
+-    const buffer = Buffer.alloc(Math.min(size, limit));
+-    await handle.read(buffer, 0, buffer.length, start);
+-    let text = buffer.toString('utf8');
+-    // 중간 UTF-8 문자와 잘린 첫 행은 표시에서 제외합니다.
+-    if (start) text = text.slice(text.indexOf('\n') + 1);
+-    return { text, bytes: size, truncated: start > 0 };
+-  } catch (e) { if (e.code === 'ENOENT') return { text: '', bytes: 0, truncated: false }; throw e; }
+-  finally { await handle?.close(); }
+-}
+-export function parseCSV(text) {
+-  const rows = []; let row = [], value = '', quoted = false;
+-  for (let i = 0; i < text.length; i++) {
+-    const c = text[i];
+-    if (c === '"') { if (quoted && text[i + 1] === '"') { value += '"'; i++; } else quoted = !quoted; }
+-    else if (c === ',' && !quoted) { row.push(value); value = ''; }
+-    else if (c === '\n' && !quoted) { row.push(value.replace(/\r$/, '')); rows.push(row); row = []; value = ''; }
+-    else value += c;
+-  }
+-  if (value || row.length) { row.push(value.replace(/\r$/, '')); rows.push(row); }
+-  const fields = rows.shift()?.map(x => x.replace(/^\uFEFF/, '')) || [];
+-  return rows.filter(r => r.some(Boolean)).map(r => Object.fromEntries(fields.map((f, i) => [f, r[i] ?? ''])));
+-}
+-async function json(file) { try { return JSON.parse(await fs.readFile(file, 'utf8')); } catch (e) { if (e.code === 'ENOENT' || e instanceof SyntaxError) return null; throw e; } }
+-function alive(pid) { if (!Number.isInteger(pid) || pid < 1) return false; try { process.kill(pid, 0); return true; } catch { return false; } }
+-export function createDashboard(options = {}) {
+-  const root = options.root || ROOT;
+-  const research = options.research || path.resolve(root, '../연구 자료');
+-  const control = options.control || (options.research ? path.join(research, 'control') : path.join(root, 'work', 'control'));
+-  const previewControl = options.research ? control : path.join(research, 'control');
+-  const launch = options.launch || (() => spawn(path.resolve(root, '../실행 환경/Scripts/python.exe'), ['-B', '-X', 'utf8', path.join(root, 'run_experiment.py')], { cwd: root, windowsHide: true, stdio: 'ignore' }));
+-  let pending = false, localChild = null, gpuCache = { name: '확인 중', utilization: null }, gpuAt = 0;
+-  async function state() {
+-    const run = await json(path.join(control, 'run.json'));
+-    const active = run?.status === 'running' && alive(run.pid);
+-    if (run?.status === 'running' && !active) { run.status = 'interrupted'; run.error = '실행 프로세스가 확인되지 않습니다.'; }
+-    return { run, active: active || !!localChild, starting: pending };
+-  }
+-  async function status() {
+-    const current = await state();
+-    const results = [];
+-    // 현재 실행의 결과만 읽으며 과거 가중치 평가와 새 학습 결과를 섞지 않습니다.
+-    const runId=current.run?.run_id;
+-    const validRun=typeof runId==='string' && /^[a-zA-Z0-9_-]{1,80}$/.test(runId);
+-    const resultRoot=validRun ? path.join(research,'results','runs',runId) : (options.research ? path.join(research,'results') : null);
+-    for (const folder of ['stage_1_original', 'stage_2_blur', 'stage_3_mosaic']) {
+-      try {
+-        if (!resultRoot) continue;
+-        const file = path.join(resultRoot, folder, 'summary.csv');
+-        const stat = await fs.stat(file);
+-        if (stat.size <= 2 * 1024 * 1024) for (const row of parseCSV(await fs.readFile(file, 'utf8'))) results.push({ ...row, source: folder });
+-      } catch (e) { if (e.code !== 'ENOENT') throw e; }
+-    }
+-    const downloads = [];
+-    try { for (const name of (await fs.readdir(path.join(research, 'downloads'))).slice(0, 200)) {
+-      const stat = await fs.stat(path.join(research, 'downloads', name));
+-      if (stat.isFile()) downloads.push({ name, bytes: stat.size, partial: name.endsWith('.part') });
+-    } } catch (e) { if (e.code !== 'ENOENT') throw e; }
+-    if (Date.now() - gpuAt > 15000) {
+-      gpuAt = Date.now();
+-      (options.gpuQuery || execFile)('nvidia-smi', ['--query-gpu=name,utilization.gpu,memory.used,memory.total', '--format=csv,noheader,nounits'], { windowsHide: true, timeout: 2000, maxBuffer: 4096 }, (err, out) => {
+-        if (err) gpuCache = { name: '조회 불가', utilization: null };
+-        else { const [name, utilization, used, total] = out.trim().split('\n')[0].split(',').map(s => s.trim()); gpuCache = { name, utilization, used, total }; }
+-      });
+-    }
+-    const previews={};
+-    for (const name of ['original','blur','mosaic']) {
+-      try { const info=await fs.stat(path.join(previewControl,'previews',`${name}.png`)); previews[name]=info.isFile()&&info.size>0; }
+-      catch(e) { if(e.code!=='ENOENT')throw e; previews[name]=false; }
+-    }
+-    const training=validRun ? await json(path.join(root,'work','runs',runId,'training','progress.json')) : null;
+-    return { ...current, revision:5, training, gpu: gpuCache, results, downloads, previews, log: await tail(path.join(control, 'experiment.log')), environment_log: await tail(path.join(research,'control','environment.log')), environment_ready: !!(await json(path.join(research,'control','environment_ready.json'))), updated_at: new Date().toISOString() };
+-  }
+-  const server = http.createServer(async (req, res) => {
+-    const send = (code, data) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(data)); };
+-    try {
+-      const host = `127.0.0.1:${server.address().port}`;
+-      if (req.headers.host !== host) return send(403, { error: '로컬 Host만 허용합니다.' });
+-      if (req.method === 'GET' && req.url === '/api/status') return send(200, await status());
+-      const previewFiles={'/api/preview/original.png':'original.png','/api/preview/blur.png':'blur.png','/api/preview/mosaic.png':'mosaic.png'};
+-      if (req.method==='GET' && Object.hasOwn(previewFiles,req.url)) {
+-        try {
+-          const file=path.join(previewControl,'previews',previewFiles[req.url]);const info=await fs.stat(file);
+-          if(!info.isFile() || info.size>10*1024*1024)return send(404,{error:'미리보기를 준비하고 있습니다.'});
+-          const data=await fs.readFile(file);
+-          res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});return res.end(data);
+-        } catch(e) { if(e.code==='ENOENT')return send(404,{error:'미리보기를 준비하고 있습니다.'});throw e; }
+-      }
+-      if (req.method === 'POST') {
+-        if (req.headers.origin !== `http://${host}`) return send(403, { error: '로컬 Origin만 허용합니다.' });
+-        if (Number(req.headers['content-length'] || 0) > 0 || req.headers['transfer-encoding']) return send(400, { error: '요청 본문은 허용하지 않습니다.' });
+-        if (req.url === '/api/start') {
+-          if (pending) return send(409, { error: '실험을 시작하고 있습니다.' });
+-          pending = true;
+-          try {
+-            if ((await state()).active) return send(409, { error: '이미 실행 중입니다.' });
+-            const child = launch(); localChild = child;
+-            const clear = () => { if (localChild === child) localChild = null; };
+-            child.once('exit', clear); child.once('error', clear);
+-            await new Promise((resolve, reject) => { child.once('spawn', resolve); child.once('error', reject); });
+-            return send(202, { status: 'starting' });
+-          } finally { pending = false; }
+-        }
+-        if (req.url === '/api/stop') {
+-          const { run, active } = await state();
+-          if (!active || !run?.run_id || run.status !== 'running') return send(409, { error: '실행 상태가 기록된 후 중단할 수 있습니다.' });
+-          await fs.mkdir(control, { recursive: true });
+-          await fs.writeFile(path.join(control, 'stop.request'), run.run_id, 'utf8');
+-          return send(202, { status: 'stop_requested' });
+-        }
+-        return send(404, { error: '없는 요청입니다.' });
+-      }
+-      if (req.method !== 'GET') return send(405, { error: '허용하지 않는 방식입니다.' });
+-      const files = { '/': ['index.html', 'text/html'], '/style.css': ['style.css', 'text/css'], '/app.js': ['app.js', 'text/javascript'], '/state.mjs': ['state.mjs','text/javascript'], '/assets/NanumGothic-Bold.ttf': ['assets/NanumGothic-Bold.ttf', 'font/ttf'], '/assets/OFL.txt': ['assets/OFL.txt', 'text/plain'] };
+-      const entry = files[req.url]; if (!entry) return send(404, { error: '파일이 없습니다.' });
+-      const data = await fs.readFile(path.join(root, '화면', entry[0]));
+-      res.writeHead(200, { 'Content-Type': `${entry[1]}; charset=utf-8`, 'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'", 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer' }); res.end(data);
+-    } catch (e) { send(500, { error: e.code === 'ENOENT' ? '필요한 실행 파일이 없습니다.' : '로컬 요청 처리에 실패했습니다.' }); }
+-  });
+-  return server;
+-}
+-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+-  const server=createDashboard();
+-  server.on('error', error => { console.error(`[대시보드 시작 실패] ${error.code}: ${error.message}`); process.exitCode=1; });
+-  server.listen(8787, '127.0.0.1', () => console.log('흉부 엑스레이 환자 재식별 실험 5차: http://127.0.0.1:8787'));
+-}
++import http from 'node:http';
++import { promises as fs } from 'node:fs';
++import path from 'node:path';
++import { fileURLToPath } from 'node:url';
++import { spawn, execFile } from 'node:child_process';
++import { EXPERIMENT_PLAN } from './화면/state.mjs';
++
++const ROOT = path.dirname(fileURLToPath(import.meta.url));
++const LIMIT = 65536;
++export async function tail(file, limit = LIMIT) {
++  let handle;
++  try {
++    handle = await fs.open(file, 'r');
++    const { size } = await handle.stat();
++    const start = Math.max(0, size - limit);
++    const buffer = Buffer.alloc(Math.min(size, limit));
++    await handle.read(buffer, 0, buffer.length, start);
++    let text = buffer.toString('utf8');
++    // 중간 UTF-8 문자와 잘린 첫 행은 표시에서 제외합니다.
++    if (start) text = text.slice(text.indexOf('\n') + 1);
++    return { text, bytes: size, truncated: start > 0 };
++  } catch (e) { if (e.code === 'ENOENT') return { text: '', bytes: 0, truncated: false }; throw e; }
++  finally { await handle?.close(); }
++}
++// 현재 실행의 고정 JSONL만 읽고 잘린 범위와 손상 기록을 별도로 알립니다.
++export async function readTrainingHistory(file, runId, limit = 256 * 1024) {
++  let handle;
++  const result = { source: 'training/events.jsonl', bytes: 0, truncated: false, incomplete_tail: false, status: 'missing', last_observed_progress: null };
++  try {
++    handle = await fs.open(file, 'r');
++    const { size } = await handle.stat(); result.bytes = size;
++    const start = Math.max(0, size - limit); result.truncated = start > 0;
++    const buffer = Buffer.alloc(Math.min(size, limit));
++    const { bytesRead } = await handle.read(buffer, 0, buffer.length, start);
++    let bytes = buffer.subarray(0, bytesRead);
++    if (start) { const boundary = bytes.indexOf(10); bytes = boundary < 0 ? bytes.subarray(bytes.length) : bytes.subarray(boundary + 1); }
++    result.incomplete_tail = bytes.length > 0 && bytes.at(-1) !== 10;
++    if (result.incomplete_tail) { const boundary = bytes.lastIndexOf(10); bytes = boundary < 0 ? bytes.subarray(0, 0) : bytes.subarray(0, boundary + 1); }
++    const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
++    const lines = text.split('\n'); lines.pop();
++    let last = null;
++    for (const line of lines) {
++      const record = JSON.parse(line);
++      if (!record || typeof record !== 'object' || Array.isArray(record)) throw new Error('invalid_record');
++      if (Object.hasOwn(record, 'run_id') && record.run_id !== runId) throw new Error('different_run');
++      if (record.status !== 'training') continue;
++      const integer = key => Number.isSafeInteger(record[key]) && record[key] >= 0;
++      if (!['verification', 'retrieval_phase1', 'retrieval_phase2'].includes(record.phase) ||
++          !['epoch', 'epochs', 'step', 'global_step'].every(integer) ||
++          typeof record.loss !== 'number' || !Number.isFinite(record.loss) ||
++          typeof record.learning_rate !== 'number' || !Number.isFinite(record.learning_rate) || record.learning_rate < 0 ||
++          typeof record.updated_at !== 'string' || !/^\d{4}-\d\d-\d\dT.*(?:Z|[+-]\d\d:\d\d)$/.test(record.updated_at) || !Number.isFinite(Date.parse(record.updated_at))) throw new Error('invalid_training_record');
++      last = record;
++    }
++    result.status = result.incomplete_tail ? 'incomplete_tail' : result.truncated ? 'truncated' : 'ok';
++    result.last_observed_progress = last;
++    return result;
++  } catch (error) {
++    if (error.code === 'ENOENT') return result;
++    // 중간의 잘못된 행은 건너뛰어 성공으로 처리하지 않고 관측값을 채택하지 않습니다.
++    result.status = ['invalid_record', 'different_run', 'invalid_training_record'].includes(error.message) ? error.message : error instanceof SyntaxError || error.code === 'ERR_ENCODING_INVALID_ENCODED_DATA' ? 'malformed' : 'unreadable';
++    return result;
++  } finally { await handle?.close(); }
++}
++export function parseCSV(text) {
++  const rows = []; let row = [], value = '', quoted = false;
++  for (let i = 0; i < text.length; i++) {
++    const c = text[i];
++    if (c === '"') { if (quoted && text[i + 1] === '"') { value += '"'; i++; } else quoted = !quoted; }
++    else if (c === ',' && !quoted) { row.push(value); value = ''; }
++    else if (c === '\n' && !quoted) { row.push(value.replace(/\r$/, '')); rows.push(row); row = []; value = ''; }
++    else value += c;
++  }
++  if (value || row.length) { row.push(value.replace(/\r$/, '')); rows.push(row); }
++  const fields = rows.shift()?.map(x => x.replace(/^\uFEFF/, '')) || [];
++  return rows.filter(r => r.some(Boolean)).map(r => Object.fromEntries(fields.map((f, i) => [f, r[i] ?? ''])));
++}
++async function json(file) { try { return JSON.parse(await fs.readFile(file, 'utf8')); } catch (e) { if (e.code === 'ENOENT' || e instanceof SyntaxError) return null; throw e; } }
++function alive(pid) { if (!Number.isInteger(pid) || pid < 1) return false; try { process.kill(pid, 0); return true; } catch { return false; } }
++export function createDashboard(options = {}) {
++  const root = options.root || ROOT;
++  const executionRoot = options.executionRoot || (options.root ? root : path.resolve(ROOT, '../5차'));
++  const research = options.research || path.resolve(executionRoot, '../연구 자료');
++  const control = options.control || (options.research ? path.join(research, 'control') : path.join(executionRoot, 'work', 'control'));
++  const previewControl = options.research ? control : path.join(research, 'control');
++  const launch = options.launch || (() => spawn(path.resolve(executionRoot, '../실행 환경/Scripts/python.exe'), ['-B', '-X', 'utf8', path.join(executionRoot, 'run_experiment.py')], { cwd: executionRoot, windowsHide: true, stdio: 'ignore' }));
++  let pending = false, localChild = null, gpuCache = { name: '확인 중', utilization: null }, gpuAt = 0;
++  async function state() {
++    const run = await json(path.join(control, 'run.json'));
++    const active = run?.status === 'running' && alive(run.pid);
++    if (run?.status === 'running' && !active) { run.status = 'interrupted'; run.error = '실행 프로세스가 확인되지 않습니다.'; }
++    return { run, active: active || !!localChild, starting: pending };
++  }
++  async function status() {
++    const current = await state();
++    const results = [];
++    // 현재 실행의 결과만 읽으며 과거 가중치 평가와 새 학습 결과를 섞지 않습니다.
++    const runId=current.run?.run_id;
++    const validRun=typeof runId==='string' && /^[a-zA-Z0-9_-]{1,80}$/.test(runId);
++    const resultRoot=validRun ? path.join(research,'results','runs',runId) : (options.research ? path.join(research,'results') : null);
++    for (const folder of ['stage_1_original', 'stage_2_blur', 'stage_3_mosaic']) {
++      try {
++        if (!resultRoot) continue;
++        const file = path.join(resultRoot, folder, 'summary.csv');
++        const stat = await fs.stat(file);
++        if (stat.size <= 2 * 1024 * 1024) for (const row of parseCSV(await fs.readFile(file, 'utf8'))) results.push({ ...row, source: folder });
++      } catch (e) { if (e.code !== 'ENOENT') throw e; }
++    }
++    const downloads = [];
++    try { for (const name of (await fs.readdir(path.join(research, 'downloads'))).slice(0, 200)) {
++      const stat = await fs.stat(path.join(research, 'downloads', name));
++      if (stat.isFile()) downloads.push({ name, bytes: stat.size, partial: name.endsWith('.part') });
++    } } catch (e) { if (e.code !== 'ENOENT') throw e; }
++    if (Date.now() - gpuAt > 15000) {
++      gpuAt = Date.now();
++      (options.gpuQuery || execFile)('nvidia-smi', ['--query-gpu=name,utilization.gpu,memory.used,memory.total', '--format=csv,noheader,nounits'], { windowsHide: true, timeout: 2000, maxBuffer: 4096 }, (err, out) => {
++        if (err) gpuCache = { name: '조회 불가', utilization: null };
++        else { const [name, utilization, used, total] = out.trim().split('\n')[0].split(',').map(s => s.trim()); gpuCache = { name, utilization, used, total }; }
++      });
++    }
++    const previews={};
++    for (const name of ['original','blur','mosaic']) {
++      try { const info=await fs.stat(path.join(previewControl,'previews',`${name}.png`)); previews[name]=info.isFile()&&info.size>0; }
++      catch(e) { if(e.code!=='ENOENT')throw e; previews[name]=false; }
++    }
++    const trainingRoot=validRun?path.join(executionRoot,'work','runs',runId,'training'):null;
++    const training=trainingRoot?await json(path.join(trainingRoot,'progress.json')):null;
++    const training_history=trainingRoot?await readTrainingHistory(path.join(trainingRoot,'events.jsonl'),runId):null;
++    const last_observed_progress=training_history?.last_observed_progress??null;
++    const training_phases={};
++    for(const phase of ['verification','retrieval_phase1','retrieval_phase2']){
++      let selected_weights=false;
++      if(trainingRoot){try{selected_weights=(await fs.stat(path.join(trainingRoot,phase,'selected_weights.pth'))).isFile();}catch(e){if(e.code!=='ENOENT')throw e;}}
++      training_phases[phase]={initialization:trainingRoot?await json(path.join(trainingRoot,phase,'initialization.json')):null,first_backward:trainingRoot?await json(path.join(trainingRoot,phase,'first_backward.json')):null,selected_weights};
++    }
++    const artifacts=trainingRoot?await json(path.join(trainingRoot,'artifacts.json')):null;
++    const preflight=trainingRoot?await json(path.join(trainingRoot,'preflight.json')):null;
++    const experiment={screen_revision:6,execution_revision:current.run?.revision??5,condition_count:21,shared_models:true,plan:EXPERIMENT_PLAN,denominators:preflight?{verification_test_images:preflight.verification_counts?.test,retrieval_test_images:preflight.retrieval_counts?.test,verification_test_pairs:preflight.verification_official_projected_pair_counts?.test}:null};
++    return { ...current, revision:6, experiment, training,last_observed_progress,training_history,training_phases,training_artifacts_complete:!!(artifacts?.verification_checkpoint&&artifacts?.retrieval_checkpoint), gpu: gpuCache, results, downloads, previews, log: await tail(path.join(control, 'experiment.log')), environment_log: await tail(path.join(research,'control','environment.log')), environment_ready: !!(await json(path.join(research,'control','environment_ready.json'))), updated_at: new Date().toISOString() };
++  }
++  const server = http.createServer(async (req, res) => {
++    const send = (code, data) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(data)); };
++    try {
++      const host = `127.0.0.1:${server.address().port}`;
++      if (req.headers.host !== host) return send(403, { error: '로컬 Host만 허용합니다.' });
++      if (req.method === 'GET' && req.url === '/api/status') return send(200, await status());
++      const previewFiles={'/api/preview/original.png':'original.png','/api/preview/blur.png':'blur.png','/api/preview/mosaic.png':'mosaic.png'};
++      if (req.method==='GET' && Object.hasOwn(previewFiles,req.url)) {
++        try {
++          const file=path.join(previewControl,'previews',previewFiles[req.url]);const info=await fs.stat(file);
++          if(!info.isFile() || info.size>10*1024*1024)return send(404,{error:'미리보기를 준비하고 있습니다.'});
++          const data=await fs.readFile(file);
++          res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});return res.end(data);
++        } catch(e) { if(e.code==='ENOENT')return send(404,{error:'미리보기를 준비하고 있습니다.'});throw e; }
++      }
++      if (req.method === 'POST') {
++        if (req.headers.origin !== `http://${host}`) return send(403, { error: '로컬 Origin만 허용합니다.' });
++        if (Number(req.headers['content-length'] || 0) > 0 || req.headers['transfer-encoding']) return send(400, { error: '요청 본문은 허용하지 않습니다.' });
++        if (req.url === '/api/start') {
++          if (pending) return send(409, { error: '실험을 시작하고 있습니다.' });
++          pending = true;
++          try {
++            if ((await state()).active) return send(409, { error: '이미 실행 중입니다.' });
++            const child = launch(); localChild = child;
++            const clear = () => { if (localChild === child) localChild = null; };
++            child.once('exit', clear); child.once('error', clear);
++            await new Promise((resolve, reject) => { child.once('spawn', resolve); child.once('error', reject); });
++            return send(202, { status: 'starting' });
++          } finally { pending = false; }
++        }
++        if (req.url === '/api/stop') {
++          const { run, active } = await state();
++          if (!active || !run?.run_id || run.status !== 'running') return send(409, { error: '실행 상태가 기록된 후 중단할 수 있습니다.' });
++          await fs.mkdir(control, { recursive: true });
++          await fs.writeFile(path.join(control, 'stop.request'), run.run_id, 'utf8');
++          return send(202, { status: 'stop_requested' });
++        }
++        return send(404, { error: '없는 요청입니다.' });
++      }
++      if (req.method !== 'GET') return send(405, { error: '허용하지 않는 방식입니다.' });
++      const files = { '/': ['index.html', 'text/html'], '/style.css': ['style.css', 'text/css'], '/app.js': ['app.js', 'text/javascript'], '/state.mjs': ['state.mjs','text/javascript'], '/assets/NanumGothic-Bold.ttf': ['assets/NanumGothic-Bold.ttf', 'font/ttf'], '/assets/OFL.txt': ['assets/OFL.txt', 'text/plain'] };
++      const entry = files[req.url]; if (!entry) return send(404, { error: '파일이 없습니다.' });
++      const data = await fs.readFile(path.join(root, '화면', entry[0]));
++      res.writeHead(200, { 'Content-Type': `${entry[1]}; charset=utf-8`, 'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'", 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer' }); res.end(data);
++    } catch (e) { send(500, { error: e.code === 'ENOENT' ? '필요한 실행 파일이 없습니다.' : '로컬 요청 처리에 실패했습니다.' }); }
++  });
++  return server;
++}
++if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
++  const server=createDashboard();
++  server.on('error', error => { console.error(`[대시보드 시작 실패] ${error.code}: ${error.message}`); process.exitCode=1; });
++  server.listen(8787, '127.0.0.1', () => console.log('화면 6차 · 실험 5차: http://127.0.0.1:8787'));
++}
+--- 5차/검사/server.test.mjs
++++ 6차/검사/server.test.mjs
+@@ -1,143 +1,241 @@
+-import test from 'node:test';
+-import assert from 'node:assert/strict';
+-import { promises as fs } from 'node:fs';
+-import os from 'node:os';
+-import path from 'node:path';
+-import { spawn } from 'node:child_process';
+-import http from 'node:http';
+-import { createDashboard, parseCSV, tail } from '../server.mjs';
+-import { describeExperiment } from '../화면/state.mjs';
+-
+-async function fixture(fn) {
+- const dir=await fs.mkdtemp(path.join(os.tmpdir(),'cxr-dashboard-'));const research=path.join(dir,'research');const control=path.join(research,'control');await fs.mkdir(control,{recursive:true});
+- const children=[];let launches=0;const server=createDashboard({root:dir,research,launch:()=>{launches++;const c=spawn(process.execPath,['-e','setTimeout(()=>{},30000)'],{windowsHide:true});children.push(c);return c;},gpuQuery:(_a,_b,_c,cb)=>cb(null,'Test GPU, 12, 100, 1000')});
+- await new Promise(r=>server.listen(0,'127.0.0.1',r));const base=`http://127.0.0.1:${server.address().port}`;
+- const request=(url,options={})=>fetch(base+url,options);const post=url=>request(url,{method:'POST',headers:{Origin:base}});
+- try{await fn({dir,research,control,request,post,base,launches:()=>launches});}finally{for(const c of children)c.kill();await new Promise(r=>server.close(r));await fs.rm(dir,{recursive:true,force:true});}
+-}
+-test('CSV는 BOM·따옴표·개행·누락 값을 보존합니다',()=>{assert.deepEqual(parseCSV('\uFEFFstrength,auc,note\r\n2,0.75,"한글, 값"\r\n4,,"두\n줄"\n'),[{strength:'2',auc:'0.75',note:'한글, 값'},{strength:'4',auc:'',note:'두\n줄'}]);});
+-test('실제 단계 결과와 부분 다운로드 크기만 반환합니다',()=>fixture(async f=>{
+- const folder=path.join(f.research,'results','stage_2_blur');await fs.mkdir(folder,{recursive:true});await fs.writeFile(path.join(folder,'summary.csv'),'stage,strength,auc,cmc_rank_1,privacy_score\n2,4,0.8,0.25,75\n');await fs.mkdir(path.join(f.research,'downloads'));await fs.writeFile(path.join(f.research,'downloads','nih.zip.part'),'12345');
+- const s=await(await f.request('/api/status')).json();assert.equal(s.results.length,1);assert.equal(s.results[0].privacy_score,'75');assert.equal(s.results[0].source,'stage_2_blur');assert.equal(s.downloads[0].bytes,5);assert.equal(s.downloads[0].partial,true);assert.equal(s.active,false);
+-}));
+-test('Host·Origin·본문·임의 경로를 거부하고 명령을 실행하지 않습니다',()=>fixture(async f=>{
+- assert.equal((await f.request('/api/start',{method:'POST'})).status,403);
+- assert.equal((await f.request('/api/start',{method:'POST',headers:{Origin:'https://outside.invalid'}})).status,403);
+- const badHostStatus=await new Promise((resolve,reject)=>{const r=http.request(f.base+'/api/status',{headers:{Host:'outside.invalid'}},res=>{res.resume();resolve(res.statusCode);});r.on('error',reject);r.end();});
+- assert.equal(badHostStatus,403);
+- assert.equal((await f.request('/api/start',{method:'POST',headers:{Origin:f.base},body:'{}'})).status,400);
+- assert.equal((await f.post('/api/start?command=calc')).status,404);
+- assert.equal((await f.request('/server.mjs')).status,404);assert.equal(f.launches(),0);
+-}));
+-test('동시 시작과 이미 살아 있는 실험의 중복 실행을 막습니다',()=>fixture(async f=>{
+- const responses=await Promise.all([f.post('/api/start'),f.post('/api/start')]);assert.deepEqual(responses.map(r=>r.status).sort(),[202,409]);assert.equal(f.launches(),1);
+- assert.equal((await f.post('/api/start')).status,409);
+-}));
+-test('외부에서 시작한 실제 runner도 실행 ID 중단 요청을 받습니다',()=>fixture(async f=>{
+- await fs.writeFile(path.join(f.control,'run.json'),JSON.stringify({pid:process.pid,run_id:'fixed-run-123',status:'running',phase:'download'}));
+- assert.equal((await f.post('/api/start')).status,409);assert.equal(f.launches(),0);assert.equal((await f.post('/api/stop')).status,202);assert.equal(await fs.readFile(path.join(f.control,'stop.request'),'utf8'),'fixed-run-123');
+-}));
+-test('실행 기록 없는 중단은 거부하고 죽은 PID는 중단됨으로 표시합니다',()=>fixture(async f=>{
+- assert.equal((await f.post('/api/stop')).status,409);await fs.writeFile(path.join(f.control,'run.json'),JSON.stringify({pid:2147483647,status:'running'}));const s=await(await f.request('/api/status')).json();assert.equal(s.run.status,'interrupted');assert.equal(s.active,false);
+-}));
+-test('로그는 상한을 지키고 UTF-8 첫 잘린 행을 제외합니다',()=>fixture(async f=>{
+- const file=path.join(f.control,'experiment.log');const source='가'.repeat(40000)+'\n정상 마지막 행\n';assert.equal(Buffer.byteLength(source,'utf8'),120022);await fs.writeFile(file,source);const out=await tail(file,1024);assert.equal(out.truncated,true);assert.equal(out.text,'정상 마지막 행\n');assert.ok(!out.text.includes('\uFFFD'));assert.equal(out.bytes,120022);
+-}));
+-test('미리보기는 고정된 세 경로만 제공하고 경로 입력을 거부합니다',()=>fixture(async f=>{
+- const previews=path.join(f.control,'previews');await fs.mkdir(previews);const image=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jQ1kAAAAASUVORK5CYII=','base64');
+- assert.equal((await f.request('/api/preview/original.png')).status,404);
+- for(const name of ['original','blur','mosaic']){await fs.writeFile(path.join(previews,name+'.png'),image);const res=await f.request('/api/preview/'+name+'.png');assert.equal(res.status,200);assert.equal(res.headers.get('content-type'),'image/png');assert.deepEqual(Buffer.from(await res.arrayBuffer()),image);}
+- for(const request of ['/api/preview/other.png','/api/preview/original.png?path=../run.json','/api/preview/%2e%2e%2frun.json','/api/preview/../run.json'])assert.equal((await f.request(request)).status,404);
+- const s=await(await f.request('/api/status')).json();assert.deepEqual(s.previews,{original:true,blur:true,mosaic:true});
+-}));
+-test('설치·다운로드와 평가를 구분하고 현재 실행 기록만 사용합니다',()=>{
+- const base={active:true,run:{status:'running',phase:'CUDA 실행환경 설치 · 데이터 다운로드 병행'},results:[],log:{text:'[새 실행] 이전\n[단계 3] mosaic\n[새 실행] 현재\n[준비] 설치'}};
+- assert.equal(describeExperiment(base).status,'실험 준비 중');assert.ok(describeExperiment(base).stages.every(s=>!s.active));
+- base.run.phase='1→2→3단계 평가 실행';base.log.text+='\n[단계 2] blur / 강도 16';assert.equal(describeExperiment(base).status,'평가 실행 중');assert.equal(describeExperiment(base).stages[1].active,true);assert.equal(describeExperiment(base).stages[2].active,false);
+-});
+-test('실패한 평가와 평가 전 준비 실패를 구분합니다',()=>{
+- const s={active:false,run:{status:'failed',phase:'실행 오류'},results:[],log:{text:'[새 실행] 현재\n[단계 2] blur'}};
+- assert.equal(describeExperiment(s).stages[1].failed,true);assert.equal(describeExperiment(s).stages[1].label,'평가 실패');assert.ok(describeExperiment(s).stages.every(x=>!x.active));
+- s.log.text='[새 실행] 현재\n[오류] CUDA 검사 실패';assert.ok(describeExperiment(s).stages.every(x=>x.label==='준비 실패로 대기'));
+-});
+-test('양쪽 테마의 모든 색 변수와 모션 축소·저장 설정이 있습니다',async()=>{
+- const css=await fs.readFile(new URL('../화면/style.css',import.meta.url),'utf8');const js=await fs.readFile(new URL('../화면/app.js',import.meta.url),'utf8');
+- const light=css.match(/:root\{([^}]+)\}/)[1];const dark=css.match(/:root\[data-theme=dark\]\{([^}]+)\}/)[1];const names=text=>[...text.matchAll(/(--[\w-]+):/g)].map(x=>x[1]).sort();assert.deepEqual(names(dark),names(light));
+- for(const name of [...css.matchAll(/var\((--[\w-]+)\)/g)].map(x=>x[1]))assert.ok(names(light).includes(name),name);
+- assert.match(css,/prefers-reduced-motion:reduce/);assert.match(css,/\.paused \.image-panel\{animation-play-state:paused\}/);assert.match(js,/localStorage.getItem\('cxr-theme'\)/);assert.match(js,/localStorage.setItem\('cxr-theme',theme\)/);assert.match(js,/timeZone:'Asia\/Seoul'/);
+-});
+-test('현재 학습 실행의 결과만 읽고 이전 고정 경로 결과를 섞지 않습니다',()=>fixture(async f=>{
+- await fs.writeFile(path.join(f.control,'run.json'),JSON.stringify({run_id:'new-run',pid:process.pid,status:'running',phase:'검증 모델·검색 모델 처음부터 학습'}));
+- for(const [folder,value] of [['results/stage_1_original','0.99'],['results/runs/old-run/stage_1_original','0.98'],['results/runs/new-run/stage_1_original','0.25']]){
+-  const target=path.join(f.research,folder);await fs.mkdir(target,{recursive:true});await fs.writeFile(path.join(target,'summary.csv'),`auc\n${value}\n`);
+- }
+- const s=await(await f.request('/api/status')).json();assert.equal(s.results.length,1);assert.equal(s.results[0].auc,'0.25');assert.equal(describeExperiment(s).status,'학습 시작 준비 중');assert.ok(describeExperiment(s).stages.every(x=>!x.active));
+-}));
+-test('실행 ID의 경로 탈출은 결과 읽기로 연결되지 않습니다',()=>fixture(async f=>{
+- await fs.writeFile(path.join(f.control,'run.json'),JSON.stringify({run_id:'../../outside',status:'stopped'}));
+- const s=await(await f.request('/api/status')).json();assert.equal(s.results.length,0);assert.equal(s.training,null);
+-}));
+-test('준비 전용 완료와 GPU 대기를 실제 학습·평가 완료로 표시하지 않습니다',()=>{
+- const s={active:false,run:{status:'completed',mode:'데이터 준비 전용'},results:[],log:{text:''}};
+- assert.equal(describeExperiment(s).status,'데이터 준비 완료');
+- s.active=true;s.run={status:'running',phase:'검증 모델·검색 모델 처음부터 학습'};s.training={status:'waiting_for_gpu'};
+- assert.equal(describeExperiment(s).status,'GPU 여유 메모리 대기');assert.ok(describeExperiment(s).stages.every(x=>!x.active));
+-});
+-
+-test('모션 조작부는 상태별 크기를 고정하고 전역 호버 배경에서 분리합니다',async()=>{
+- const css=await fs.readFile(new URL('../화면/style.css',import.meta.url),'utf8');
+- assert.match(css,/\.motion\{[^}]*min-height:44px;min-width:44px;[^}]*flex-shrink:0;[^}]*background:transparent/);
+- assert.match(css,/\.motion:hover,\.motion:active,\.motion:disabled\{background:transparent\}/);
+- assert.match(css,/\.motion \.switch\{flex-shrink:0;/);
+- assert.match(css,/\.motion:focus-visible\{outline:3px solid var\(--focus\);outline-offset:2px\}/);
+- assert.match(css,/\.paused \.switch\{background:var\(--switch-off\)\}/);
+- assert.match(css,/\.section-title\{flex-wrap:wrap\}/);
+- for(const selector of ['.motion:hover','.motion:active','.motion:focus-visible','.motion:disabled']){
+-  const block=css.match(new RegExp(selector.replaceAll('.', '\\.')+'\\{([^}]+)\\}'));
+-  if(block)assert.doesNotMatch(block[1],/(?:^|;)(?:width|height|padding|right|left|transform):/);
+- }
+-});
+-
+-test('한글 화면 폴더에서만 고정 정적 파일을 제공합니다',()=>fixture(async f=>{
+- const folder=path.join(f.dir,'화면');await fs.mkdir(folder);
+- await fs.writeFile(path.join(folder,'index.html'),'<title>흉부 엑스레이 5차 검사</title>');
+- const res=await f.request('/');assert.equal(res.status,200);assert.match(await res.text(),/흉부 엑스레이 5차 검사/);
+- assert.match(res.headers.get('content-security-policy'),/default-src 'self'/);
+- for(const name of ['/화면/index.html','/../server.mjs','/%2e%2e%2fserver.mjs'])assert.equal((await f.request(name)).status,404);
+-}));
+-
+-test('5차 상태와 실제 0회 갱신은 학습 성공으로 표시하지 않습니다',()=>fixture(async f=>{
+- const status=await(await f.request('/api/status')).json();assert.equal(status.revision,5);
+- const s={active:true,run:{status:'running',phase:'검증 모델·검색 모델 처음부터 학습'},results:[],log:{text:''},training:{phase:'verification',status:'training',global_step:0}};
+- assert.equal(describeExperiment(s).status,'첫 가중치 갱신 대기');assert.ok(describeExperiment(s).stages.every(x=>!x.active&&!x.done));
+- s.training.global_step=1;assert.equal(describeExperiment(s).status,'새 모델 학습 중');
+- s.training={phase:'data_validation',status:'initializing',global_step:0};assert.equal(describeExperiment(s).status,'학습 데이터 검증 중');
+-}));
+-
+-test('백분율은 십진 문자열에서 소수 둘째 자리 아래를 버리고 단위를 구분합니다',async()=>{
+- const {formatPercent}=await import('../화면/state.mjs');assert.equal(typeof formatPercent,'function');
+- for(const [raw,expected] of [['0.9878','98.78%'],['0.987899999999999999','98.78%'],['0.999999999999999999999','99.99%'],['0.000099999','0.00%'],['0.0001','0.01%'],['1','100.00%'],['0','0.00%'],[0,'0.00%'],['9.878e-1','98.78%'],['9878e-4','98.78%'],['1e-10000','0.00%'],['-0.987899','-98.78%']])assert.equal(formatPercent(raw),expected,String(raw));
+- assert.equal(formatPercent('98.789999',{ratio:false}),'98.78%');assert.equal(formatPercent('0.9878',{ratio:false}),'0.98%');
+- assert.equal(formatPercent('9.878E+1',{ratio:false}),'98.78%');assert.equal(formatPercent('.9878'),'98.78%');assert.equal(formatPercent('-0.00001'),'0.00%');
+- for(const raw of [null,undefined,'',' ',NaN,Infinity,-Infinity,'NaN','Infinity','1e9999',true,{},'0x10'])assert.equal(formatPercent(raw),'미측정',String(raw));
+-});
+-
+-test('AUC·손실·학습률은 저장값 표현을 보존하고 원값 펼침은 안전한 텍스트입니다',async()=>{
+- const {formatRaw}=await import('../화면/state.mjs');assert.equal(typeof formatRaw,'function');
+- assert.equal(formatRaw('0.994012345678901234'),'0.994012345678901234');assert.equal(formatRaw('1.0000e-7'),'1.0000e-7');assert.equal(formatRaw(0),'0');
+- for(const raw of [null,undefined,'',' ',NaN,Infinity,'nan',true])assert.equal(formatRaw(raw),'미측정');
+- const js=await fs.readFile(new URL('../화면/app.js',import.meta.url),'utf8');const html=await fs.readFile(new URL('../화면/index.html',import.meta.url),'utf8');
+- assert.doesNotMatch(js,/const metric\s*=.*toFixed/);assert.match(js,/formatPercent\(r\.privacy_score,\{ratio:false\}\)/);
+- assert.match(js,/raw\.textContent=JSON\.stringify\(r,null,2\)/);assert.match(js,/createElement\('details'\)/);assert.doesNotMatch(js,/innerHTML/);
+- assert.match(html,/id="training-raw"/);assert.match(html,/소수 둘째 자리 아래는 버림/);
+- assert.match(js,/expanded\.has\(details\.dataset\.key\)/);
+-});
+-
+-test('실제 CSV 소수 문자열·빈값·비유한 표기는 API 조회 후에도 원본 그대로입니다',()=>fixture(async f=>{
+- const folder=path.join(f.research,'results/stage_2_blur');await fs.mkdir(folder,{recursive:true});
+- const text='auc,cmc_rank_1,privacy_score,accuracy\n0.994012345678901234,0.987899999999999999,1.2100000000000001,\nNaN,0,Infinity,0\n';
+- const file=path.join(folder,'summary.csv');await fs.writeFile(file,text);
+- const status=await(await f.request('/api/status')).json();
+- assert.equal(status.results[0].auc,'0.994012345678901234');assert.equal(status.results[0].cmc_rank_1,'0.987899999999999999');assert.equal(status.results[0].privacy_score,'1.2100000000000001');assert.equal(status.results[0].accuracy,'');
+- assert.equal(status.results[1].auc,'NaN');assert.equal(status.results[1].cmc_rank_1,'0');assert.equal(status.results[1].privacy_score,'Infinity');assert.equal(await fs.readFile(file,'utf8'),text);
+-}));
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { promises as fs } from 'node:fs';
++import os from 'node:os';
++import path from 'node:path';
++import { spawn } from 'node:child_process';
++import http from 'node:http';
++import { createDashboard, parseCSV, tail } from '../server.mjs';
++import { describeExperiment } from '../화면/state.mjs';
++
++async function fixture(fn) {
++ const dir=await fs.mkdtemp(path.join(os.tmpdir(),'cxr-dashboard-'));const research=path.join(dir,'research');const control=path.join(research,'control');await fs.mkdir(control,{recursive:true});
++ const children=[];let launches=0;const server=createDashboard({root:dir,research,launch:()=>{launches++;const c=spawn(process.execPath,['-e','setTimeout(()=>{},30000)'],{windowsHide:true});children.push(c);return c;},gpuQuery:(_a,_b,_c,cb)=>cb(null,'Test GPU, 12, 100, 1000')});
++ await new Promise(r=>server.listen(0,'127.0.0.1',r));const base=`http://127.0.0.1:${server.address().port}`;
++ const request=(url,options={})=>fetch(base+url,options);const post=url=>request(url,{method:'POST',headers:{Origin:base}});
++ try{await fn({dir,research,control,request,post,base,launches:()=>launches});}finally{for(const c of children)c.kill();await new Promise(r=>server.close(r));await fs.rm(dir,{recursive:true,force:true});}
++}
++test('CSV는 BOM·따옴표·개행·누락 값을 보존합니다',()=>{assert.deepEqual(parseCSV('\uFEFFstrength,auc,note\r\n2,0.75,"한글, 값"\r\n4,,"두\n줄"\n'),[{strength:'2',auc:'0.75',note:'한글, 값'},{strength:'4',auc:'',note:'두\n줄'}]);});
++test('실제 단계 결과와 부분 다운로드 크기만 반환합니다',()=>fixture(async f=>{
++ const folder=path.join(f.research,'results','stage_2_blur');await fs.mkdir(folder,{recursive:true});await fs.writeFile(path.join(folder,'summary.csv'),'stage,strength,auc,cmc_rank_1,privacy_score\n2,4,0.8,0.25,75\n');await fs.mkdir(path.join(f.research,'downloads'));await fs.writeFile(path.join(f.research,'downloads','nih.zip.part'),'12345');
++ const s=await(await f.request('/api/status')).json();assert.equal(s.results.length,1);assert.equal(s.results[0].privacy_score,'75');assert.equal(s.results[0].source,'stage_2_blur');assert.equal(s.downloads[0].bytes,5);assert.equal(s.downloads[0].partial,true);assert.equal(s.active,false);
++}));
++test('Host·Origin·본문·임의 경로를 거부하고 명령을 실행하지 않습니다',()=>fixture(async f=>{
++ assert.equal((await f.request('/api/start',{method:'POST'})).status,403);
++ assert.equal((await f.request('/api/start',{method:'POST',headers:{Origin:'https://outside.invalid'}})).status,403);
++ const badHostStatus=await new Promise((resolve,reject)=>{const r=http.request(f.base+'/api/status',{headers:{Host:'outside.invalid'}},res=>{res.resume();resolve(res.statusCode);});r.on('error',reject);r.end();});
++ assert.equal(badHostStatus,403);
++ assert.equal((await f.request('/api/start',{method:'POST',headers:{Origin:f.base},body:'{}'})).status,400);
++ assert.equal((await f.post('/api/start?command=calc')).status,404);
++ assert.equal((await f.request('/server.mjs')).status,404);assert.equal(f.launches(),0);
++}));
++test('동시 시작과 이미 살아 있는 실험의 중복 실행을 막습니다',()=>fixture(async f=>{
++ const responses=await Promise.all([f.post('/api/start'),f.post('/api/start')]);assert.deepEqual(responses.map(r=>r.status).sort(),[202,409]);assert.equal(f.launches(),1);
++ assert.equal((await f.post('/api/start')).status,409);
++}));
++test('외부에서 시작한 실제 runner도 실행 ID 중단 요청을 받습니다',()=>fixture(async f=>{
++ await fs.writeFile(path.join(f.control,'run.json'),JSON.stringify({pid:process.pid,run_id:'fixed-run-123',status:'running',phase:'download'}));
++ assert.equal((await f.post('/api/start')).status,409);assert.equal(f.launches(),0);assert.equal((await f.post('/api/stop')).status,202);assert.equal(await fs.readFile(path.join(f.control,'stop.request'),'utf8'),'fixed-run-123');
++}));
++test('실행 기록 없는 중단은 거부하고 죽은 PID는 중단됨으로 표시합니다',()=>fixture(async f=>{
++ assert.equal((await f.post('/api/stop')).status,409);await fs.writeFile(path.join(f.control,'run.json'),JSON.stringify({pid:2147483647,status:'running'}));const s=await(await f.request('/api/status')).json();assert.equal(s.run.status,'interrupted');assert.equal(s.active,false);
++}));
++test('로그는 상한을 지키고 UTF-8 첫 잘린 행을 제외합니다',()=>fixture(async f=>{
++ const file=path.join(f.control,'experiment.log');const source='가'.repeat(40000)+'\n정상 마지막 행\n';assert.equal(Buffer.byteLength(source,'utf8'),120022);await fs.writeFile(file,source);const out=await tail(file,1024);assert.equal(out.truncated,true);assert.equal(out.text,'정상 마지막 행\n');assert.ok(!out.text.includes('\uFFFD'));assert.equal(out.bytes,120022);
++}));
++test('미리보기는 고정된 세 경로만 제공하고 경로 입력을 거부합니다',()=>fixture(async f=>{
++ const previews=path.join(f.control,'previews');await fs.mkdir(previews);const image=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jQ1kAAAAASUVORK5CYII=','base64');
++ assert.equal((await f.request('/api/preview/original.png')).status,404);
++ for(const name of ['original','blur','mosaic']){await fs.writeFile(path.join(previews,name+'.png'),image);const res=await f.request('/api/preview/'+name+'.png');assert.equal(res.status,200);assert.equal(res.headers.get('content-type'),'image/png');assert.deepEqual(Buffer.from(await res.arrayBuffer()),image);}
++ for(const request of ['/api/preview/other.png','/api/preview/original.png?path=../run.json','/api/preview/%2e%2e%2frun.json','/api/preview/../run.json'])assert.equal((await f.request(request)).status,404);
++ const s=await(await f.request('/api/status')).json();assert.deepEqual(s.previews,{original:true,blur:true,mosaic:true});
++}));
++test('설치·다운로드와 평가를 구분하고 현재 실행 기록만 사용합니다',()=>{
++ const base={active:true,run:{status:'running',phase:'CUDA 실행환경 설치 · 데이터 다운로드 병행'},results:[],log:{text:'[새 실행] 이전\n[단계 3] mosaic\n[새 실행] 현재\n[준비] 설치'}};
++ assert.equal(describeExperiment(base).status,'실험 준비 중');assert.ok(describeExperiment(base).stages.every(s=>!s.active));
++ base.run.phase='1→2→3단계 평가 실행';base.log.text+='\n[단계 2] blur / 강도 16';assert.equal(describeExperiment(base).status,'평가 실행 중');assert.equal(describeExperiment(base).stages[1].active,true);assert.equal(describeExperiment(base).stages[2].active,false);
++});
++test('실패한 평가와 평가 전 준비 실패를 구분합니다',()=>{
++ const s={active:false,run:{status:'failed',phase:'실행 오류'},results:[],log:{text:'[새 실행] 현재\n[단계 2] blur'}};
++ assert.equal(describeExperiment(s).stages[1].failed,true);assert.match(describeExperiment(s).stages[1].label,/평가 실패/);assert.ok(describeExperiment(s).stages.every(x=>!x.active));
++ s.log.text='[새 실행] 현재\n[오류] CUDA 검사 실패';assert.ok(describeExperiment(s).stages.every(x=>x.label==='준비 실패로 대기'));
++});
++test('양쪽 테마의 모든 색 변수와 모션 축소·저장 설정이 있습니다',async()=>{
++ const css=await fs.readFile(new URL('../화면/style.css',import.meta.url),'utf8');const js=await fs.readFile(new URL('../화면/app.js',import.meta.url),'utf8');
++ const light=css.match(/:root\{([^}]+)\}/)[1];const dark=css.match(/:root\[data-theme=dark\]\{([^}]+)\}/)[1];const names=text=>[...text.matchAll(/(--[\w-]+):/g)].map(x=>x[1]).sort();assert.deepEqual(names(dark),names(light));
++ for(const name of [...css.matchAll(/var\((--[\w-]+)\)/g)].map(x=>x[1]))assert.ok(names(light).includes(name),name);
++ assert.match(css,/prefers-reduced-motion:reduce/);assert.match(css,/\.paused \.image-panel\{animation-play-state:paused\}/);assert.match(js,/localStorage.getItem\('cxr-theme'\)/);assert.match(js,/localStorage.setItem\('cxr-theme',theme\)/);assert.match(js,/timeZone:'Asia\/Seoul'/);
++});
++test('현재 학습 실행의 결과만 읽고 이전 고정 경로 결과를 섞지 않습니다',()=>fixture(async f=>{
++ await fs.writeFile(path.join(f.control,'run.json'),JSON.stringify({run_id:'new-run',pid:process.pid,status:'running',phase:'검증 모델·검색 모델 처음부터 학습'}));
++ for(const [folder,value] of [['results/stage_1_original','0.99'],['results/runs/old-run/stage_1_original','0.98'],['results/runs/new-run/stage_1_original','0.25']]){
++  const target=path.join(f.research,folder);await fs.mkdir(target,{recursive:true});await fs.writeFile(path.join(target,'summary.csv'),`auc\n${value}\n`);
++ }
++ const s=await(await f.request('/api/status')).json();assert.equal(s.results.length,1);assert.equal(s.results[0].auc,'0.25');assert.equal(describeExperiment(s).status,'학습 시작 준비 중');assert.ok(describeExperiment(s).stages.every(x=>!x.active));
++}));
++test('실행 ID의 경로 탈출은 결과 읽기로 연결되지 않습니다',()=>fixture(async f=>{
++ await fs.writeFile(path.join(f.control,'run.json'),JSON.stringify({run_id:'../../outside',status:'stopped'}));
++ const s=await(await f.request('/api/status')).json();assert.equal(s.results.length,0);assert.equal(s.training,null);
++}));
++test('준비 전용 완료와 GPU 대기를 실제 학습·평가 완료로 표시하지 않습니다',()=>{
++ const s={active:false,run:{status:'completed',mode:'데이터 준비 전용'},results:[],log:{text:''}};
++ assert.equal(describeExperiment(s).status,'데이터 준비 완료');
++ s.active=true;s.run={status:'running',phase:'검증 모델·검색 모델 처음부터 학습'};s.training={status:'waiting_for_gpu'};
++ assert.equal(describeExperiment(s).status,'GPU 여유 메모리 대기');assert.ok(describeExperiment(s).stages.every(x=>!x.active));
++});
++
++test('모션 조작부는 상태별 크기를 고정하고 전역 호버 배경에서 분리합니다',async()=>{
++ const css=await fs.readFile(new URL('../화면/style.css',import.meta.url),'utf8');
++ assert.match(css,/\.motion\{[^}]*min-height:44px;min-width:44px;[^}]*flex-shrink:0;[^}]*background:transparent/);
++ assert.match(css,/\.motion:hover,\.motion:active,\.motion:disabled\{background:transparent\}/);
++ assert.match(css,/\.motion \.switch\{flex-shrink:0;/);
++ assert.match(css,/\.motion:focus-visible\{outline:3px solid var\(--focus\);outline-offset:2px\}/);
++ assert.match(css,/\.paused \.switch\{background:var\(--switch-off\)\}/);
++ assert.match(css,/\.section-title\{flex-wrap:wrap\}/);
++ for(const selector of ['.motion:hover','.motion:active','.motion:focus-visible','.motion:disabled']){
++  const block=css.match(new RegExp(selector.replaceAll('.', '\\.')+'\\{([^}]+)\\}'));
++  if(block)assert.doesNotMatch(block[1],/(?:^|;)(?:width|height|padding|right|left|transform):/);
++ }
++});
++
++test('한글 화면 폴더에서만 고정 정적 파일을 제공합니다',()=>fixture(async f=>{
++ const folder=path.join(f.dir,'화면');await fs.mkdir(folder);
++ await fs.writeFile(path.join(folder,'index.html'),'<title>흉부 엑스레이 5차 검사</title>');
++ const res=await f.request('/');assert.equal(res.status,200);assert.match(await res.text(),/흉부 엑스레이 5차 검사/);
++ assert.match(res.headers.get('content-security-policy'),/default-src 'self'/);
++ for(const name of ['/화면/index.html','/../server.mjs','/%2e%2e%2fserver.mjs'])assert.equal((await f.request(name)).status,404);
++}));
++
++test('6차 화면 상태와 실제 0회 갱신은 학습 성공으로 표시하지 않습니다',()=>fixture(async f=>{
++ const status=await(await f.request('/api/status')).json();assert.equal(status.revision,6);
++ const s={active:true,run:{status:'running',phase:'검증 모델·검색 모델 처음부터 학습'},results:[],log:{text:''},training:{phase:'verification',status:'training',global_step:0}};
++ assert.equal(describeExperiment(s).status,'첫 가중치 갱신 대기');assert.ok(describeExperiment(s).stages.every(x=>!x.active&&!x.done));
++ s.training.global_step=1;assert.equal(describeExperiment(s).status,'새 모델 학습 중');
++ s.training={phase:'data_validation',status:'initializing',global_step:0};assert.equal(describeExperiment(s).status,'학습 데이터 검증 중');
++}));
++
++test('백분율은 십진 문자열에서 소수 첫째 자리로 반올림하고 단위를 구분합니다',async()=>{
++ const {formatPercent}=await import('../화면/state.mjs');assert.equal(typeof formatPercent,'function');
++ for(const [raw,expected] of [['0.9878','98.8%'],['0.987899999999999999','98.8%'],['0.999999999999999999999','100.0%'],['0.000099999','0.0%'],['0.0001','0.0%'],['1','100.0%'],['0','0.0%'],[0,'0.0%'],['9.878e-1','98.8%'],['9878e-4','98.8%'],['1e-10000','0.0%'],['-0.987899','-98.8%']])assert.equal(formatPercent(raw),expected,String(raw));
++ assert.equal(formatPercent('98.789999',{ratio:false}),'98.8%');assert.equal(formatPercent('0.9878',{ratio:false}),'1.0%');
++ assert.equal(formatPercent('9.878E+1',{ratio:false}),'98.8%');assert.equal(formatPercent('.9878'),'98.8%');assert.equal(formatPercent('-0.00001'),'0.0%');
++ for(const raw of [null,undefined,'',' ',NaN,Infinity,-Infinity,'NaN','Infinity','1e9999',true,{},'0x10'])assert.equal(formatPercent(raw),'미측정',String(raw));
++});
++
++test('AUC·손실·학습률은 저장값 표현을 보존하고 원값 펼침은 안전한 텍스트입니다',async()=>{
++ const {formatRaw}=await import('../화면/state.mjs');assert.equal(typeof formatRaw,'function');
++ assert.equal(formatRaw('0.994012345678901234'),'0.994012345678901234');assert.equal(formatRaw('1.0000e-7'),'1.0000e-7');assert.equal(formatRaw(0),'0');
++ for(const raw of [null,undefined,'',' ',NaN,Infinity,'nan',true])assert.equal(formatRaw(raw),'미측정');
++ const js=await fs.readFile(new URL('../화면/app.js',import.meta.url),'utf8');const html=await fs.readFile(new URL('../화면/index.html',import.meta.url),'utf8');
++ assert.doesNotMatch(js,/const metric\s*=.*toFixed/);assert.match(js,/formatPercent\(r\.privacy_score,\{ratio:false\}\)/);
++ assert.match(js,/raw\.textContent=JSON\.stringify\(r,null,2\)/);assert.match(js,/createElement\('details'\)/);assert.doesNotMatch(js,/innerHTML/);
++ assert.match(html,/id="training-raw"/);assert.match(html,/소수 첫째 자리로 반올림/);
++ assert.match(js,/expanded\.has\(details\.dataset\.key\)/);
++});
++
++test('실제 CSV 소수 문자열·빈값·비유한 표기는 API 조회 후에도 원본 그대로입니다',()=>fixture(async f=>{
++ const folder=path.join(f.research,'results/stage_2_blur');await fs.mkdir(folder,{recursive:true});
++ const text='auc,cmc_rank_1,privacy_score,accuracy\n0.994012345678901234,0.987899999999999999,1.2100000000000001,\nNaN,0,Infinity,0\n';
++ const file=path.join(folder,'summary.csv');await fs.writeFile(file,text);
++ const status=await(await f.request('/api/status')).json();
++ assert.equal(status.results[0].auc,'0.994012345678901234');assert.equal(status.results[0].cmc_rank_1,'0.987899999999999999');assert.equal(status.results[0].privacy_score,'1.2100000000000001');assert.equal(status.results[0].accuracy,'');
++ assert.equal(status.results[1].auc,'NaN');assert.equal(status.results[1].cmc_rank_1,'0');assert.equal(status.results[1].privacy_score,'Infinity');assert.equal(await fs.readFile(file,'utf8'),text);
++}));
++
++test('21개 고정 조건은 모두 선택 가능하며 일치한 단일 행만 결과로 채택합니다',async()=>{
++ const {EXPERIMENT_PLAN,conditionState}=await import('../화면/state.mjs');assert.equal(typeof conditionState,'function');
++ assert.equal(EXPERIMENT_PLAN.reduce((n,p)=>n+p.strengths.length,0),21);
++ assert.deepEqual(EXPERIMENT_PLAN[1].strengths,[0,2,4,8,16,32,64,128,256,512]);
++ assert.deepEqual(EXPERIMENT_PLAN[2].strengths,[1,4,8,16,32,64,128,256,512,1024]);
++ const s={active:true,run:{status:'running',phase:'검증 모델·검색 모델 처음부터 학습'},log:{text:'[새 실행] 현재'},results:[]};
++ for(const plan of EXPERIMENT_PLAN)for(const strength of plan.strengths)assert.equal(conditionState(s,plan.stage,strength).status,'waiting');
++ s.results=[{source:'stage_2_blur',stage:'2',mode:'blur',strength:'16',auc:'0.12345'}];
++ assert.equal(conditionState(s,2,16).row.auc,'0.12345');assert.equal(conditionState(s,2,32).row,null);
++ s.results.push({...s.results[0],auc:'0.999'});assert.equal(conditionState(s,2,16).status,'error');assert.equal(conditionState(s,2,16).row,null);
++ assert.equal(describeExperiment(s).stages[1].done,false);
++});
++
++test('조건 활성은 명시 로그에만 연결되고 중복 행 10개로 단계를 완료하지 않습니다',async()=>{
++ const {conditionState}=await import('../화면/state.mjs');
++ const s={active:true,run:{status:'running',phase:'검증 모델·검색 모델 처음부터 학습'},log:{text:'[새 실행] 현재\n[단계 2] blur / 강도 16: 검증·검색 실행'},results:[]};
++ assert.equal(conditionState(s,2,16).status,'waiting');s.run.phase='새 학습 가중치로 1→2→3단계 평가 실행';assert.equal(conditionState(s,2,16).status,'running');assert.equal(conditionState(s,2,32).status,'waiting');
++ s.run.status='failed';s.active=false;assert.equal(conditionState(s,2,16).status,'error');assert.equal(conditionState(s,2,32).status,'waiting');
++ s.results=Array.from({length:10},()=>({source:'stage_2_blur',stage:'2',mode:'blur',strength:'16'}));assert.equal(describeExperiment(s).stages[1].done,false);
++});
++
++test('반올림 100.0과 실제 원비율 1을 구분하며 십진 경계에서 정확히 반올림합니다',async()=>{
++ const {formatPercent,percentNotice}=await import('../화면/state.mjs');assert.equal(typeof percentNotice,'function');
++ for(const [value,expected] of [['0.9878048780487805','98.8%'],['0.987499999999999999','98.7%'],['0.9875','98.8%'],['9.995e-1','100.0%'],['0','0.0%'],['1','100.0%']])assert.equal(formatPercent(value),expected);
++ assert.match(percentNotice('0.999999999999999999'),/반올림.*100% 미만/);assert.match(percentNotice('1.0000'),/정확히 1/);
++ assert.match(percentNotice('99.999999',{ratio:false}),/100% 미만/);assert.match(percentNotice('100',{ratio:false}),/정확히 100/);
++});
++
++test('화면6차는 주입한 실험5차 상태·학습·중단만 연결하고 output 임의 경로를 읽지 않습니다',async()=>{
++ const dir=await fs.mkdtemp(path.join(os.tmpdir(),'cxr-execution-'));const screen=path.join(dir,'6차'),execution=path.join(dir,'5차'),research=path.join(dir,'연구 자료'),control=path.join(execution,'work/control');
++ await fs.mkdir(control,{recursive:true});const training=path.join(execution,'work/runs/current/training');await fs.mkdir(training,{recursive:true});
++ await fs.writeFile(path.join(control,'run.json'),JSON.stringify({run_id:'current',pid:process.pid,status:'running',revision:5,output:'../../arbitrary'}));await fs.writeFile(path.join(training,'progress.json'),JSON.stringify({phase:'verification',loss:0.25}));
++ const server=createDashboard({root:screen,executionRoot:execution,research,control,gpuQuery:(_a,_b,_c,cb)=>cb(null,'Test,0,0,1'),launch:()=>{throw Error('중복 시작 금지');}});
++ await new Promise(r=>server.listen(0,'127.0.0.1',r));const base=`http://127.0.0.1:${server.address().port}`;
++ try{const s=await(await fetch(base+'/api/status')).json();assert.equal(s.revision,6);assert.equal(s.run.revision,5);assert.equal(s.training.loss,0.25);assert.equal(s.experiment.condition_count,21);assert.equal((await fetch(base+'/api/start',{method:'POST',headers:{Origin:base}})).status,409);assert.equal((await fetch(base+'/api/stop',{method:'POST',headers:{Origin:base}})).status,202);assert.equal(await fs.readFile(path.join(control,'stop.request'),'utf8'),'current');}
++ finally{await new Promise(r=>server.close(r));await fs.rm(dir,{recursive:true,force:true});}
++});
++
++test('학습 phase는 평가와 구분하고 초기 best 가중치 파일만으로 완료를 표시하지 않습니다',async()=>{
++ const {trainingPhaseStates}=await import('../화면/state.mjs');
++ const s={active:true,run:{status:'running'},training:{phase:'verification',status:'training',global_step:0},training_phases:{verification:{initialization:{global_step:0},first_backward:null,selected_weights:true}}};
++ let phases=trainingPhaseStates(s);assert.equal(phases[0].complete,false);assert.equal(phases[0].label,'첫 가중치 갱신 대기');assert.equal(phases[1].label,'학습 대기');
++ s.training={phase:'data_validation',status:'validating'};assert.ok(trainingPhaseStates(s).every(p=>!p.active&&!p.complete));
++ s.training={phase:'retrieval_phase1',status:'waiting_for_gpu'};phases=trainingPhaseStates(s);assert.equal(phases[0].complete,true);assert.equal(phases[1].label,'GPU 여유 메모리 대기');assert.equal(phases[2].complete,false);
++});
++
++test('선택은 허용된 hash만 사용하고 chip DOM을 갱신마다 재생성하지 않습니다',async()=>{
++ const js=await fs.readFile(new URL('../화면/app.js',import.meta.url),'utf8');const html=await fs.readFile(new URL('../화면/index.html',import.meta.url),'utf8');
++ assert.match(js,/history\.replaceState\(null,'',`#stage-/);assert.match(js,/strengths\.includes\(strength\)/);assert.match(js,/ArrowLeft/);assert.match(js,/aria-selected/);assert.doesNotMatch(js,/\$\('condition-chips'\)\.replaceChildren/);
++ for(const id of ['condition-tabs','condition-chips','condition-detail','condition-raw','revision-label'])assert.match(html,new RegExp('id="'+id+'"'));
++ assert.match(html,/확장 비교/);assert.match(html,/강도마다 다시 학습하지 않습니다/);
++});
++
++test('실패 원값 0은 보존하고 현재 실행의 마지막 정상 학습만 별도로 제공합니다',()=>fixture(async f=>{
++ const id='failed-current',folder=path.join(f.dir,'work/runs',id,'training');await fs.mkdir(folder,{recursive:true});
++ const original={phase:'failed',status:'failed',epoch:0,epochs:0,step:0,loss:null,error:'원래 CUDA 오류'};
++ const observed={phase:'verification',status:'training',epoch:1,epochs:100,step:3326,global_step:3326,loss:0.5295830368995667,learning_rate:0.0001,updated_at:'2026-11-10T04:21:06.635882+00:00'};
++ await fs.writeFile(path.join(f.control,'run.json'),JSON.stringify({run_id:id,status:'failed',error:'원래 실행 오류',output:'../other'}));
++ await fs.writeFile(path.join(folder,'progress.json'),JSON.stringify(original));await fs.writeFile(path.join(folder,'events.jsonl'),JSON.stringify(observed)+'\n'+JSON.stringify(original)+'\n');
++ const other=path.join(f.dir,'work/runs/other/training');await fs.mkdir(other,{recursive:true});await fs.writeFile(path.join(other,'events.jsonl'),JSON.stringify({...observed,global_step:9999})+'\n');
++ const s=await(await f.request('/api/status')).json();assert.deepEqual(s.training,original);assert.deepEqual(s.last_observed_progress,observed);assert.equal(s.run.status,'failed');assert.equal(s.run.error,'원래 실행 오류');assert.equal(s.active,false);assert.equal(s.training_history.source,'training/events.jsonl');assert.equal(s.training_history.status,'ok');
++ assert.equal(await fs.readFile(path.join(folder,'progress.json'),'utf8'),JSON.stringify(original));
++ const {trainingDisplay,trainingPhaseStates}=await import('../화면/state.mjs');assert.equal(trainingDisplay(s).progress.global_step,3326);assert.equal(trainingDisplay(s).lastObserved,true);
++ const phases=trainingPhaseStates(s);assert.ok(phases.every(p=>!p.active));assert.equal(phases[0].lastObserved,true);assert.equal(phases[0].progress.step,3326);assert.match(phases[0].label,/중단 또는 오류/);
++}));
++
++test('학습 JSONL은 LF 경계를 지키고 중간 손상·다른 실행·비유한 학습값을 거부합니다',async()=>{
++ const {readTrainingHistory}=await import('../server.mjs');const folder=await fs.mkdtemp(path.join(os.tmpdir(),'cxr-history-'));const file=path.join(folder,'events.jsonl');
++ const row={phase:'verification',status:'training',epoch:0,epochs:100,step:0,global_step:0,loss:0,learning_rate:0,updated_at:'2026-11-10T04:21:06Z',note:'앞\u0085뒤'};
++ try{
++  assert.equal((await readTrainingHistory(file,'current')).status,'missing');
++  for(const [middle,status] of [['{broken','malformed'],['','malformed'],[JSON.stringify({...row,run_id:'other'}),'different_run'],[JSON.stringify({...row,loss:'NaN'}),'invalid_training_record'],[JSON.stringify({...row,global_step:-1}),'invalid_training_record']]){
++   await fs.writeFile(file,JSON.stringify(row)+'\n'+middle+'\n');const result=await readTrainingHistory(file,'current');assert.equal(result.status,status);assert.equal(result.last_observed_progress,null);
++  }
++  await fs.writeFile(file,JSON.stringify(row)+'\n');const zero=await readTrainingHistory(file,'current');assert.deepEqual(zero.last_observed_progress,row);assert.equal(zero.status,'ok');
++  await fs.writeFile(file,Buffer.concat([Buffer.from(JSON.stringify(row)+'\n'),Buffer.from([0xff,10])]));const bad=await readTrainingHistory(file,'current');assert.equal(bad.status,'malformed');assert.equal(bad.last_observed_progress,null);
++ }finally{await fs.rm(folder,{recursive:true,force:true});}
++});
++
++test('JSONL 꼬리의 미완성 행과 앞부분 생략을 명시하고 읽기 상한을 지킵니다',async()=>{
++ const {readTrainingHistory}=await import('../server.mjs');const folder=await fs.mkdtemp(path.join(os.tmpdir(),'cxr-tail-'));const file=path.join(folder,'events.jsonl');
++ const row={phase:'retrieval_phase1',status:'training',epoch:2,epochs:30,step:7,global_step:9,loss:0.2,learning_rate:0.01,updated_at:'2026-11-10T04:21:06Z'};
++ try{
++  await fs.writeFile(file,'가'.repeat(150000)+'\n'+JSON.stringify(row)+'\n{"phase":');
++  const result=await readTrainingHistory(file,'current');assert.equal(result.truncated,true);assert.equal(result.incomplete_tail,true);assert.equal(result.status,'incomplete_tail');assert.deepEqual(result.last_observed_progress,row);assert.ok(result.bytes>256*1024);
++  await fs.writeFile(file,'x'.repeat(300000));const long=await readTrainingHistory(file,'current');assert.equal(long.truncated,true);assert.equal(long.last_observed_progress,null);
++  await fs.writeFile(file,JSON.stringify(row));const partial=await readTrainingHistory(file,'current');assert.equal(partial.status,'incomplete_tail');assert.equal(partial.last_observed_progress,null);
++ }finally{await fs.rm(folder,{recursive:true,force:true});}
++});
++
++test('진행 중에는 현재 값이 우선이고 마지막 기록 누락은 0회 갱신으로 해석하지 않습니다',async()=>{
++ const {trainingDisplay,trainingPhaseStates}=await import('../화면/state.mjs');
++ const s={active:true,run:{status:'running'},training:{phase:'verification',global_step:0,loss:0},last_observed_progress:{phase:'retrieval_phase2',global_step:900}};
++ assert.equal(trainingDisplay(s).progress.global_step,0);assert.equal(trainingDisplay(s).lastObserved,false);assert.equal(trainingPhaseStates(s)[2].active,false);
++ s.run.status='failed';s.active=false;s.last_observed_progress=null;assert.equal(trainingDisplay(s).progress,null);assert.equal(trainingDisplay(s).terminal,true);assert.ok(trainingPhaseStates(s).every(p=>!p.active));
++ const js=await fs.readFile(new URL('../화면/app.js',import.meta.url),'utf8');assert.match(js,/마지막 관측/);assert.match(js,/현재 학습 아님/);assert.match(js,/current_progress:s.training,last_observed_progress/);assert.match(js,/0회 학습을 뜻하지 않습니다/);
++});
+--- /dev/null
++++ 6차/문서/단계별_실험_구조.md
+@@ -0,0 +1,67 @@
++# 학습 과정과 원본·블러·모자이크 평가
++
++현재 실험은 NIH 원영상으로 검증 모델과 검색 모델을 새로 학습한 뒤, 같은 최종 가중치 두 개를 원본·블러·모자이크 조건에 고정해 평가합니다. 블러와 모자이크의 강도마다 모델을 다시 학습하는 구조가 아닙니다. 강도별 재학습으로 변형에 적응한 공격자를 평가하는 실험은 별도 설계이며 현재 결과에 포함하지 않습니다.
++
++이 문서의 근거는 5차의 `run_experiment.py:164`, `실험 코드/training/engine.py:413`, `실험 코드/cxr_reid/pipeline.py:107`입니다. 6차 화면 개선은 진행 중인 5차 학습·평가의 설정을 바꾸지 않습니다. 실제 학습 시작·완료와 성능은 각각 실행 근거를 확인해야 합니다.
++
++## 모델을 만드는 세 학습 과정
++
++| 학습 상태의 이름 | 입력과 학습 대상 | 정해진 조건 | 다음 과정에 넘기는 값 |
++| --- | --- | --- | --- |
++| `verification` · 검증 모델 학습 | NIH 학습 환자의 영상 쌍으로 같은 환자인지 판별하는 모델 학습 | 256×256, 배치32, Adam·학습률0.0001, 최대100에폭·검증 손실 개선이 없는5에폭 뒤 종료 | 검증 손실이 가장 낮은 검증 모델 가중치 |
++| `retrieval_phase1` · 검색 헤드 학습 | NIH 학습 영상, 검색 ResNet 특징 추출부의 매개변수를 고정하고 새 검색 헤드 학습 | 1024×1024, 배치32, 30에폭, SGD·OneCycleLR·대조 손실·메모리128 | 같은 실행의 검색 중간 가중치 |
++| `retrieval_phase2` · 검색 전체 학습 | 앞 과정의 중간 가중치를 읽고 검색 모델 전체 학습 | 1024×1024, 배치32, 50에폭, SGD·OneCycleLR·대조 손실·메모리128 | 마지막 에폭의 검색 모델 가중치 |
++
++초기화는 논문 조건에 따른 고정 ImageNet ResNet-50 가중치와 새 출력층입니다. 공개된 최종 CXR 가중치를 새 학습의 초기값으로 쓰지 않습니다. 검색의 두 번째 과정은 같은 실행의 첫 번째 검색 과정에서 이어집니다. 검증 모델과 검색 모델은 서로 다른 모델입니다. 현재 학습 입력은 원영상이며, 검색 학습에는 밝기·대비 증강이 있습니다. 블러·모자이크 강도 목록을 학습 데이터에 적용하는 반복문은 없습니다.
++
++verification은 에폭마다 학습 환자 범위에서 음성 쌍을 다시 생성합니다. 학습·검증·시험 환자 범위는 분리하며 시험·COVID 영상을 학습 또는 모델 선택에 쓰지 않습니다. 검증 단계에서 시험 결과를 보고 강도나 임계값을 선택하지 않습니다. 원 저자 코드와 다른 중복 정제·검증 메모리 혼입 방어·현대 환경 포팅의 한계는 [학습 조건](학습_조건.md)에 설명합니다.
++
++근거: `training/engine.py:251`의 `phase_train`, `:413`의 `train`, `training/data.py:151`의 `PairDataset`과 `:171`의 `RetrievalDataset`입니다. 학습 상태의 세 이름을 아래 평가1·2·3단계와 혼동하지 않습니다.
++
++## 같은 모델로 비교하는 세 평가 단계
++
++| 평가 단계 | 조건 수와 실제 강도 | 변형되는 대상 | 비교 대상 |
++| --- | --- | --- | --- |
++| 1 · 원본 | 1조건:0 | 변형 없음 | NIH 원본 영상의 검증·검색 기준값 |
++| 2 · 블러 | 10조건:0,2,4,8,16,32,64,128,256,512 | 질의 영상에 Pillow `GaussianBlur(radius=강도)` | 원본 갤러리 고정 |
++| 3 · 모자이크 | 10조건:1,4,8,16,32,64,128,256,512,1024 | 질의 영상을 BOX 축소·NEAREST 복원 | 원본 갤러리 고정 |
++
++총21조건입니다. 블러0과 모자이크1은 각각 해당 단계의 무변형 대조조건입니다. 블러 강도는 변형 전 원영상 좌표계의 반지름 픽셀 값입니다. 모자이크 강도는 목표 타일 한 변의 픽셀 크기이며, 내부 축소 크기는 영상의 가로·세로를 강도로 나누어 올림한 값입니다. NIH1024×1024 영상에서 위 모자이크 강도는 모두 정수 타일에 대응합니다. 변형은 모델 입력 크기 조정 전에 적용하므로 검증 모델의256픽셀 좌표계에서 설정한 강도가 아닙니다.
++
++검증은 공식 시험 쌍의 첫 영상을 질의로 변형하고 두 번째 영상은 원본으로 유지합니다. 검색은 변형 질의와 원본 갤러리를 비교합니다. 같은 환자의 다른 촬영본을 정답으로 삼으며 자기 원본 파일은 후보에서 제외합니다. 다른 정답 촬영본이 없는 질의는 검색 지표의 분모에서 제외하되 갤러리에는 남깁니다. 중복 정제로 제외한 영상은 모든 조건의 질의·쌍·갤러리에서 동일하게 제외합니다.
++
++근거: `cxr_reid/pipeline.py:32`의 두 강도 목록, `:188`의 `evaluate_pairs`, `:205`의 `evaluate_retrieval`, `:226`의 `run_one_condition`, `:261`의 `run_stage`; `cxr_reid/inference.py:35`와 `cxr_reid/image_ops.py:6`입니다.
++
++## 원논문 조건과 확장 조건
++
++[Packhäuser 외의 2022년 논문](https://www.nature.com/articles/s41598-022-19045-3)은 환자 검증·검색, 해상도 저하, 이물질 유무와 외부 데이터 평가 등을 다룹니다. Gaussian 블러10강도·모자이크10강도는 첨부 확장 프로젝트의 조건입니다. 1차 첨부 코드와 현재 코드의 강도 상수는 일치하지만, 이를 원논문에 발표된20개 변형 조건과 일치한다고 설명하면 안 됩니다. 2차 감사 보고서의 “10강도 일치”도 첨부 프로젝트와의 일치로 해석해야 합니다.
++
++원본 단계에는 검색 해상도1024·800·512·224, 이물질 유무와 COVID 외부검증 분석이 연결돼 있습니다. CheXpert, 원논문의 모든 학습률 탐색·훈련 크기 탐색·임상 속성별 분석을 모두 구현한 완전 재현은 아닙니다. 중복 제거로 NIH34장·COVID4장이 제외되므로 공식 데이터 전체와 같은 분모의 성능 재현이라고 부르지 않습니다. COVID의 공식1,548쌍과 정제 후1,534쌍은 [외부검증 정제 설명](코로나_외부검증_정제.md)에서 구분합니다.
++
++## 각 조건에서 계산하는 값
++
++검증 지표는 정확도·균형 정확도·정밀도·재현율·F1·FAR·FRR·특이도·ROC-AUC·근사EER 및 혼동행렬 수량입니다. 판정은 모든 조건에서 `예측 확률 > 0.5`로 고정합니다. 강도마다 임계값을 다시 맞추지 않습니다. 원본 모드에서는 설정에 따라10,000회 쌍 단위 AUC bootstrap을 수행합니다. 근사EER은 관측 ROC의 최근접점 방식이고 bootstrap은 환자 군집 신뢰구간과 다릅니다.
++
++검색 지표는 Precision@1·mAP@R·R-Precision입니다. 두 출력의 L2 정규화와 영벡터0 유지, 자기 원본 제외, 거리 후 고유 파일명 순서의 동률 처리, 유효 질의 영상별 평균을 사용합니다. 영상 수·갤러리 환자 수·유효 질의 수·동률 빈도와 동률 무작위 기대 Rank-1도 기록합니다. 영상별 평균이므로 환자별 균등 평균은 아닙니다.
++
++2·3단계에는 CMC@1과 `100 × (1 − CMC@1)`의 보수 점수를 추가합니다. [Tian 외, ICCV2025](https://openaccess.thecvf.com/content/ICCV2025/papers/Tian_Semantic_versus_Identity_A_Divide-and-Conquer_Approach_towards_Adjustable_Medical_Image_ICCV_2025_paper.pdf)는 의료영상 재식별 지표로 CMC-R1을 사용합니다. 위 보수 환산식과 프라이버시 점수 명명은 이 확장 연구의 정의입니다. 높은 점수는 고정 공격의 실패율을 뜻하며 공격자 재학습·복원·차등프라이버시·진단 유용성 보장을 뜻하지 않습니다.
++
++근거: `cxr_reid/evaluation.py:14`, `:53`, `:137`, `:157`과 `cxr_reid/pipeline.py:237`입니다.
++
++## 저장 위치와 재사용 조건
++
++| 산출물 | 프로젝트 안의 경로 계약 |
++| --- | --- |
++| 학습 진행·최종 두 모델 위치 | `5차/work/runs/<실행ID>/training/progress.json`, `events.jsonl`, `artifacts.json` |
++| 과정별 학습 상태·가중치 | 위 `training/verification`, `retrieval_phase1`, `retrieval_phase2` 안의 `last.pt`, `epoch_###.pt`, `selected_weights.pth` |
++| 새 학습 초기화·첫 역전파 확인 | 각 학습 과정의 `initialization.json`, `first_backward.json` |
++| 평가 실행 출처 | `연구 자료/results/runs/<실행ID>/provenance.json` |
++| 단계별 집계·조건별 원값 | 평가 실행 아래 `stage_1_original`, `stage_2_blur`, `stage_3_mosaic`의 `summary.csv`, `condition_<강도>.json` |
++| 검증 쌍별 예측 | 각 단계의 `pair_predictions/<original 또는 blur 또는 mosaic>_<강도>.csv` · 비공개 |
++| 단계별 그림 | 각 단계의 `figures/` 안 PNG·PDF; 원본 단계에는 별도 ROC PNG |
++| 원본 단계의 부가 분석 | `paper_resolution.csv`, `paper_foreign_material.csv`, `paper_external.csv` |
++| 임베딩 캐시 | `연구 자료/cache_embeddings_v4/<출처지문>/<모델>_<모드>_<강도>_<키>.npy`와 `.npy.json` |
++
++강도별로 저장되는 것은 평가 결과·예측·캐시이며 강도별 학습 체크포인트가 아닙니다. 캐시는 모델·원영상 SHA·영상 순서·변환·해상도·정규화·소스·환경과 결합합니다. payload SHA·shape·dtype·유한성·완료 영수증이 다르면 원본을 격리 보존하고 다시 계산합니다. 같은 실행의 재개도 출처와 조건별 예측 SHA를 확인합니다. 원영상·쌍별 예측·환자별 목록·가중치는 공개 대상에서 제외합니다.
++
++근거: `run_experiment.py:164`, `training/state.py:55`, `:76`, `training/engine.py:280`, `cxr_reid/provenance.py:52`, `cxr_reid/pipeline.py:66`, `:155`, `:261`입니다.
+--- 5차/문서/학습_조건.md
++++ 6차/문서/학습_조건.md
+@@ -1,3 +1,5 @@
++이 문서는5차 학습 조건의 보존 설명입니다. 6차 화면은 현재5차 실험을 연결하며 모델·데이터 조건을 변경하지 않습니다.
++
+ # 중복 영상을 제외한 재학습 조건
+ 
+ 원 저자 커밋 `880168f564afa07936a8d8fb3b868b140ab937d9`의 모델·손실·최적화 조건을 기준으로 이식했습니다. 공개 CXR 최종 모델은 초기값으로 사용하지 않습니다. 원 논문상의 ImageNet 파일 `resnet50-19c8e357.pth`, 새 출력층과 빈 optimizer 상태에서 시작합니다.
+@@ -40,7 +42,7 @@
+ COVID 원본 781장 전수 디코딩에서 서로 다른 환자 ID에 연결된 동일 픽셀 2그룹·4장을 확인해 원래 준비 실행을 차단했습니다. 이 4장을 모두 제외한 777장·445명의 허용 집합을 verification 쌍과 retrieval에 함께 적용합니다. 검증 쌍은 1,534개(양성772·음성762), 유효 검색 질의는508장입니다. 원 공식1,548쌍·781장과 파생 분모를 구분하며 음성 쌍을 새로 만들어 균형을 맞추지 않습니다.
+ 
+ 원본·공식 목록·기존2그룹 차단 근거를 보존합니다. 고정 원근거의 전체 SHA, 원래781개 현재 파일의 SHA, 정책 재계산과 보고서 결합을 확인하며 NIH와의 교차 픽셀 중복도 차단합니다. 이 정제는 외부 평가에만 적용하며 NIH 학습·모델·손실 조건을 바꾸지 않습니다. 최종 수치는 실제 새 모델의 평가 후 기록합니다.
+-
+-## 수치 표시와 원값 보존
+-
+-백분율은 소수 둘째 자리까지 버려 표시하고, 같은 행에서 저장된 원비율과 전체 정밀도의 원값을 펼쳐 확인할 수 있게 합니다. 검색 성공률은 원비율을 백분율로 바꾸고 프라이버시 점수는 이미 0~100인 단위를 유지합니다. AUC·손실·학습률의 표시 자릿수와 원값도 구분합니다. 표시 과정에서 CSV·JSON 결과 원본을 바꾸거나 미측정 값을 0으로 대체하지 않습니다.
++
++## 수치 표시와 원값 보존
++
++백분율은 소수 첫째 자리까지 반올림해 표시하고, 같은 행에서 저장된 원비율과 전체 정밀도의 원값을 펼쳐 확인할 수 있게 합니다. 검색 성공률은 원비율을 백분율로 바꾸고 프라이버시 점수는 이미 0~100인 단위를 유지합니다. AUC·손실·학습률의 표시 자릿수와 원값도 구분합니다. 표시 과정에서 CSV·JSON 결과 원본을 바꾸거나 미측정 값을 0으로 대체하지 않습니다.
+--- 5차/변경_기록.md
++++ 6차/변경_기록.md
+@@ -1,17 +1,16 @@
+-# 5차 변경 기록
++# 6차 변경 기록
+ 
+-4차의 데이터 준비 실행은 NIH 원파일 112,120개의 SHA를 확인한 뒤 COVID 외부검증 영상의 환자 충돌 중복 2그룹을 찾아 중단했습니다. 이 차수는 원본과 1~4차를 보존하고, 외부 평가도 같은 중복 제거 원칙을 적용합니다.
++평가 단계와 강도마다 조건을 확인할 수 없던 화면에 단계·강도 선택과 상세 정보를 추가합니다. 학습3과정과 평가3단계를 구분하고, 같은 새 모델을21조건에 평가하는 현재 코드의 실제 구조를 설명합니다.
+ 
+-- COVID 원본 781장 중 서로 다른 환자로 기록된 동일 픽셀 4장을 모두 제외하는 파생 집합을 구성합니다. 허용777장·445명, 검증1,534쌍(양성772·음성762), 유효 검색 질의508장의 실제 분모를 기록합니다.
+-- 공식781장·1,548쌍과 원 blocking2 기록을 보존합니다. 별도 고정 원근거·파생 schema·현재781개 원파일 SHA·정책 재계산·보고서 결합으로 임의 목록 편집과 검사 우회를 차단합니다.
+-- 외부 verification과 retrieval이 같은 허용 집합을 사용합니다. NIH 학습·검증·시험의 기존34장 제외 정책과 모델·손실·배치·시드 조건은 유지합니다.
+-- 실행기와 화면의 차수를5차로 연결하고 실제0회 갱신과 아직 기록되지 않은 값을 구분합니다. 기존 snapshot 재사용도 검증 성공 전에는 학습으로 넘어가지 않습니다.
+-- 노트북의 현재 폴더 오류 안내를5차로 맞췄습니다. 기존 흰색·회청색, 양쪽 테마와 모션 조작부 수정은 유지합니다.
++- 원본1·블러10·모자이크10조건을 선택하고 현재 실행의 같은 조건 결과를 확인합니다. 미측정·대기·진행·완료는 실제 근거와 구분합니다.
++- 화면6차와 연결 실험5차를 분리하고 기존 실행을 이어 보여 줍니다. 모델·손실·데이터·학습 설정은 변경하지 않습니다.
++- 백분율을 소수 첫째 자리 반올림으로 표시하고 원값을 펼쳐 확인합니다. 반올림100.0%와 실제 원비율1을 구분합니다. 5차의 이전 표시 정책과 기록은 보존합니다.
++- 원 감사 보고서의 코드 수정 근거와 실험·성능 미확인 항목을 구분하는 설명을 보완합니다.
+ 
+-실제 학습 시작은 새 실행의 초기화 기록·첫 유한 기울기·출력층 변경·진행1회 이상을 확인한 뒤 판정합니다. 전체 학습과 성능 재현은 별도 결과입니다. 원영상·영상별 목록·가중치·비공개 운영 기록과 재배포 권한이 불명확한 평가 엔진은 공개하지 않습니다.
++한 줄·주석·공백까지 실제 차이는 [전체 비교](이전_차수_비교.md)에 연결합니다. 의료 원영상·가중치·영상별 목록·비공개 운영 기록은 공개하지 않습니다.
+ 
+-## 수치 표시와 원값 보존
++## 11월 13일 재개 확인
+ 
+-백분율은 소수 둘째 자리까지 버려 표시하고, 같은 행에서 저장된 원비율과 전체 정밀도의 원값을 펼쳐 확인할 수 있게 합니다. 검색 성공률은 원비율을 백분율로 바꾸고 프라이버시 점수는 이미 0~100인 단위를 유지합니다. AUC·손실·학습률의 표시 자릿수와 원값도 구분합니다. 표시 과정에서 CSV·JSON 결과 원본을 바꾸거나 미측정 값을 0으로 대체하지 않습니다.
++기존 실행은 검증 모델의 에폭1 도중 최소3,326회 가중치 갱신 후 CUDA 오류로 중단됐습니다. 최종 모델·검색 학습·21조건 평가 결과는 아직 없습니다. 실패 상태 파일의 초기화된0을 전체 학습0회로 표시하지 않도록 오류 상태와 마지막 정상 관측 기록·시각을 별도로 보여 줍니다. 학습 로그와 수치는 바꾸지 않습니다.
+ 
+-합성 COVID 검사에서 외장 HDD 임시 파일 생성이 주요 지연으로 측정돼 시스템 임시 폴더를 사용하도록 조정했습니다. 원영상 위치·검사 대상 781개·변조 차단 기준과 정식 제한시간은 유지합니다.
++현재 주소의21개 조건을 실제 클릭해 상세 제목과 선택 상태를 확인했습니다. 계산 회귀는75초 정식 제한에서 시간 초과한 실패 이력을 보존합니다. 별도 계측 실행의88개 통과는 정식 검사 통과나 학습 성공을 대신하지 않습니다.
+--- /dev/null
++++ 6차/보고서_항목별_이행표.md
+@@ -0,0 +1,38 @@
++# 2차 감사 보고서의 문제와 후속 수정
++
++기준은 보존한 `2차/정밀_검증_보고서.md`의9개 문제입니다. 해당 코드 결함의 수정과 회귀검사 이력은 확인했지만, 이것이 논문 성능 재현이나 모든 실험 완료를 뜻하지는 않습니다. 중복 정제와 검증 메모리 혼입 방어를 추가한 재학습이며 공식 데이터·환경을 그대로 사용한 완전 재현과 구분합니다.
++
++이 표는 5차 계산·실행관리 코드와 독립 검증 영수증을 읽어 작성했습니다. 6차의 화면 변경은 진행 중인5차 계산 설정을 바꾸지 않습니다. 특정 실행의 현재 상태는 이 공개 문서에 고정하지 않으며 실제 학습 시작·완료·성능은 실행별 근거를 확인해야 합니다.
++
++| 2차에서 발견한 문제 | 후속 수정과 확인한 근거 | 판정과 남은 확인 |
++| --- | --- | --- |
++| 1. 검색112,118장과 NIH전체112,120장의 범위 혼동 | Verification전용 목록112,120장과 Retrieval목록112,118장·미배정2장의 고정 근거를 분리합니다. `dataset_validation.py:224` 및 `training/data.py:117`에서 과제별 범위·환자·쌍 소속을 검사합니다. | 코드 수정·검사 이력 확인. 정제 후 평가 분모는 원논문 분모와 구분합니다. |
++| 2. 검색 출력 L2 정규화 누락 | `evaluation.py:53`에서 양쪽 출력을 sklearn L2로 정규화하고 영벡터0을 유지합니다. 기존 raw 캐시와 분리한 v4 캐시를 사용합니다. | 코드 수정·반례 회귀 이력 확인. 실제 새 모델의 NIH 검색 성능은 별도 실측 사항입니다. |
++| 3. 결과 덮어쓰기 | `provenance.py:52`에서 실행ID별 새 폴더·출처를 생성합니다. `pipeline.py:261`은 명시 재개 시 출처·조건·예측 SHA를 검증하고 `save_csv:36`은 이전 집계를 이력으로 보존합니다. | 코드 수정·실행관리 검사 이력 확인. 실제 전체21조건 완료와 재개 운영은 결과 근거가 필요합니다. |
++| 4. 캐시 출처 결합 부족 | `pipeline.py:66`·`:155`의 모델/원영상/전처리/소스/환경 결합, payload SHA·실제dtype/shape/finite·완료 영수증 검증과 불일치 원본 격리 보존을 확인했습니다. | 손상·변조·미완료 캐시 회귀 이력 확인. 실제 전체 캐시·결과 생성 완료와는 다릅니다. |
++| 5. 동률 순위 미정의 | `evaluation.py:103` 이후에서 R경계의 동률 후보를 모두 포함해 거리→고유 파일명 순으로 결정합니다. 동률 질의 수·무작위 기대 Rank-1을 함께 반환합니다. | 코드 수정·합성 동률 검사 이력 확인. 실제 NIH의 동률 빈도·강도별 민감도는 실측해야 합니다. |
++| 6. 손상 영상·시험 환자 소속·다운로드 복구 방어 부족 | `dataset_validation.py:41`·`:162`·`:187`에서 전수 디코딩·환자/분할/쌍 gate를 검사합니다. `download.py:59`·`:181`은 고정 해시·416 검증·검증된 중단 추출 prefix의 보존 복구를 처리합니다. `cleaning.py:80`·`:121`은 고정 원근거와 정제 정책을 재계산하며 제외 원본까지 현재 SHA를 확인합니다. | 원 디코딩에서 NIH중복25그룹·COVID중복2그룹을 발견해 실제 차단한 이력을 보존합니다. NIH34장·COVID4장 제외의 파생 집합과 원근거를 분리합니다. 현재 파일 재검사는 실행마다 필요하며 근사 중복·환자 ID 진실성까지 보장하지 않습니다. |
++| 7. CMD·노트북·대시보드 실행 위치 불일치 | `settings.json:2`, `main.py:46`에서 코드 위치 기준 공유 연구 경로를 해석합니다. 한글 CMD·노트북·실행기의 경로 계약과 중복 평가 잠금을 맞췄습니다. | 경로·CMD·노트북 문법 및 실행관리 검사 이력 확인. 모든 노트북 계산 셀을 끝까지 실행한 결과로 확대하지 않습니다. |
++| 8. VRAM·결과 저장량 사전검사 부족 | `resources.py:5`는 결과/캐시 예산·현재 VRAM과 지정 평가 배치의 실제 peak를 검사합니다. 학습은 `training/engine.py`의 메모리 gate와 배치32 활성값 재계산·유한 기울기 검사·안전한 AMP scale 조절을 사용합니다. | 합성 GPU 역전파 및 코드 검사 이력을 실제 원영상 학습·장시간 안정성과 구분합니다. 실제 학습과 평가의 자원 검사 결과를 각각 확인해야 합니다. |
++| 9. 부가 조건·불확실성·그림 설명 부족 | `settings.json`의 기본 해상도는 논문 표의1024/800/512/224입니다. `evaluation.py:14`·`:157`은 근사EER·전체 쌍 bootstrap과 환자 군집 CI의 차이를 명시합니다. `plotting.py:27`은 나눔고딕Bold와 ASCII 수식 뺄셈을 사용합니다. | 코드·표현 보완 이력 확인. 모든 불확실성을 해결한 것은 아니며 원 저자 CI와 비트 단위 일치·환자 단위 CI·실제 최종 그림은 별도입니다. |
++
++표의 단축 파일명은 `실험 코드/cxr_reid/` 아래를 뜻하며 `training/`, `main.py`, `settings.json`은 예외입니다. 코드 위치는 읽은5차 소스를 기준으로 합니다.
++
++## 코드 검사와 성능 검증의 경계
++
++5차의 최종 독립 명세 검사는 대시보드·보안, 계산, 실행관리 세 항목 모두 종료 코드0을 기록했습니다. 계산 검사33.453초는 정식75초 제한 안의 실행 기록이며 전체120초 기준을 늘리지 않았습니다. 이전75.312초 시간 초과와 검증실패 누적3회는 보존합니다. 합성 임시 파일을 시스템 임시 폴더로 옮긴 수리도 검사 대상781개와 assertion을 줄이지 않았습니다.
++
++다음 내용은 코드 검사 통과만으로 결론을 낼 수 없습니다.
++
++- 새 검증 모델과 검색 모델의 실제 학습 완료 및 최종 체크포인트 생성
++- NIH 원본과20개 변형 조건, COVID 외부검증의 실제 지표·곡선
++- 논문 보고값과의 차이, 새로운 공격자 재학습·복원 공격에 대한 방어
++- 진단 유용성, 임상적 안전성, 환자 단위 불확실성 또는 완전 익명성
++
++원본·블러·모자이크는 현재 같은 최종 검증·검색 모델의 평가 조건입니다. 강도별 재학습이 완료됐다는 설명은 맞지 않습니다. 학습 과정의 `verification`·`retrieval_phase1`·`retrieval_phase2`와 평가1·2·3단계의 차이는 [단계별 실험 구조](문서/단계별_실험_구조.md)에 정리했습니다.
++
++## 논문 근거와 확장 연구의 범위
++
++[2022년 원논문](https://www.nature.com/articles/s41598-022-19045-3)과 [공식 전체 원문](https://www.ebi.ac.uk/europepmc/webservices/rest/PMC9434540/fullTextXML), [고정 저자 코드](https://github.com/kaipackhaeuser/CXR-Patient-ReID/tree/880168f564afa07936a8d8fb3b868b140ab937d9)를 기준으로 과제·모델·분할·평가를 대조했습니다. 원논문의 해상도·이물질·외부검증과 첨부 프로젝트의 블러10강도·모자이크10강도를 분리합니다. 2차 보고서의 “10강도 일치”는 첨부 코드와 일치한다는 뜻이며 원논문의 조건이라는 주장이 아닙니다.
++
++CheXpert와 원논문의 모든 훈련 조건 탐색·임상 속성별 분석은 현재 범위에 포함하지 않습니다. NIH/COVID 중복 정제 때문에 원논문과 동일한 전체 데이터 분모도 아닙니다. 프라이버시 보수 점수는 CMC-R1을 사용하는 [Tian 외의 연구](https://openaccess.thecvf.com/content/ICCV2025/papers/Tian_Semantic_versus_Identity_A_Divide-and-Conquer_Approach_towards_Adjustable_Medical_Image_ICCV_2025_paper.pdf)를 지표 근거로 삼은 이번 확장 연구의 정의이며, Tian의 동일 공식·동일 실험 재현으로 인용하지 않습니다.
+--- 5차/화면/app.js
++++ 6차/화면/app.js
+@@ -1,62 +1,125 @@
+-import { describeExperiment, formatPercent, formatRaw } from '/state.mjs';
+-const icons = {
+- home:'M3 11 12 3l9 8M5 10v11h5v-7h4v7h5V10',layers:'m3 7 9-4 9 4-9 5-9-5Zm0 5 9 5 9-5M3 17l9 5 9-5',database:'M21 6c0 2-4 4-9 4S3 8 3 6s4-4 9-4 9 2 9 4ZM3 6v12c0 2 4 4 9 4s9-2 9-4V6M3 12c0 2 4 4 9 4s9-2 9-4',chart:'M4 21V12h4v9M10 21V7h4v14M16 21V3h4v18',file:'M5 2h10l5 5v15H5V2Zm10 0v6h5M8 12h9M8 16h7',chip:'M6 6h12v12H6V6ZM3 8h3M3 12h3M3 16h3M18 8h3M18 12h3M18 16h3M8 3v3M12 3v3M16 3v3M8 18v3M12 18v3M16 18v3',trophy:'M7 3h10v7c0 7-10 7-10 0V3Zm0 2H3v3c0 4 4 5 5 5M17 5h4v3c0 4-4 5-5 5M12 16v6M7 22h10',image:'M3 4h18v16H3V4Zm1 13 5-6 4 4 3-4 5 6M15 8h.01',drop:'M12 2C10 7 4 10 4 15a8 8 0 0 0 16 0c0-5-6-8-8-13Z',grid:'M3 3h6v6H3V3Zm12 0h6v6h-6V3ZM3 15h6v6H3v-6Zm12 0h6v6h-6v-6Z'};
+-document.querySelectorAll('[data-icon]').forEach(el => { const svg = document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.setAttribute('viewBox','0 0 24 24'); svg.setAttribute('fill','none'); svg.setAttribute('stroke','currentColor'); svg.setAttribute('stroke-width','1.8'); svg.setAttribute('stroke-linecap','round'); svg.setAttribute('stroke-linejoin','round'); svg.setAttribute('aria-hidden','true'); const p=document.createElementNS(svg.namespaceURI,'path'); p.setAttribute('d',icons[el.dataset.icon] || icons.file); svg.append(p); el.prepend(svg); });
+-const $ = id => document.getElementById(id);
+-const lung=document.createElementNS('http://www.w3.org/2000/svg','svg');lung.setAttribute('viewBox','0 0 40 40');lung.setAttribute('fill','none');lung.setAttribute('stroke','white');lung.setAttribute('stroke-width','2');const lungPath=document.createElementNS(lung.namespaceURI,'path');lungPath.setAttribute('d','M20 5v16m0-8-6 5m6-5 6 5M13 10C7 12 4 23 6 31c1 4 9 4 10 0V16m11-6c6 2 9 13 7 21-1 4-9 4-10 0V16');lung.append(lungPath);document.querySelector('.brand-icon').replaceChildren(lung);
+-let theme='light';try{theme=localStorage.getItem('cxr-theme')==='dark'?'dark':'light';}catch{}
+-function applyTheme(){document.documentElement.dataset.theme=theme;$('theme').textContent=theme==='dark'?'라이트 모드':'다크 모드';$('theme').setAttribute('aria-pressed',String(theme==='dark'));}
+-applyTheme();$('theme').addEventListener('click',()=>{theme=theme==='dark'?'light':'dark';applyTheme();try{localStorage.setItem('cxr-theme',theme);}catch{}});
+-let latest, busy = false;
+-let logTab='experiment';
+-for(const name of ['experiment','environment'])$(name+'-tab').addEventListener('click',()=>{logTab=name;for(const tab of ['experiment','environment'])$(tab+'-tab').setAttribute('aria-selected',String(tab===name));if(latest)render(latest);});
+-const bytes = n => n >= 1073741824 ? `${(n/1073741824).toFixed(2)} GB` : `${(n/1048576).toFixed(1)} MB`;
+-const metric = formatRaw;
+-function notice(text) { $('notice').textContent = text; $('notice').hidden = !text; }
+-async function action(name) {
+- if (busy) return; busy = true; notice(''); $('start').disabled = true; $('stop').disabled = true;
+- try { const r = await fetch(`/api/${name}`,{method:'POST'}); const data=await r.json(); if(!r.ok) throw Error(data.error); notice(name==='start'?'실험 시작을 요청했습니다. 실행 기록을 확인하고 있습니다.':'중단을 요청했습니다. 현재 작업을 안전하게 종료하고 있습니다.'); }
+- catch(e){notice(e.message);} finally {busy=false;await refresh();}
+-}
+-$('start').addEventListener('click',()=>action('start')); $('stop').addEventListener('click',()=>action('stop'));
+-let paused=matchMedia('(prefers-reduced-motion: reduce)').matches;
+-function motion(){document.body.classList.toggle('paused',paused);$('motion').setAttribute('aria-pressed',String(paused));$('motion').firstChild.textContent=paused?'모션 재생 ':'모션 정지 ';}motion();$('motion').addEventListener('click',()=>{paused=!paused;motion();});
+-document.querySelectorAll('nav a').forEach(a=>a.addEventListener('click',()=>{document.querySelector('nav .selected')?.classList.remove('selected');a.classList.add('selected');}));
+-function render(s){
+- latest=s;const run=s.run;const described=describeExperiment(s);$('status').textContent=described.status;
+- $('start').disabled=busy||s.active||s.starting;$('stop').disabled=busy||!s.active||run?.status!=='running';
+- $('gpu').textContent=s.gpu.name;$('gpu-detail').textContent=s.gpu.utilization===null?'실시간 장치 정보가 아직 없습니다.':`사용률 ${s.gpu.utilization}% · VRAM ${s.gpu.used} / ${s.gpu.total} MB`;
+- $('result-count').textContent=s.results.length?`${s.results.length}개 평가 조건`:'아직 없음';
+- $('download-summary').textContent=s.downloads.length?`${s.downloads.length}개 파일 · ${bytes(s.downloads.reduce((n,d)=>n+d.bytes,0))}`:'다운로드 파일 아직 없음';
+- $('phase').textContent=run?.phase||'실험 시작 후 현재 작업이 표시됩니다.';
+- const training=s.training;
+- const phaseNames={verification:'검증 모델',retrieval_phase1:'검색 모델 출력부',retrieval_phase2:'검색 모델 전체',complete:'학습 완료',failed:'학습 오류',stopped:'학습 중단',preflight:'학습 입력 검사',data_validation:'학습 데이터 검증'};
+- const statusNames={waiting_for_gpu:'GPU 여유 메모리 대기',training:'학습 중',initializing:'새 모델 초기화 중',validating:'검증 중',epoch_complete:'에폭 완료',completed:'완료',failed:'오류',stopped:'중단',ready:'입력 검사 완료'};
+- $('training-state').textContent=training ? `${phaseNames[training.phase] || '학습 상태 확인'} · 에폭 ${training.epoch ?? '—'} / ${training.epochs ?? '—'}` : '데이터 검증 후 새 학습 시작';
+- $('training-detail').textContent=training ? `배치 ${training.step ?? '—'} · 누적 가중치 갱신 ${training.global_step ?? '확인 전'} · 손실 ${metric(training.loss)} · 학습률 ${metric(training.learning_rate)} · ${statusNames[training.status] || '진행 상태 확인'}` : '공개 CXR 최종 가중치 사용 안 함 · 논문상 ImageNet 초기화 · 가중치 갱신 확인 전';
+- $('training-raw').textContent=training?JSON.stringify(training,null,2):'미측정: 현재 실행의 학습 수치가 아직 없습니다.';
+- if(run?.error) notice(run.error);
+- const log=s.log.text;const shown=logTab==='environment'?s.environment_log:s.log;$('terminal').textContent=shown.text||'[대기] 아직 실행 기록이 없습니다.';$('log-info').textContent=`${shown.truncated?'최근 64 KiB 범위 · 앞부분 생략 · ':''}원본 ${bytes(shown.bytes)}`;
+- document.querySelectorAll('.stage').forEach((el,i)=>{
+-  const stage=described.stages[i];for(const cls of ['done','active','failed'])el.classList.toggle(cls,stage[cls]);el.querySelector('.stage-status').textContent=stage.label;
+- });
+- for(const name of ['original','blur','mosaic']){const image=$('preview-'+name);if(s.previews?.[name]&&!image.getAttribute('src')){image.onload=()=>{image.hidden=false;image.nextElementSibling.hidden=true;};image.onerror=()=>{image.hidden=true;image.nextElementSibling.hidden=false;image.removeAttribute('src');};image.src=`/api/preview/${name}.png`;}}
+- // 준비 완료는 실제 실행 기록의 확인 메시지에 한해서 표시합니다.
+- $('check-model').textContent=/모델.*(?:로딩 완료|로드 완료)|가중치.*완료/.test(log)?'✓':'○';
+- $('check-data').textContent=s.downloads.length?'◒':'○';
+- $('check-validation').textContent=/데이터 누수 검사.*중복 없음|데이터 검증.*완료/.test(log)?'✓':'○';
+- $('downloads').replaceChildren(); if(!s.downloads.length)$('downloads').textContent='아직 다운로드 파일이 없습니다.';
+- s.downloads.forEach(d=>{const line=document.createElement('div');line.textContent=`${d.partial?'다운로드 중':'보관 파일'} · ${d.name} · ${bytes(d.bytes)}`;$('downloads').append(line);});
+- const tbody=$('result-rows');
+- const expanded=new Set([...tbody.querySelectorAll('details[open]')].map(el=>el.dataset.key));
+- tbody.replaceChildren();s.results.forEach((r,index)=>{
+-  const tr=document.createElement('tr');const stage=r.source.startsWith('stage_1')?'원본':r.source.startsWith('stage_2')?'블러':'모자이크';
+-  [stage,r.strength??'—',metric(r.auc),formatPercent(stage==='원본'?r.precision_at_1:r.cmc_rank_1),formatPercent(r.privacy_score,{ratio:false}),'기록됨'].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td);});
+-  const td=document.createElement('td'),details=document.createElement('details'),summary=document.createElement('summary'),raw=document.createElement('pre');
+-  details.className='raw-values';details.dataset.key=JSON.stringify([r.source,r.strength,r.mode,index]);details.open=expanded.has(details.dataset.key);
+-  summary.textContent='CSV 원값';raw.textContent=JSON.stringify(r,null,2);details.append(summary,raw);td.append(details);tr.append(td);tbody.append(tr);
+- });
+- $('empty').hidden=!!s.results.length;$('updated').textContent=`최근 확인 ${new Date(s.updated_at).toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul'})} KST`;
+-}
+-async function refresh(){try{const r=await fetch('/api/status',{cache:'no-store'});if(!r.ok)throw Error('상태 조회 실패');render(await r.json());}catch(e){$('status').textContent='서버 연결 확인 필요';notice(e.message);$('start').disabled=true;$('stop').disabled=true;}}
+-refresh();setInterval(refresh,3000);
++import { describeExperiment, formatPercent, formatRaw, percentNotice, EXPERIMENT_PLAN, conditionState, trainingPhaseStates, trainingDisplay } from '/state.mjs';
++const icons = {
++ home:'M3 11 12 3l9 8M5 10v11h5v-7h4v7h5V10',layers:'m3 7 9-4 9 4-9 5-9-5Zm0 5 9 5 9-5M3 17l9 5 9-5',database:'M21 6c0 2-4 4-9 4S3 8 3 6s4-4 9-4 9 2 9 4ZM3 6v12c0 2 4 4 9 4s9-2 9-4V6M3 12c0 2 4 4 9 4s9-2 9-4',chart:'M4 21V12h4v9M10 21V7h4v14M16 21V3h4v18',file:'M5 2h10l5 5v15H5V2Zm10 0v6h5M8 12h9M8 16h7',chip:'M6 6h12v12H6V6ZM3 8h3M3 12h3M3 16h3M18 8h3M18 12h3M18 16h3M8 3v3M12 3v3M16 3v3M8 18v3M12 18v3M16 18v3',trophy:'M7 3h10v7c0 7-10 7-10 0V3Zm0 2H3v3c0 4 4 5 5 5M17 5h4v3c0 4-4 5-5 5M12 16v6M7 22h10',image:'M3 4h18v16H3V4Zm1 13 5-6 4 4 3-4 5 6M15 8h.01',drop:'M12 2C10 7 4 10 4 15a8 8 0 0 0 16 0c0-5-6-8-8-13Z',grid:'M3 3h6v6H3V3Zm12 0h6v6h-6V3ZM3 15h6v6H3v-6Zm12 0h6v6h-6v-6Z'};
++document.querySelectorAll('[data-icon]').forEach(el => { const svg = document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.setAttribute('viewBox','0 0 24 24'); svg.setAttribute('fill','none'); svg.setAttribute('stroke','currentColor'); svg.setAttribute('stroke-width','1.8'); svg.setAttribute('stroke-linecap','round'); svg.setAttribute('stroke-linejoin','round'); svg.setAttribute('aria-hidden','true'); const p=document.createElementNS(svg.namespaceURI,'path'); p.setAttribute('d',icons[el.dataset.icon] || icons.file); svg.append(p); el.prepend(svg); });
++const $ = id => document.getElementById(id);
++const lung=document.createElementNS('http://www.w3.org/2000/svg','svg');lung.setAttribute('viewBox','0 0 40 40');lung.setAttribute('fill','none');lung.setAttribute('stroke','white');lung.setAttribute('stroke-width','2');const lungPath=document.createElementNS(lung.namespaceURI,'path');lungPath.setAttribute('d','M20 5v16m0-8-6 5m6-5 6 5M13 10C7 12 4 23 6 31c1 4 9 4 10 0V16m11-6c6 2 9 13 7 21-1 4-9 4-10 0V16');lung.append(lungPath);document.querySelector('.brand-icon').replaceChildren(lung);
++let theme='light';try{theme=localStorage.getItem('cxr-theme')==='dark'?'dark':'light';}catch{}
++function applyTheme(){document.documentElement.dataset.theme=theme;$('theme').textContent=theme==='dark'?'라이트 모드':'다크 모드';$('theme').setAttribute('aria-pressed',String(theme==='dark'));}
++applyTheme();$('theme').addEventListener('click',()=>{theme=theme==='dark'?'light':'dark';applyTheme();try{localStorage.setItem('cxr-theme',theme);}catch{}});
++let latest, busy = false;
++let logTab='experiment';
++for(const name of ['experiment','environment'])$(name+'-tab').addEventListener('click',()=>{logTab=name;for(const tab of ['experiment','environment'])$(tab+'-tab').setAttribute('aria-selected',String(tab===name));if(latest)render(latest);});
++const bytes = n => n >= 1073741824 ? `${(n/1073741824).toFixed(2)} GB` : `${(n/1048576).toFixed(1)} MB`;
++const metric = formatRaw;
++const observedTime = value => new Date(value).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})+' KST';
++function notice(text) { $('notice').textContent = text; $('notice').hidden = !text; }
++async function action(name) {
++ if (busy) return; busy = true; notice(''); $('start').disabled = true; $('stop').disabled = true;
++ try { const r = await fetch(`/api/${name}`,{method:'POST'}); const data=await r.json(); if(!r.ok) throw Error(data.error); notice(name==='start'?'실험 시작을 요청했습니다. 실행 기록을 확인하고 있습니다.':'중단을 요청했습니다. 현재 작업을 안전하게 종료하고 있습니다.'); }
++ catch(e){notice(e.message);} finally {busy=false;await refresh();}
++}
++$('start').addEventListener('click',()=>action('start')); $('stop').addEventListener('click',()=>action('stop'));
++let paused=matchMedia('(prefers-reduced-motion: reduce)').matches;
++function motion(){document.body.classList.toggle('paused',paused);$('motion').setAttribute('aria-pressed',String(paused));$('motion').firstChild.textContent=paused?'모션 재생 ':'모션 정지 ';}motion();$('motion').addEventListener('click',()=>{paused=!paused;motion();});
++document.querySelectorAll('nav a').forEach(a=>a.addEventListener('click',()=>{document.querySelector('nav .selected')?.classList.remove('selected');a.classList.add('selected');}));
++const selectedStrengths={1:0,2:0,3:1};
++let selectedStage=1;
++function readSelection(){
++ const match=/^#stage-([123])-strength-(\d+)$/.exec(location.hash);
++ if(match){const stage=Number(match[1]),strength=Number(match[2]);if(EXPERIMENT_PLAN[stage-1].strengths.includes(strength)){selectedStage=stage;selectedStrengths[stage]=strength;}}
++}
++readSelection();
++function selectCondition(stage,strength=selectedStrengths[stage]){
++ if(!EXPERIMENT_PLAN[stage-1]?.strengths.includes(strength))return;
++ selectedStage=stage;selectedStrengths[stage]=strength;
++ history.replaceState(null,'',`#stage-${stage}-strength-${strength}`);
++ if(latest)renderExplorer(latest);
++}
++window.addEventListener('hashchange',()=>{readSelection();if(latest)renderExplorer(latest);});
++for(const plan of EXPERIMENT_PLAN){
++ const tab=document.createElement('button');tab.type='button';tab.id=`condition-tab-${plan.stage}`;tab.setAttribute('role','tab');tab.setAttribute('aria-controls','condition-detail');tab.dataset.stageSelect=String(plan.stage);tab.textContent=`${plan.title} · ${plan.strengths.length}조건`;tab.addEventListener('click',()=>selectCondition(plan.stage));
++ tab.addEventListener('keydown',event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();const index=event.key==='Home'?0:event.key==='End'?2:(plan.stage-1+(event.key==='ArrowRight'?1:2))%3;selectCondition(index+1);$(`condition-tab-${index+1}`).focus();}});$('condition-tabs').append(tab);
++ const group=document.createElement('section');group.className='condition-group';group.dataset.stage=String(plan.stage);group.setAttribute('aria-label',plan.title+' 강도');
++ const title=document.createElement('h3');title.textContent=plan.title+(plan.stage>1?' · 확장 비교':' · 기준');const chips=document.createElement('div');chips.className='chips';
++ for(const [index,strength] of plan.strengths.entries()){
++  const chip=document.createElement('button');chip.type='button';chip.className='condition-chip';chip.dataset.stage=String(plan.stage);chip.dataset.strength=String(strength);chip.id=`condition-${plan.stage}-${strength}`;
++  const label=document.createElement('span'),status=document.createElement('small');label.textContent=plan.stage===1?'원본 0':String(strength)+' px';status.textContent='대기';chip.append(label,status);
++  chip.addEventListener('click',()=>selectCondition(plan.stage,strength));chip.addEventListener('keydown',event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();const next=event.key==='Home'?0:event.key==='End'?plan.strengths.length-1:(index+(event.key==='ArrowRight'?1:plan.strengths.length-1))%plan.strengths.length;selectCondition(plan.stage,plan.strengths[next]);$(`condition-${plan.stage}-${plan.strengths[next]}`).focus();}});chips.append(chip);
++ }
++ group.append(title,chips);$('condition-chips').append(group);
++}
++document.querySelectorAll('.stage-pick').forEach(button=>button.addEventListener('click',()=>{selectCondition(Number(button.dataset.stageSelect));$('condition-explorer').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});}));
++function renderExplorer(s){
++ for(const plan of EXPERIMENT_PLAN){
++  const tab=$(`condition-tab-${plan.stage}`),selected=plan.stage===selectedStage;tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;
++  document.querySelector(`.condition-group[data-stage="${plan.stage}"]`).classList.toggle('selected-group',selected);
++  document.querySelector(`.stage-pick[data-stage-select="${plan.stage}"]`).setAttribute('aria-pressed',String(selected));
++  for(const strength of plan.strengths){const state=conditionState(s,plan.stage,strength),chip=$(`condition-${plan.stage}-${strength}`);chip.setAttribute('aria-pressed',String(selected&&strength===selectedStrengths[selectedStage]));chip.dataset.status=state.status;chip.querySelector('small').textContent={complete:'결과 있음',waiting:'대기',running:'평가 중',error:'확인 필요',stopped:'중단'}[state.status];chip.title=plan.title+' '+strength+' · '+state.label;}
++ }
++ const plan=EXPERIMENT_PLAN[selectedStage-1],strength=selectedStrengths[selectedStage],state=conditionState(s,selectedStage,strength),row=state.row;
++ $('condition-detail').setAttribute('aria-labelledby',`condition-tab-${selectedStage}`);
++ $('condition-title').textContent=`${plan.title} · ${strength} ${plan.stage===1?'': 'px'}${plan.stage>1?' · 확장 비교':''}`;
++ $('condition-status').textContent=state.label;$('condition-description').textContent=plan.description+' 단위: '+plan.unit+'.'+(plan.stage===1?' 해상도·이물질·외부 검증은 별도 부가 결과이며 이 원본 행만으로 그 완료를 판단하지 않습니다.':'');
++ $('condition-model').textContent='새로 학습한 검증·검색 모델을 21조건에서 공유합니다. 강도별 재학습은 하지 않습니다.';
++ $('condition-input').textContent=plan.stage===1?'원본 질의와 원본 갤러리를 비교합니다.':'질의만 변형하며 갤러리는 원본으로 고정합니다. 원본에서 각 강도를 독립적으로 적용합니다.';
++ const denominator=s.experiment?.denominators;
++ $('condition-denominator').textContent=row?`검증 쌍 ${metric(row.n_pairs)} · 전체 질의 ${metric(row.n_queries)} · 유효 질의 ${metric(row.eligible_queries)} · 갤러리 영상 ${metric(row.n_gallery_images)}`:denominator?`실행 준비 명세: 검증 시험 쌍 ${metric(denominator.verification_test_pairs)} · 검색 시험 영상 ${metric(denominator.retrieval_test_images)}. 이 조건의 실제 유효 질의 수는 미측정입니다.`:'현재 실행의 분모 기록이 아직 없습니다. 미측정 수량을 채워 넣지 않습니다.';
++ $('condition-rule').textContent='자기 원본은 제외합니다. 같은 환자의 다른 영상이 있는 R>0 질의별 평균이며 환자별 균등 평균이 아닙니다. 검증 임계값은 0.5 고정이며 조건별로 재조정하지 않습니다.';
++ const primary=row?(plan.stage===1?row.precision_at_1:row.cmc_rank_1):null;
++ $('condition-auc').textContent=metric(row?.auc);$('condition-rank').textContent=formatPercent(primary);$('condition-privacy').textContent=plan.stage===1?'이 단계에서는 정의하지 않음':formatPercent(row?.privacy_score,{ratio:false});
++ $('condition-rounding').textContent=[percentNotice(primary),plan.stage>1?percentNotice(row?.privacy_score,{ratio:false}):''].filter(Boolean).join(' · ')||'백분율은 소수 첫째 자리로 반올림합니다. 전체 원값은 아래에서 확인하세요.';
++ const runId=s.run?.run_id,validId=typeof runId==='string'&&/^[a-zA-Z0-9_-]{1,80}$/.test(runId);
++ $('condition-source').textContent=validId?`현재 실행 ${runId} · 연구 자료/results/runs/${runId}/${plan.source}/summary.csv · condition_${strength}.json`: '현재 실행 ID 미확인 · 결과 출처 미확인';
++ $('condition-raw').textContent=state.rows.length?JSON.stringify(state.rows.length===1?state.rows[0]:state.rows,null,2):'미측정: 이 조건에 일치하는 현재 실행 결과가 없습니다.';
++ for(const phase of trainingPhaseStates(s)){
++  const card=document.querySelector(`.training-phase[data-phase="${phase.name}"]`);card.classList.toggle('active',phase.active);card.classList.toggle('done',phase.complete);card.querySelector('.training-phase-state').textContent=phase.label;
++  card.querySelector('.training-phase-detail').textContent=phase.progress?`${phase.lastObserved?'마지막 관측 · ':''}에폭 ${phase.progress.epoch??'확인 전'} / ${phase.progress.epochs??'확인 전'} · 갱신 ${phase.progress.global_step??'확인 전'} · 손실 ${metric(phase.progress.loss)}${phase.lastObserved?' · '+observedTime(phase.progress.updated_at):''}`:phase.proof.selected_weights?'선택 가중치 파일 있음 · 파일 존재만으로 최종 완료를 판단하지 않습니다.':'현재 실행의 단계별 기록을 기다립니다.';
++  card.querySelector('pre').textContent=JSON.stringify({progress:phase.progress,last_observed:phase.lastObserved,...phase.proof},null,2);
++ }
++}
++function render(s){
++ latest=s;const run=s.run;const described=describeExperiment(s);$('status').textContent=described.status;
++ $('revision-label').textContent=`화면 6차 · 실험 ${s.experiment?.execution_revision??run?.revision??'확인 전'}차`;
++ renderExplorer(s);
++ $('start').disabled=busy||s.active||s.starting;$('stop').disabled=busy||!s.active||run?.status!=='running';
++ $('gpu').textContent=s.gpu.name;$('gpu-detail').textContent=s.gpu.utilization===null?'실시간 장치 정보가 아직 없습니다.':`사용률 ${s.gpu.utilization}% · VRAM ${s.gpu.used} / ${s.gpu.total} MB`;
++ $('result-count').textContent=s.results.length?`${s.results.length}개 평가 조건`:'아직 없음';
++ $('download-summary').textContent=s.downloads.length?`${s.downloads.length}개 파일 · ${bytes(s.downloads.reduce((n,d)=>n+d.bytes,0))}`:'다운로드 파일 아직 없음';
++ $('phase').textContent=run?.phase||'실험 시작 후 현재 작업이 표시됩니다.';
++ const display=trainingDisplay(s),training=display.progress;
++ const phaseNames={verification:'검증 모델',retrieval_phase1:'검색 모델 출력부',retrieval_phase2:'검색 모델 전체',complete:'학습 완료',failed:'학습 오류',stopped:'학습 중단',preflight:'학습 입력 검사',data_validation:'학습 데이터 검증'};
++ const statusNames={waiting_for_gpu:'GPU 여유 메모리 대기',training:'학습 중',initializing:'새 모델 초기화 중',validating:'검증 중',epoch_complete:'에폭 완료',completed:'완료',failed:'오류',stopped:'중단',ready:'입력 검사 완료'};
++ $('training-state').textContent=training ? `${display.lastObserved?'마지막 관측 · ':''}${phaseNames[training.phase] || '학습 상태 확인'} · 에폭 ${training.epoch ?? '—'} / ${training.epochs ?? '—'}` : display.terminal?'마지막 정상 학습 기록 확인 불가 · 현재 오류·중단 상태 유지':'데이터 검증 후 새 학습 시작';
++ $('training-detail').textContent=training ? `배치 ${training.step ?? '—'} · 누적 가중치 갱신 ${training.global_step ?? '확인 전'} · 손실 ${metric(training.loss)} · 학습률 ${metric(training.learning_rate)} · ${display.lastObserved?'현재 학습 아님 · '+observedTime(training.updated_at)+' · 출처 training/events.jsonl':statusNames[training.status] || '진행 상태 확인'}` : display.terminal?'오류 원값은 아래 JSON에서 확인하세요. 정상 학습 기록이 없다는 것이 0회 학습을 뜻하지 않습니다.':'공개 CXR 최종 가중치 사용 안 함 · 논문상 ImageNet 초기화 · 가중치 갱신 확인 전';
++ const historyNames={missing:'기록 파일 없음',ok:'전체 기록 확인',truncated:'최근 256 KiB만 확인 · 앞부분 생략',incomplete_tail:'마지막 작성 중인 행 제외',malformed:'잘못된 JSON 또는 UTF-8 기록 · 관측값 채택 안 함',invalid_record:'잘못된 기록 형식 · 관측값 채택 안 함',different_run:'다른 실행 ID 기록 · 관측값 채택 안 함',invalid_training_record:'학습 값 검증 실패 · 관측값 채택 안 함',unreadable:'기록 읽기 실패'};
++ if(display.terminal&&s.training_history)$('training-detail').textContent+=' · 기록 검사: '+(historyNames[s.training_history.status]||'확인 필요')+(s.training_history.truncated?' · 앞부분 생략':'');
++ $('training-raw').textContent=s.training||s.last_observed_progress?JSON.stringify({current_progress:s.training,last_observed_progress:s.last_observed_progress??null,history:s.training_history??null},null,2):'미측정: 현재 실행의 학습 수치가 아직 없습니다.';
++ if(run?.error) notice(run.error);
++ const log=s.log.text;const shown=logTab==='environment'?s.environment_log:s.log;$('terminal').textContent=shown.text||'[대기] 아직 실행 기록이 없습니다.';$('log-info').textContent=`${shown.truncated?'최근 64 KiB 범위 · 앞부분 생략 · ':''}원본 ${bytes(shown.bytes)}`;
++ document.querySelectorAll('.stage').forEach((el,i)=>{
++  const stage=described.stages[i];for(const cls of ['done','active','failed'])el.classList.toggle(cls,stage[cls]);el.querySelector('.stage-status').textContent=stage.label;
++ });
++ for(const name of ['original','blur','mosaic']){const image=$('preview-'+name);if(s.previews?.[name]&&!image.getAttribute('src')){image.onload=()=>{image.hidden=false;image.nextElementSibling.hidden=true;};image.onerror=()=>{image.hidden=true;image.nextElementSibling.hidden=false;image.removeAttribute('src');};image.src=`/api/preview/${name}.png`;}}
++ // 준비 완료는 실제 실행 기록의 확인 메시지에 한해서 표시합니다.
++ const currentLog=log.split('[새 실행]').at(-1);
++ $('check-model').textContent=/모델.*(?:로딩 완료|로드 완료)|가중치.*완료/.test(currentLog)?'✓':'○';
++ $('check-data').textContent=s.downloads.length?'◒':'○';
++ $('check-validation').textContent=/\[데이터 검증 완료\] 모든 원영상 SHA256 재확인|\[완료\] NIH와 COVID-19 데이터셋 두 개의 원본 및 환자 라벨 검증 완료/.test(currentLog)?'✓':'○';
++ $('downloads').replaceChildren(); if(!s.downloads.length)$('downloads').textContent='아직 다운로드 파일이 없습니다.';
++ s.downloads.forEach(d=>{const line=document.createElement('div');line.textContent=`${d.partial?'다운로드 중':'보관 파일'} · ${d.name} · ${bytes(d.bytes)}`;$('downloads').append(line);});
++ const tbody=$('result-rows');
++ const expanded=new Set([...tbody.querySelectorAll('details[open]')].map(el=>el.dataset.key));
++ tbody.replaceChildren();s.results.forEach((r,index)=>{
++  const tr=document.createElement('tr');const stage=r.source.startsWith('stage_1')?'원본':r.source.startsWith('stage_2')?'블러':'모자이크';
++  const rowState=conditionState(s,stage==='원본'?1:stage==='블러'?2:3,Number(r.strength));
++  [stage,r.strength??'—',metric(r.auc),formatPercent(stage==='원본'?r.precision_at_1:r.cmc_rank_1),formatPercent(r.privacy_score,{ratio:false}),rowState.status==='error'?'중복·조건 확인 필요':'기록됨'].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td);});
++  for(const [column,value,options] of [[3,stage==='원본'?r.precision_at_1:r.cmc_rank_1,{}],[4,r.privacy_score,{ratio:false}]]){const note=percentNotice(value,options);if(note){const small=document.createElement('small');small.className='rounding-note';small.textContent=note;tr.children[column].append(small);}}
++  const td=document.createElement('td'),details=document.createElement('details'),summary=document.createElement('summary'),raw=document.createElement('pre');
++  details.className='raw-values';details.dataset.key=JSON.stringify([r.source,r.strength,r.mode,index]);details.open=expanded.has(details.dataset.key);
++  summary.textContent='CSV 원값';raw.textContent=JSON.stringify(r,null,2);details.append(summary,raw);td.append(details);tr.append(td);tbody.append(tr);
++ });
++ $('empty').hidden=!!s.results.length;$('updated').textContent=`최근 확인 ${new Date(s.updated_at).toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul'})} KST`;
++}
++async function refresh(){try{const r=await fetch('/api/status',{cache:'no-store'});if(!r.ok)throw Error('상태 조회 실패');render(await r.json());}catch(e){$('status').textContent='서버 연결 확인 필요';notice(e.message);$('start').disabled=true;$('stop').disabled=true;}}
++refresh();setInterval(refresh,3000);
+--- 5차/화면/index.html
++++ 6차/화면/index.html
+@@ -1,7 +1,14 @@
+-<!doctype html>
+-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CXR Privacy Lab — 흉부 X선 재식별·프라이버시 실험</title><link rel="stylesheet" href="/style.css"><script type="module" src="/app.js"></script></head>
+-<body><aside><a class="brand" href="#overview"><span class="brand-icon">♧</span><span>CXR Privacy Lab<small>흉부 X선 재식별<br>연구 플랫폼</small></span></a><nav aria-label="주 탐색"><a href="#overview" class="selected" data-icon="home">개요</a><a href="#stages" data-icon="layers">실험 단계</a><a href="#datasets" data-icon="database">데이터셋</a><a href="#results" data-icon="chart">결과</a><a href="#logs" data-icon="file">실행 기록</a></nav><div class="local">로컬 실험 워크스페이스<br><span>외부 업로드 없음</span></div></aside>
+-<main id="overview"><header><div><h1>흉부 X선 프라이버시 실험</h1><p>5차 · 새 모델 학습 후 원본·블러·모자이크 재식별 성능 비교</p></div><div class="actions"><button id="theme" aria-pressed="false" title="화면 테마 전환">다크 모드</button><span id="status" role="status">실행 상태 확인 중</span><button class="primary" id="start">▶ &nbsp; 실험 시작</button><button id="stop">■ &nbsp; 중단</button></div></header><div id="notice" role="alert" hidden></div>
+-<section class="metrics" aria-label="핵심 상태"><article class="metric"><span class="metric-icon" data-icon="chip"></span><div><h2>GPU</h2><strong id="gpu">확인 중</strong><small id="gpu-detail">실제 장치 조회</small></div></article><article class="metric"><span class="metric-icon" data-icon="database"></span><div><h2>데이터셋</h2><strong>NIH + COVID-19</strong><small id="download-summary">파일 상태 확인 중</small></div></article><article class="metric"><span class="metric-icon" data-icon="trophy"></span><div><h2>평가 결과</h2><strong id="result-count">아직 없음</strong><small>실제 평가 산출물 기준</small></div></article></section>
+-<section class="panel training-panel" aria-label="새 모델 학습 상태"><div class="section-title"><h2>새 모델 학습</h2><span>검증 모델 → 검색 모델 출력부 → 전체 네트워크</span></div><p id="training-state">데이터 검증 후 새 학습 시작</p><p id="training-detail">공개 CXR 최종 가중치 사용 안 함 · 논문상 ImageNet 초기화</p><details class="raw-values"><summary>학습 수치 원값 보기</summary><p>손실·학습률은 표시를 위해 반올림하지 않습니다. 아래는 현재 진행 JSON의 수치 표현입니다.</p><pre id="training-raw">미측정</pre></details></section><section class="panel pipeline" id="stages"><div class="section-title"><div><h2>영상 변환과 평가 흐름</h2><p class="section-caption">변환 미리보기 · 평가 결과 아님</p></div><button class="motion" id="motion" aria-pressed="false">모션 정지 <span class="switch"></span></button></div><div class="scene"><article class="stage" data-stage="1"><div class="stage-heading"><span>01</span><h3>원본 평가</h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-original" alt="원본 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">원본 영상</span></div></div><p class="stage-description">원본 영상의 재식별 성능 확인</p><span class="stage-status">평가 대기</span></article><article class="stage" data-stage="2"><div class="stage-heading"><span>02</span><h3>블러 평가</h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-blur" alt="블러 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">블러 영상</span></div></div><p class="stage-description">원본에 블러를 적용해 10수준 비교</p><span class="stage-status">평가 대기</span></article><article class="stage" data-stage="3"><div class="stage-heading"><span>03</span><h3>모자이크 평가</h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-mosaic" alt="모자이크 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">모자이크 영상</span></div></div><p class="stage-description">원본을 모자이크 처리해 10수준 비교</p><span class="stage-status">평가 대기</span></article></div><div class="pipeline-bottom"><p class="phase" id="phase">실험 상태를 확인하고 있습니다.</p><a href="#results">평가 결과 보기 <span aria-hidden="true">↗</span></a></div><p class="preview-note">동일한 원본 영상에서 각 변환을 독립적으로 적용합니다. 미리보기는 변환 예시이며, 실제 평가 수치는 아래 결과 표에 표시됩니다.</p></section><div class="middle"><section class="panel" id="datasets"><div class="section-title"><h2>데이터 준비</h2></div><div class="check"><span id="check-model">○</span><b>모델 로드</b><small>새 학습 가중치 · 구성 확인</small></div><div class="check"><span id="check-data">○</span><b>데이터 소스 확인</b><small>NIH, COVID-19 파일 준비</small></div><div class="check"><span id="check-validation">○</span><b>데이터 검증</b><small>실제 검증 로그 기준</small></div><div id="downloads" class="downloads">아직 다운로드 파일이 없습니다.</div></section><section class="panel" id="logs"><div class="section-title"><div class="log-tabs" role="tablist" aria-label="기록 종류"><button role="tab" id="experiment-tab" aria-selected="true" aria-controls="terminal">실시간 기록</button><button role="tab" id="environment-tab" aria-selected="false" aria-controls="terminal">환경 설치 기록</button></div><span class="live"><i></i> 3초 갱신</span></div><pre id="terminal" tabindex="0" aria-label="실험 실행 기록">기록을 불러오고 있습니다.</pre><small id="log-info">최근 기록만 표시합니다.</small></section></div>
+-<section class="panel result-panel" id="results"><div class="section-title"><h2>결과</h2><span id="updated"></span></div><div class="table-scroll"><table><thead><tr><th>단계</th><th>수준</th><th>AUC · 원값</th><th>정밀도@1 / CMC Rank-1 (%)</th><th>프라이버시 점수 (%)</th><th>상태</th><th>전체 원값</th></tr></thead><tbody id="result-rows"></tbody></table></div><div class="empty" id="empty"><span data-icon="file"></span><p>평가 후 실제 결과가 표시됩니다.</p></div><p class="result-note">백분율은 소수 둘째 자리 아래는 버림으로 표시합니다. 각 행의 CSV 원값을 펼치면 저장된 원비율과 전체 정밀도의 CSV 문자열을 확인할 수 있습니다. AUC는 저장값을 그대로 표시합니다. 1단계는 원본의 정밀도@1, 2·3단계는 CMC Rank-1을 표시합니다. 프라이버시 점수는 100 × (1 − CMC@1), 즉 고정된 공격 모델·검색 집합에서의 1순위 재식별 실패율입니다. 익명성 보장이나 종합적인 개인정보 보호 수준을 뜻하지 않습니다. 자기 원본은 검색 대상에서 제외합니다.</p></section><footer>CXR Privacy Lab — 흉부 X선 재식별·프라이버시 실험 · 데이터는 이 컴퓨터에 보관됩니다.</footer></main></body></html>
++<!doctype html>
++<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CXR Privacy Lab — 흉부 X선 재식별·프라이버시 실험</title><link rel="stylesheet" href="/style.css"><script type="module" src="/app.js"></script></head>
++<body><aside><a class="brand" href="#overview"><span class="brand-icon">♧</span><span>CXR Privacy Lab<small>흉부 X선 재식별<br>연구 플랫폼</small></span></a><nav aria-label="주 탐색"><a href="#overview" class="selected" data-icon="home">개요</a><a href="#stages" data-icon="layers">실험 단계</a><a href="#datasets" data-icon="database">데이터셋</a><a href="#results" data-icon="chart">결과</a><a href="#logs" data-icon="file">실행 기록</a></nav><div class="local">로컬 실험 워크스페이스<br><span>외부 업로드 없음</span></div></aside>
++<main id="overview"><header><div><h1>흉부 X선 프라이버시 실험</h1><p><span id="revision-label">화면 6차 · 실험 5차</span> · 한 번 학습한 모델로 21개 조건 비교</p></div><div class="actions"><button id="theme" aria-pressed="false" title="화면 테마 전환">다크 모드</button><span id="status" role="status">실행 상태 확인 중</span><button class="primary" id="start">▶ &nbsp; 실험 시작</button><button id="stop">■ &nbsp; 중단</button></div></header><div id="notice" role="alert" hidden></div>
++<section class="metrics" aria-label="핵심 상태"><article class="metric"><span class="metric-icon" data-icon="chip"></span><div><h2>GPU</h2><strong id="gpu">확인 중</strong><small id="gpu-detail">실제 장치 조회</small></div></article><article class="metric"><span class="metric-icon" data-icon="database"></span><div><h2>데이터셋</h2><strong>NIH + COVID-19</strong><small id="download-summary">파일 상태 확인 중</small></div></article><article class="metric"><span class="metric-icon" data-icon="trophy"></span><div><h2>평가 결과</h2><strong id="result-count">아직 없음</strong><small>실제 평가 산출물 기준</small></div></article></section>
++<section class="panel training-panel" aria-label="새 모델 학습 상태"><div class="section-title"><h2>새 모델 학습</h2><span>검증 모델 → 검색 모델 출력부 → 전체 네트워크</span></div><p class="training-once">학습은 검증 모델 → 검색 출력부 → 검색 전체 순서로 한 번 진행합니다. 아래 평가 강도마다 다시 학습하지 않습니다.</p><div class="training-phases"><article class="training-phase" data-phase="verification"><h3>검증 모델</h3><p class="training-phase-plan">최대 100에폭 · patience 5</p><strong class="training-phase-state">학습 대기</strong><p class="training-phase-detail">현재 실행 기록 확인 중</p><details class="raw-values"><summary>단계별 원기록 보기</summary><pre>미측정</pre></details></article><article class="training-phase" data-phase="retrieval_phase1"><h3>검색 모델 출력부</h3><p class="training-phase-plan">출력부 30에폭</p><strong class="training-phase-state">학습 대기</strong><p class="training-phase-detail">현재 실행 기록 확인 중</p><details class="raw-values"><summary>단계별 원기록 보기</summary><pre>미측정</pre></details></article><article class="training-phase" data-phase="retrieval_phase2"><h3>검색 모델 전체</h3><p class="training-phase-plan">전체 50에폭</p><strong class="training-phase-state">학습 대기</strong><p class="training-phase-detail">현재 실행 기록 확인 중</p><details class="raw-values"><summary>단계별 원기록 보기</summary><pre>미측정</pre></details></article></div><p id="training-state">데이터 검증 후 새 학습 시작</p><p id="training-detail">공개 CXR 최종 가중치 사용 안 함 · 논문상 ImageNet 초기화</p><details class="raw-values"><summary>학습 수치 원값 보기</summary><p>손실·학습률은 표시를 위해 반올림하지 않습니다. 아래는 현재 진행 JSON의 수치 표현입니다.</p><pre id="training-raw">미측정</pre></details></section><section class="panel pipeline" id="stages"><div class="section-title"><div><h2>영상 변환과 평가 흐름</h2><p class="section-caption">변환 미리보기 · 평가 결과 아님</p></div><button class="motion" id="motion" aria-pressed="false">모션 정지 <span class="switch"></span></button></div><div class="scene"><article class="stage" data-stage="1"><div class="stage-heading"><span>01</span><h3><button type="button" class="stage-pick" data-stage-select="1" aria-pressed="false">원본 평가 · 조건 보기 ↗</button></h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-original" alt="원본 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">원본 영상</span></div></div><p class="stage-description">원본 영상의 재식별 성능 확인</p><span class="stage-status">평가 대기</span></article><article class="stage" data-stage="2"><div class="stage-heading"><span>02</span><h3><button type="button" class="stage-pick" data-stage-select="2" aria-pressed="false">블러 평가 · 조건 보기 ↗</button></h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-blur" alt="블러 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">블러 영상</span></div></div><p class="stage-description">원본에 블러를 적용해 10수준 비교</p><span class="stage-status">평가 대기</span></article><article class="stage" data-stage="3"><div class="stage-heading"><span>03</span><h3><button type="button" class="stage-pick" data-stage-select="3" aria-pressed="false">모자이크 평가 · 조건 보기 ↗</button></h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-mosaic" alt="모자이크 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">모자이크 영상</span></div></div><p class="stage-description">원본을 모자이크 처리해 10수준 비교</p><span class="stage-status">평가 대기</span></article></div><div class="pipeline-bottom"><p class="phase" id="phase">실험 상태를 확인하고 있습니다.</p><a href="#results">평가 결과 보기 <span aria-hidden="true">↗</span></a></div><p class="preview-note">동일한 원본 영상에서 각 변환을 독립적으로 적용합니다. 미리보기는 변환 예시이며, 실제 평가 수치는 아래 결과 표에 표시됩니다.</p></section><section class="panel condition-explorer" id="condition-explorer"><div class="section-title"><div><h2>평가 조건 둘러보기</h2><p class="section-caption">단계와 강도를 선택하면 그 조건의 현재 실행 결과만 표시합니다.</p></div><span>원본 1 · 블러 10 · 모자이크 10</span></div>
++<div id="condition-tabs" class="condition-tabs" role="tablist" aria-label="평가 단계"></div><div id="condition-chips" class="condition-chips" aria-label="전체 21개 평가 조건"></div>
++<div id="condition-detail" class="condition-detail" role="tabpanel" tabindex="0"><div class="condition-heading"><h3 id="condition-title">원본 평가 · 0</h3><strong id="condition-status">평가 대기 · 미측정</strong></div>
++<p id="condition-description"></p><p id="condition-model"></p><p id="condition-input"></p>
++<dl class="condition-metrics"><div><dt>AUC · 원값</dt><dd id="condition-auc">미측정</dd></div><div><dt>정밀도@1 / CMC Rank-1</dt><dd id="condition-rank">미측정</dd></div><div><dt>프라이버시 점수</dt><dd id="condition-privacy">정의 여부 확인 중</dd></div></dl>
++<p id="condition-rounding" class="rounding-notice"></p><p id="condition-denominator"></p><p id="condition-rule"></p><p id="condition-source" class="condition-source"></p>
++<details class="raw-values"><summary>선택 조건의 전체 원값 보기</summary><pre id="condition-raw">미측정</pre></details></div>
++<details class="verification-scope"><summary>검증 범위와 남은 확인</summary><p>코드 수정·회귀 검사와 실데이터 재학습·성능 재현은 별도입니다. 현재 실행의 원영상 재확인·초기화·첫 가중치 갱신·학습 종료를 각각 확인하며, 미측정 결과를 완료로 표시하지 않습니다. 독립 검토 결과는 프로젝트 검증 문서를 따릅니다.</p><p>블러·모자이크 10수준은 첨부 프로젝트의 확장 비교이며 2022년 원 논문의 조건으로 표현하지 않습니다. 프라이버시 점수는 고정 공격에서의 Rank-1 실패율이고 익명성이나 진단 효용을 보장하지 않습니다.</p></details></section><div class="middle"><section class="panel" id="datasets"><div class="section-title"><h2>데이터 준비</h2></div><div class="check"><span id="check-model">○</span><b>모델 로드</b><small>새 학습 가중치 · 구성 확인</small></div><div class="check"><span id="check-data">○</span><b>데이터 소스 확인</b><small>NIH, COVID-19 파일 준비</small></div><div class="check"><span id="check-validation">○</span><b>데이터 검증</b><small>실제 검증 로그 기준</small></div><div id="downloads" class="downloads">아직 다운로드 파일이 없습니다.</div></section><section class="panel" id="logs"><div class="section-title"><div class="log-tabs" role="tablist" aria-label="기록 종류"><button role="tab" id="experiment-tab" aria-selected="true" aria-controls="terminal">실시간 기록</button><button role="tab" id="environment-tab" aria-selected="false" aria-controls="terminal">환경 설치 기록</button></div><span class="live"><i></i> 3초 갱신</span></div><pre id="terminal" tabindex="0" aria-label="실험 실행 기록">기록을 불러오고 있습니다.</pre><small id="log-info">최근 기록만 표시합니다.</small></section></div>
++<section class="panel result-panel" id="results"><div class="section-title"><h2>결과</h2><span id="updated"></span></div><div class="table-scroll"><table><thead><tr><th>단계</th><th>수준</th><th>AUC · 원값</th><th>정밀도@1 / CMC Rank-1 (%)</th><th>프라이버시 점수 (%)</th><th>상태</th><th>전체 원값</th></tr></thead><tbody id="result-rows"></tbody></table></div><div class="empty" id="empty"><span data-icon="file"></span><p>평가 후 실제 결과가 표시됩니다.</p></div><p class="result-note">백분율은 소수 첫째 자리로 반올림합니다. 100.0% 표시는 저장값이 정확히 100%라는 뜻이 아닐 수 있으며, 해당 값 옆 설명과 원값을 함께 확인하세요. 각 행의 CSV 원값을 펼치면 저장된 원비율과 전체 정밀도의 CSV 문자열을 확인할 수 있습니다. AUC는 저장값을 그대로 표시합니다. 1단계는 원본의 정밀도@1, 2·3단계는 CMC Rank-1을 표시합니다. 프라이버시 점수는 100 × (1 − CMC@1), 즉 고정된 공격 모델·검색 집합에서의 1순위 재식별 실패율입니다. 익명성 보장이나 종합적인 개인정보 보호 수준을 뜻하지 않습니다. 자기 원본은 검색 대상에서 제외합니다.</p></section><footer>CXR Privacy Lab — 흉부 X선 재식별·프라이버시 실험 · 데이터는 이 컴퓨터에 보관됩니다.</footer></main></body></html>
+--- 5차/화면/state.mjs
++++ 6차/화면/state.mjs
+@@ -1,47 +1,116 @@
+-// CSV 십진 문자열을 보존하며 Number는 비유한 값 거부에만 사용합니다.
+-function decimal(value) {
+- if(typeof value!=='string'&&typeof value!=='number')return null;
+- const raw=String(value),text=raw.trim();
+- const match=/^([+-]?)(?:(\d+)(?:\.(\d*))?|\.(\d+))(?:[eE]([+-]?\d+))?$/.exec(text);
+- if(!match||!Number.isFinite(Number(text)))return null;
+- const fraction=match[3]??match[4]??'';
+- return {raw,negative:match[1]==='-',digits:((match[2]??'0')+fraction).replace(/^0+/,'')||'0',fraction:fraction.length,exponent:BigInt(match[5]??'0')};
+-}
+-
+-export function formatRaw(value) {
+- return decimal(value)?.raw??'미측정';
+-}
+-
+-export function formatPercent(value,{ratio=true}={}) {
+- const parsed=decimal(value);if(!parsed)return '미측정';
+- if(parsed.digits==='0')return '0.00%';
+- // 원비율은 백분율로 두 자리 이동하고, 표시 소수 두 자리만 정수 문자열로 남깁니다.
+- const shift=parsed.exponent-BigInt(parsed.fraction)+BigInt(ratio?4:2);
+- let units;
+- if(shift>=0n)units=parsed.digits+'0'.repeat(Number(shift));
+- else{const keep=BigInt(parsed.digits.length)+shift;units=keep<=0n?'0':parsed.digits.slice(0,Number(keep));}
+- units=units.padStart(3,'0');
+- const sign=parsed.negative&&/[1-9]/.test(units)?'-':'';
+- return `${sign}${units.slice(0,-2)}.${units.slice(-2)}%`;
+-}
+-
+-// 현재 실행의 기록만 사용하며 준비 과정과 평가 과정을 구분합니다.
+-export function describeExperiment(s) {
+- const run=s.run || {};const log=(s.log?.text || '').split('[새 실행]').at(-1);
+- const matches=[...log.matchAll(/\[단계 ([123])\]/g)];
+- const lastStage=Number(matches.at(-1)?.[1] || 0);
+- const evaluating=/평가 실행/.test(run.phase || '');
+- const training=/모델.*학습/.test(run.phase || '');
+- const labels={completed:run.mode==='데이터 준비 전용'?'데이터 준비 완료':'학습·평가 완료',failed:'실험 오류',stopped:'실험 중단',interrupted:'실행 중단됨'};
+- const trainingStatus=!s.training?'학습 시작 준비 중':s.training.phase==='data_validation'?'학습 데이터 검증 중':s.training.status==='waiting_for_gpu'?'GPU 여유 메모리 대기':s.training.status==='initializing'?'새 모델 초기화 중':s.training.status==='validating'?'학습 모델 검증 중':s.training.global_step===0?'첫 가중치 갱신 대기':'새 모델 학습 중';
+- const status=s.starting?'실험 시작 중':run.status==='running'?(evaluating?'평가 실행 중':training?trainingStatus:'실험 준비 중'):(labels[run.status] || '실험 대기');
+- const stages=[1,2,3].map(n=>{
+-  const count=s.results.filter(r=>r.source.startsWith(`stage_${n}_`)).length;
+-  const done=count>=(n===1?1:10);
+-  const failed=run.status==='failed'&&lastStage===n;
+-  const active=s.active&&run.status==='running'&&evaluating&&lastStage===n;
+-  const stopped=['stopped','interrupted'].includes(run.status)&&lastStage===n;
+-  return {done,failed,active,label:failed?'평가 실패':done?'평가 완료':active?'평가 중':stopped?'중단됨':run.status==='failed'&&!lastStage?'준비 실패로 대기':count?`${count}개 조건 기록`:'평가 대기'};
+- });
+- return {status,stages};
+-}
++// CSV 십진 문자열을 보존하며 Number는 비유한 값 거부에만 사용합니다.
++function decimal(value) {
++ if(typeof value!=='string'&&typeof value!=='number')return null;
++ const raw=String(value),text=raw.trim();
++ const match=/^([+-]?)(?:(\d+)(?:\.(\d*))?|\.(\d+))(?:[eE]([+-]?\d+))?$/.exec(text);
++ if(!match||!Number.isFinite(Number(text)))return null;
++ const fraction=match[3]??match[4]??'';
++ return {raw,negative:match[1]==='-',digits:((match[2]??'0')+fraction).replace(/^0+/,'')||'0',fraction:fraction.length,exponent:BigInt(match[5]??'0')};
++}
++
++export function formatRaw(value) {
++ return decimal(value)?.raw??'미측정';
++}
++
++export function formatPercent(value,{ratio=true}={}) {
++ const parsed=decimal(value);if(!parsed)return '미측정';
++ if(parsed.digits==='0')return '0.0%';
++ // 십진 문자열에서 백분율 소수 첫째 자리까지 이동하고 다음 자리로 반올림합니다.
++ const shift=parsed.exponent-BigInt(parsed.fraction)+BigInt(ratio?3:1);
++ let units;
++ if(shift>=0n)units=parsed.digits+'0'.repeat(Number(shift));
++ else{
++  const keep=BigInt(parsed.digits.length)+shift;
++  units=keep<=0n?'0':parsed.digits.slice(0,Number(keep));
++  const next=keep<0n?'0':parsed.digits[Number(keep)]??'0';
++  if(next>='5')units=String(BigInt(units)+1n);
++ }
++ units=units.padStart(2,'0');
++ const sign=parsed.negative&&/[1-9]/.test(units)?'-':'';
++ return `${sign}${units.slice(0,-1)}.${units.slice(-1)}%`;
++}
++
++export function percentNotice(value,{ratio=true}={}) {
++ if(formatPercent(value,{ratio})!=='100.0%')return '';
++ const p=decimal(value);let digits=p.digits,power=p.exponent-BigInt(p.fraction);
++ while(digits.endsWith('0')){digits=digits.slice(0,-1);power++;}
++ const targetPower=ratio?0n:2n;
++ if(digits==='1'&&power===targetPower)return ratio?'저장 원비율은 정확히 1':'저장 점수는 정확히 100';
++ const order=BigInt(digits.length)+power,targetOrder=1n+targetPower;
++ const less=order<targetOrder||(order===targetOrder&&digits.padEnd(Math.max(digits.length,1),'0')<'1'.padEnd(digits.length,'0'));
++ return less?'반올림 표시 · 저장값은 100% 미만':'반올림 표시 · 저장값은 100% 초과';
++}
++
++export const EXPERIMENT_PLAN=Object.freeze([
++ {stage:1,mode:'original',source:'stage_1_original',title:'원본 평가',unit:'원본',strengths:[0],description:'변형하지 않은 시험 영상으로 기준 성능을 측정합니다.'},
++ {stage:2,mode:'blur',source:'stage_2_blur',title:'블러 평가',unit:'Gaussian radius · 원영상 px',strengths:[0,2,4,8,16,32,64,128,256,512],description:'질의 영상에만 가우시안 블러를 적용합니다. 반경은 원영상 픽셀 기준입니다.'},
++ {stage:3,mode:'mosaic',source:'stage_3_mosaic',title:'모자이크 평가',unit:'목표 타일 크기 · px',strengths:[1,4,8,16,32,64,128,256,512,1024],description:'질의 영상만 목표 타일 크기로 모자이크 처리합니다.'},
++].map(p=>Object.freeze({...p,strengths:Object.freeze(p.strengths)})));
++
++export function lastCondition(s) {
++ const log=(s.log?.text||'').split('[새 실행]').at(-1);
++ const matches=[...log.matchAll(/\[단계 ([123])\]\s+(original|blur|mosaic)\s*\/\s*강도 (\d+)(?=\s*(?::|$))/gm)];
++ const match=matches.at(-1);return match?{stage:Number(match[1]),mode:match[2],strength:Number(match[3])}:null;
++}
++
++export function conditionState(s,stage,strength) {
++ const plan=EXPERIMENT_PLAN.find(p=>p.stage===stage);
++ if(!plan||!plan.strengths.includes(strength))return {status:'error',label:'정의되지 않은 조건',row:null,rows:[]};
++ const rows=(s.results||[]).filter(r=>r.source===plan.source&&/^\d+(?:\.0+)?$/.test(String(r.strength))&&Number(r.strength)===strength);
++ if(rows.length>1)return {status:'error',label:'중복 결과 · 원값 확인 필요',row:null,rows};
++ if(rows.length===1){
++  const row=rows[0];
++  if((row.stage!==undefined&&Number(row.stage)!==stage)||(row.mode!==undefined&&row.mode!==plan.mode))return {status:'error',label:'결과 조건 불일치',row:null,rows};
++  return {status:'complete',label:'평가 결과 기록',row,rows};
++ }
++ const last=lastCondition(s),run=s.run||{};
++ const exact=last?.stage===stage&&last?.strength===strength&&last?.mode===plan.mode;
++ const evaluating=/평가 실행/.test(run.phase||'');
++ if(exact&&evaluating&&run.status==='failed')return {status:'error',label:'이 조건 평가 실패',row:null,rows};
++ if(exact&&evaluating&&['stopped','interrupted'].includes(run.status))return {status:'stopped',label:'이 조건에서 중단',row:null,rows};
++ if(exact&&evaluating&&s.active&&run.status==='running')return {status:'running',label:'평가 실행 중 · 현재 로그 기준',row:null,rows};
++ return {status:'waiting',label:'평가 대기 · 미측정',row:null,rows};
++}
++
++export function trainingPhaseStates(s) {
++ const names=['verification','retrieval_phase1','retrieval_phase2'];
++ const terminal=['failed','stopped','interrupted'].includes(s.run?.status);
++ const observed=terminal?s.last_observed_progress:null;
++ const current=names.indexOf(observed?.phase??s.training?.phase);
++ return names.map((name,index)=>{
++  const proof=s.training_phases?.[name]||{};
++  const complete=proof.selected_weights&&(s.training_artifacts_complete||current>index);
++  const active=current===index&&!terminal&&s.active&&s.run?.status==='running';
++  const phaseStatus={waiting_for_gpu:'GPU 여유 메모리 대기',initializing:'새 모델 초기화 중',validating:'학습 모델 검증 중',epoch_complete:'에폭 완료',amp_backoff:'유한 기울기 재확인 중',training:s.training?.global_step===0?'첫 가중치 갱신 대기':'모델 학습 중'}[s.training?.status]||'현재 단계 진행 중';
++  const label=complete?'학습 완료 · 다음 단계 기록 확인':current===index?(['failed','stopped','interrupted'].includes(s.run?.status)?'학습 중단 또는 오류':active?phaseStatus:'현재 단계 기록'):proof.first_backward?'가중치 갱신 기록 있음':proof.initialization?'초기화 기록 있음':'학습 대기';
++  return {name,active,complete:!!complete,label,proof,progress:current===index?(terminal?observed:s.training):null,lastObserved:current===index&&!!observed};
++ });
++}
++
++// 현재 실행의 기록만 사용하며 준비 과정과 평가 과정을 구분합니다.
++export function describeExperiment(s) {
++ const run=s.run || {};const log=(s.log?.text || '').split('[새 실행]').at(-1);
++ const matches=[...log.matchAll(/\[단계 ([123])\]/g)];
++ const lastStage=Number(matches.at(-1)?.[1] || 0);
++ const evaluating=/평가 실행/.test(run.phase || '');
++ const training=/모델.*학습/.test(run.phase || '');
++ const labels={completed:run.mode==='데이터 준비 전용'?'데이터 준비 완료':'학습·평가 완료',failed:'실험 오류',stopped:'실험 중단',interrupted:'실행 중단됨'};
++ const trainingStatus=!s.training?'학습 시작 준비 중':s.training.phase==='data_validation'?'학습 데이터 검증 중':s.training.status==='waiting_for_gpu'?'GPU 여유 메모리 대기':s.training.status==='initializing'?'새 모델 초기화 중':s.training.status==='validating'?'학습 모델 검증 중':s.training.global_step===0?'첫 가중치 갱신 대기':'새 모델 학습 중';
++ const status=s.starting?'실험 시작 중':run.status==='running'?(evaluating?'평가 실행 중':training?trainingStatus:'실험 준비 중'):(labels[run.status] || '실험 대기');
++ const stages=[1,2,3].map(n=>{
++  const conditions=EXPERIMENT_PLAN[n-1].strengths.map(strength=>conditionState(s,n,strength));
++  const count=conditions.filter(c=>c.status==='complete').length;
++  const done=conditions.every(c=>c.status==='complete');
++  const failed=conditions.some(c=>c.status==='error')||(run.status==='failed'&&lastStage===n);
++  const active=s.active&&run.status==='running'&&evaluating&&lastStage===n;
++  const stopped=['stopped','interrupted'].includes(run.status)&&lastStage===n;
++  return {done,failed,active,label:failed?'평가 실패 또는 결과 확인 필요':done?`${count}/${conditions.length}개 조건 결과 기록`:active?'평가 중':stopped?'중단됨':run.status==='failed'&&!lastStage?'준비 실패로 대기':count?`${count}/${conditions.length}개 조건 기록`:'평가 대기'};
++ });
++ return {status,stages};
++}
++
++// 오류 원값과 마지막 정상 학습 기록을 분리하며 현재 실행 중인 값이 우선입니다.
++export function trainingDisplay(s) {
++ const terminal=['failed','stopped','interrupted'].includes(s.run?.status);
++ return { progress:terminal?(s.last_observed_progress??null):(s.training??null), lastObserved:terminal&&!!s.last_observed_progress, terminal };
++}
+--- 5차/화면/style.css
++++ 6차/화면/style.css
+@@ -1,4 +1,8 @@
+ @font-face{font-family:Nanum;src:url('/assets/NanumGothic-Bold.ttf') format('truetype');font-weight:700;font-display:swap}
++/* 학습 단계와 평가 조건을 분리하고 선택 상태는 크기 변화 없이 표시합니다. */
++.training-phases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}.training-phase{padding:16px;border:1px solid var(--border);border-radius:12px;min-width:0;background:var(--surface)}.training-phase.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}.training-phase.done{background:var(--soft)}.training-phase-plan,.training-once{font-size:12px;color:var(--muted);line-height:1.8}.training-phase-state{display:block;color:var(--accent-strong);font-size:13px;margin:10px 0}.training-phase-detail{font-size:11px;color:var(--muted);line-height:1.8;overflow-wrap:anywhere}.training-phase .raw-values pre{min-width:0}.stage-pick{width:100%;min-height:48px;padding:8px 12px;font-size:14px;line-height:1.5;background:var(--surface)}.stage-pick[aria-pressed=true]{border-color:var(--accent);background:var(--selected)}.condition-explorer{margin-bottom:18px}.condition-tabs{display:flex;gap:10px;margin:20px 0 16px}.condition-tabs button{flex:1;min-height:50px;padding:10px;border:1px solid var(--border);font-size:14px}.condition-tabs button[aria-selected=true]{background:var(--accent);color:var(--button-text);border-color:var(--accent)}.condition-chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}.condition-group{border:1px solid var(--border);border-radius:12px;padding:14px;min-width:0}.condition-group.selected-group{border-color:var(--accent);background:var(--soft)}.condition-group h3{font-size:12px;margin-bottom:12px}.chips{display:flex;gap:7px;flex-wrap:wrap}.condition-chip{padding:8px;min-width:60px;min-height:53px;border-radius:9px;font-size:12px;line-height:1.5}.condition-chip small{display:block;font-size:9px;color:var(--muted)}.condition-chip[aria-pressed=true]{border-color:var(--accent);background:var(--selected);box-shadow:inset 0 0 0 1px var(--accent)}.condition-chip[data-status=error]{border-color:var(--error)}.condition-chip[data-status=running]{border-color:var(--accent-strong)}.condition-detail{border:1px solid var(--border);background:var(--soft);border-radius:13px;padding:19px}.condition-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}.condition-heading strong{font-size:12px;color:var(--accent-strong)}.condition-detail p{font-size:12px;line-height:1.9;color:var(--muted);overflow-wrap:anywhere}.condition-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0}.condition-metrics>div{background:var(--surface);padding:15px;border:1px solid var(--border);border-radius:10px;min-width:0}.condition-metrics dt{font-size:11px;color:var(--muted)}.condition-metrics dd{margin:10px 0 0;font-size:18px;overflow-wrap:anywhere}.rounding-note{display:block;color:var(--muted);font-size:10px;line-height:1.6;max-width:180px;margin:6px auto 0}.condition-detail .rounding-notice{color:var(--accent-strong)}.verification-scope{margin-top:17px;font-size:12px;color:var(--muted);line-height:1.9}.verification-scope summary{min-height:44px;padding:10px 0;cursor:pointer;color:var(--text)}.verification-scope summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px}.condition-source{font-size:10px!important}.condition-detail:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
++@media(max-width:1050px){.condition-chips{grid-template-columns:1fr}.condition-group{padding:12px}.condition-chip{min-width:64px}.training-phase{padding:12px}.condition-metrics dd{font-size:16px}}
++@media(max-width:700px){.training-phases{grid-template-columns:1fr}.condition-tabs{gap:6px}.condition-tabs button{font-size:12px}.condition-detail{padding:14px}.condition-metrics{grid-template-columns:1fr}.stage-pick{font-size:14px}.condition-explorer .section-title{align-items:flex-start}}
+ /* 원값 펼침은 조작 영역과 긴 십진 문자열을 양쪽 테마에서 유지합니다. */
+ .raw-values{text-align:left;font-size:11px;max-width:100%}.raw-values summary{cursor:pointer;min-height:44px;padding:12px 6px;color:var(--accent-strong);list-style-position:inside}.raw-values summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:6px}.raw-values pre{height:auto;max-height:280px;min-width:180px;max-width:600px;margin:6px 0;overflow:auto;font-size:11px;overflow-wrap:anywhere}.raw-values p{color:var(--muted);line-height:1.8}.training-panel>.raw-values{margin-top:8px}
+ :root{color-scheme:light;--bg:#fff;--sidebar:#f4f7fb;--surface:#fff;--text:#26364a;--muted:#7b8a9e;--accent:#607da2;--accent-strong:#4e6a90;--soft:#edf2f8;--selected:#dfe8f4;--border:#e0e6ed;--shadow:#3451710d;--deep-shadow:#253b6024;--image-frame:#b5c6dc;--image-edge:#829ab9;--image-back:#a2b6d0;--image-caption:#f0f4fa;--film:#121c2b;--terminal:#1c293a;--terminal-text:#d8e5f5;--error:#ad666a;--notice-bg:#fff1e8;--notice-text:#975e3a;--button-text:#fff;--focus:#789ac7;--switch-off:#b0bdce;--switch-thumb:#fff}
