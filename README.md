@@ -2,7 +2,17 @@
 
 # 흉부 엑스레이 환자 재식별 실험
 
-환자 재식별 모델을 새로 학습하고 원본·블러·모자이크의 재식별 성능을 비교하는 로컬 연구 도구입니다. 공개 CXR 최종 가중치를 사용하는 평가와 ImageNet 초기화에서 시작하는 새 학습을 구분합니다.
+**환자 재식별 모델을 새로 학습하고 원본·블러·모자이크의 재식별 성능을 비교하는 로컬 연구 도구입니다.** 공개 CXR 최종 가중치를 사용하는 평가와 ImageNet 초기화에서 시작하는 새 학습을 구분합니다.
+
+<!-- reading-levels17:start -->
+| 읽기 수준 | 안내 내용 |
+| --- | --- |
+| [LEVEL 1 - Beginner](docs/%EC%9D%BD%EA%B8%B0%EC%95%88%EB%82%B4/%EB%A0%88%EB%B2%A81.md) | 낯선 용어를 풀고 입력부터 결과까지 구체적인 예로 읽기 |
+| [LEVEL 2 - Explorer](docs/%EC%9D%BD%EA%B8%B0%EC%95%88%EB%82%B4/%EB%A0%88%EB%B2%A82.md) | 핵심 개념과 처리 흐름의 관계 이해 |
+| [LEVEL 3 - Practitioner](docs/%EC%9D%BD%EA%B8%B0%EC%95%88%EB%82%B4/%EB%A0%88%EB%B2%A83.md) | 실험·사용 절차와 결과 해석 따라가기 |
+| [LEVEL 4 - Advanced](docs/%EC%9D%BD%EA%B8%B0%EC%95%88%EB%82%B4/%EB%A0%88%EB%B2%A84.md) | 코드 구조·설정·설계 선택과 제약 검토 |
+| [LEVEL 5 - Expert](docs/%EC%9D%BD%EA%B8%B0%EC%95%88%EB%82%B4/%EB%A0%88%EB%B2%A85.md) | 논문·프로토콜·분모·누수·미검증 범위 대조 |
+<!-- reading-levels17:end -->
 
 <a id="️-현재-화면"></a>
 
