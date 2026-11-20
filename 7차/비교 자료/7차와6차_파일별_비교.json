@@ -1,0 +1,1676 @@
+[
+  {
+    "path": "LICENSE",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    }
+  },
+  {
+    "path": "official_source/LICENSE",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    }
+  },
+  {
+    "path": "official_source/PatientRetrieval/config_files/config.json",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1440,
+      "sha256": "ce3641fad2c67cf8724a87ffc11963661460575a39710594fa60ca50931ad646"
+    }
+  },
+  {
+    "path": "official_source/PatientRetrieval/paper_retrieval_test_chexpert_data.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 12828,
+      "sha256": "d82fdebe2394b43c33d16b53330aaa73845458672495b44322397fca1d4d7767"
+    }
+  },
+  {
+    "path": "official_source/PatientRetrieval/paper_retrieval_test_covid_data.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 11885,
+      "sha256": "55a6d64884835fb3c82e97c390f2a14c5a907e14248ebe33832c8647f3fb908d"
+    }
+  },
+  {
+    "path": "official_source/PatientRetrieval/paper_retrieval_test_resolution.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 13008,
+      "sha256": "d8f07ce0a2e4503da71ba7c26f1370c56aec528c99d13789910232b81c920bfb"
+    }
+  },
+  {
+    "path": "official_source/PatientRetrieval/paper_retrieval_test_subset_with_foreign_material.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 12776,
+      "sha256": "5f3ddd438ffc578aabef75c810ad97cd1b7f026662ba646b3bb014e62ecf41df"
+    }
+  },
+  {
+    "path": "official_source/PatientRetrieval/paper_retrieval_test_subset_without_foreign_material.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 12759,
+      "sha256": "108e90233fb3ba3eefcb0c80784814616b218e7c65e031c27be214bd13203ca4"
+    }
+  },
+  {
+    "path": "official_source/PatientRetrieval/paper_retrieval_training_phase1.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 29176,
+      "sha256": "3911df8e5ddd2adcbd6b0a79a79fb66d70e56a2696f572bcd4546b368ff2b2d4"
+    }
+  },
+  {
+    "path": "official_source/PatientRetrieval/paper_retrieval_training_phase2.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 29545,
+      "sha256": "72bf22464fafc6d15df2d2a9280d58e444f008d70413360533d20e14e5aa0243"
+    }
+  },
+  {
+    "path": "official_source/PatientRetrieval/requirements.txt",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 318,
+      "sha256": "c87b20e371350cb5489da2eb9541ee810b552517b8d09cf270575eb0848598e3"
+    }
+  },
+  {
+    "path": "official_source/PatientVerification/agent/AgentSiameseNetwork.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 14380,
+      "sha256": "2f1c80d1e3e3f836b889427c205f1993b7f0185c112672f67c804a144c7d95de"
+    }
+  },
+  {
+    "path": "official_source/PatientVerification/config_files/config.json",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 623,
+      "sha256": "cdd23ebdb63fb8edab9858153e2b1a230bff3797b0c2cb3af40a2e63bd171c37"
+    }
+  },
+  {
+    "path": "official_source/PatientVerification/dataset/SiameseDataset.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 4186,
+      "sha256": "2f86c420cf9cabad8fb215ce3df238adec3837d017492bf4723bdd41dcc7066e"
+    }
+  },
+  {
+    "path": "official_source/PatientVerification/dataset/SiameseDatasetCheXpert.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1760,
+      "sha256": "51b69b4b3fe155c6665517017c602054af62da89a3c6c4ab082b5a298a8c7cc9"
+    }
+  },
+  {
+    "path": "official_source/PatientVerification/dataset/SiameseDatasetCovid19.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1758,
+      "sha256": "2c6af86063911d8200a7cc39bca8d3c468661ea1b5fc4dd09cb43108b5757575"
+    }
+  },
+  {
+    "path": "official_source/PatientVerification/dataset/SiameseDatasetSubsets.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1833,
+      "sha256": "81117914d1d6bb3ced05e2b31d4571aad815405de29f224603fd01cec2c5f358"
+    }
+  },
+  {
+    "path": "official_source/PatientVerification/evaluate_foreign_material.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 3014,
+      "sha256": "9eb46cbd4d754bfb16c5c5a6e1a3a0203b0901b9ac902f2a6a2ae8c582476a20"
+    }
+  },
+  {
+    "path": "official_source/PatientVerification/evaluate_model_chexpert.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2452,
+      "sha256": "bb764cc75a5ca15d57e128fae3a6874aef7a7db16d2f54b26a7b9a54a4f2973e"
+    }
+  },
+  {
+    "path": "official_source/PatientVerification/evaluate_model_covid19.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2412,
+      "sha256": "19a452a680e3f5011e7a8508cfd5a52a3803affea1a6beb776f871e0cb5febca"
+    }
+  },
+  {
+    "path": "official_source/PatientVerification/evaluate_trained_model.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 3310,
+      "sha256": "b5fab2288ae1503723566f3ff433265652d6561119b20a6d15f880f0aed2a3c2"
+    }
+  },
+  {
+    "path": "official_source/PatientVerification/main.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 950,
+      "sha256": "09a98f370ffebc6746fe97387d3f175a39c3a2c07c2fdd5d01bac48eea72465b"
+    }
+  },
+  {
+    "path": "official_source/PatientVerification/networks/SiameseNetwork.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1974,
+      "sha256": "c12685f19e2762ee489d6bd57f3ec804135ade2024da48833ba6ab0f13795dfd"
+    }
+  },
+  {
+    "path": "official_source/PatientVerification/requirements.txt",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 111,
+      "sha256": "7249d10257be8847b163fbbc7e6144ad0a10189056e0780fd6b2a28c25180790"
+    }
+  },
+  {
+    "path": "official_source/PatientVerification/utils/EarlyStopping.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1621,
+      "sha256": "0d2490a97a0989f5f20054b24efa939f4aa89bc1faa57e0645f586a8f01843ad"
+    }
+  },
+  {
+    "path": "official_source/PatientVerification/utils/Utils.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 11869,
+      "sha256": "1e088762717fdf18e1a0d9c21aa814eeae442c1607e276fba6e51c8d881bff36"
+    }
+  },
+  {
+    "path": "requirements-runtime.txt",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 405,
+      "sha256": "7c9ecc2ddff0e0ccb15ce33ceaa0ced2870458db311c2b719c9f1bc74194f9aa"
+    }
+  },
+  {
+    "path": "run_experiment.py",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 10520,
+      "sha256": "63f4a42ee51fce94530e88172ed1cfec8e7b126cd5d1bf87e495bf6dafca0b9b"
+    },
+    "after": null
+  },
+  {
+    "path": "server.mjs",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 14831,
+      "sha256": "99526b230cdd9f1ec8abd49ef81b13d8a98039472e28d63f8fbd173281ccf4d2"
+    },
+    "after": null
+  },
+  {
+    "path": "src/cxr7_contract.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 9649,
+      "sha256": "b449dc49181553b162f543de05c2aaf11993e1c327f7bb8222ffafcaa74ac162"
+    }
+  },
+  {
+    "path": "src/cxr7_evaluate.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 10652,
+      "sha256": "5f88f3535baa044da475679e21ec42254c58f56ca21d5d32aa7085c9ffa76a40"
+    }
+  },
+  {
+    "path": "src/cxr7_examples.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 6489,
+      "sha256": "94fbd10257b9b2124f0ddc2d1f1be87d93541152febbd1e56638f84029cbf9e2"
+    }
+  },
+  {
+    "path": "src/cxr7_privacy.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 14735,
+      "sha256": "80bdb21781bb77f4e12bdf520fb3e5995c20a5bc755e0d7c54bdb95bacd534c3"
+    }
+  },
+  {
+    "path": "src/cxr7_privacy_contract.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 9549,
+      "sha256": "0fdb84cbb0b6ef0f9100a05b8cb591d06b93433fecd71b41745a8fe2647212e6"
+    }
+  },
+  {
+    "path": "src/cxr7_reports.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 3089,
+      "sha256": "0e13a756e714fa1431acc4ae159acf95a811c42e0f9fa0d5c7d1d4c648eca179"
+    }
+  },
+  {
+    "path": "src/cxr_reid/__init__.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 80,
+      "sha256": "51da573bfa4d1ace8d97e397a763545d216ed57b0c6e05b1e65c05304a7462ba"
+    }
+  },
+  {
+    "path": "src/cxr_reid/data.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 3075,
+      "sha256": "69221ea99f942a9f4f1ebbbf9e2ca3011792a6356522a02f12fd08e6ac406896"
+    }
+  },
+  {
+    "path": "src/cxr_reid/download.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2121,
+      "sha256": "da8d0f00f85c1f6a638226f865a8e1028611e3d95d1d556f2d52e437999b14d4"
+    }
+  },
+  {
+    "path": "src/cxr_reid/evaluation.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 9916,
+      "sha256": "94310499d7b495310701f8de2f8633e12073f944ae18fe52f01e7f2f8b974dfe"
+    }
+  },
+  {
+    "path": "src/cxr_reid/image_ops.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1345,
+      "sha256": "5942a32e2992ef9cb23ce3747118d13297fa6482dd4c47855f7762e650e36f8c"
+    }
+  },
+  {
+    "path": "src/cxr_reid/inference.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 4740,
+      "sha256": "3b7f34748082e9022ae32473f968dcecf68629c5437bfea8222a618e04215d0c"
+    }
+  },
+  {
+    "path": "src/cxr_reid/models.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 4220,
+      "sha256": "a304e2983f914aa376c4d30413be50ec7472142a2e233dc0abf625cc1d8f11f6"
+    }
+  },
+  {
+    "path": "src/train_from_scratch.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2995,
+      "sha256": "3b62035494f107eb0b9254e7b53b59a00b55cd2ac742f2234d61703e1801dde8"
+    }
+  },
+  {
+    "path": "src/training/__init__.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 63,
+      "sha256": "97e4463ec22d336483565e8bae01522ba9af0b2566dd5b010fd0c670c09861f1"
+    }
+  },
+  {
+    "path": "src/training/_vendor/PML-LICENSE.txt",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1090,
+      "sha256": "8487a9eae44e63ce55bb6d8a471a7fdadee6d1f9f2e923c2f1042e0ba9af85f9"
+    }
+  },
+  {
+    "path": "src/training/_vendor/PROVENANCE.md",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 996,
+      "sha256": "5ef0493a5c22177293e1d838c10b4f301c2934dd8cb1341e02db351146b76863"
+    }
+  },
+  {
+    "path": "src/training/_vendor/__init__.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 73,
+      "sha256": "967791f621051c7f575fc35e8d9266e6a3ac9520118a15e14fbfa2eee8ed355a"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/__init__.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 23,
+      "sha256": "3c971b66e83188500e3cff72aaf9554a452dc67b94f41a400eef300d201c4b0e"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/distances/__init__.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 219,
+      "sha256": "a8ef5ef83426b82ee5b46a602792b40554fb6a15d7523164ff1f2189e59a48cc"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/distances/base_distance.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 3220,
+      "sha256": "85f3f2735d0651480624ae899fda4b109715933786a53dae84d2705ab349bddf"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/distances/cosine_similarity.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 274,
+      "sha256": "1fe81e5b1be129b15cd754149c3d41fbcd10331498a0de6ff4677828e75c1efc"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/distances/dot_product_similarity.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 423,
+      "sha256": "c9d8aecbc789be52353f2b12d8f3363c9d81a304dec430c423d536e83d7ba681"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/distances/lp_distance.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1037,
+      "sha256": "838a17bd5d12a4e187bd31f69775fd7cdc03b2a0c5d141b1f4594f22b7daf0c2"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/distances/snr_distance.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 712,
+      "sha256": "9f3724d3cae90f55ce485fb0168c83a813552faf95f4e24fc65bde36f3fe0efa"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/__init__.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1316,
+      "sha256": "9337f2a22e54d8b9e92dbf0160dddd20e7ac75169ca1e3595724e2674829e082"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/angular_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2883,
+      "sha256": "fc0c6dcb60c45c30789c28051e2740068c4c1859e8f3a7d17618089cd360626a"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/arcface_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 810,
+      "sha256": "ad5cf4fe91cc6174dc34c46cea40fcd9ababfe4e00bc80a747a15414c7e3fdb7"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/base_metric_loss_function.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 4580,
+      "sha256": "2b3b10055bf9c05e52be5d2d9439f3b5f657dd5446f31768778e7b3da1958c6d"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/circle_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2812,
+      "sha256": "b64487f4c7aeb79355135e89d0dd63df85b45f1b214dad81788a3328224516a7"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/contrastive_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2004,
+      "sha256": "3aeca4b5151f3505717faa3e150960d0c46a6efd69faa457f979d53aa41b3e66"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/cosface_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 909,
+      "sha256": "b99527a552c41791b4a50fe6c3c53e7b94cc1953ab7802ab23f8d410f5cd8800"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/cross_batch_memory.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 5914,
+      "sha256": "7810e2fcb3137988bfcf13c7da562d527e314cf2f928bc8bb173dc0cdbc56ed6"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/fast_ap_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2780,
+      "sha256": "5452feebb30c8b151a5eef0bd70c0f76f1fb84baaf720f8a0c6954306d64c1ee"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/generic_pair_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1361,
+      "sha256": "5d9dd5cdd212527d8a64fcbacc8a3139a727a70710a526a00aacfc944bd5651b"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/intra_pair_variance_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2101,
+      "sha256": "3a3d6a432bbe10fc0a56751e977f1da1f1e2d6cf6adcd80e57b9f78885657344"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/large_margin_softmax_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 5418,
+      "sha256": "b60e10d8ddb8a3159ed29f775b8ce32859946c3de83511233023f7ac29ceda2a"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/lifted_structure_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2980,
+      "sha256": "bc8c32086469a7388587ab10fc73c4e461f37d6be0f133d5d584593d1783126b"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/margin_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 3246,
+      "sha256": "8dcb9243ccfd391b4822e33a725af49c495f4eb140384712d2aae16777d6aed1"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/mixins.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2933,
+      "sha256": "9840959b4a14745906fef43bdb8b2e431d67e8f011dd9d104c8b451856fa5b49"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/multi_similarity_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1539,
+      "sha256": "1f10d0ee7591e143b16da4b796dad0c5f7bbd4a1eb61051c0ee0fef95dc9f05c"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/n_pairs_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1285,
+      "sha256": "c9777cca21d8c7cde6347b8833819616b06c796ff40f4e8f6cd078647df67690"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/nca_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1810,
+      "sha256": "74031b0f67ba6d436eddac5793cfd92a001728d0d92e90491b320367a09d557b"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/normalized_softmax_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1951,
+      "sha256": "6a73055dc1bbfe5d0bef386c19f162cb26b3b0bcf207d2138e1d7aab948b69d6"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/ntxent_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1721,
+      "sha256": "c7129770a8bdf87828f8ee37298309ca0a88c14a400aead45bc42ee37ef5f0b6"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/proxy_anchor_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 3363,
+      "sha256": "585bd0c2c2895572eb1ecc9f43a41829b4035df4dc7758ea18e771bd1f0c1a52"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/proxy_losses.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1084,
+      "sha256": "5a80edf4e8086db68da754d8bd62832140508154206112f9f14ec38e393509bc"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/signal_to_noise_ratio_losses.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 385,
+      "sha256": "a162b744b1e0d9665b855c95e9eba1d3e4c9a01de23e8016aa61a5eba4a4a503"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/soft_triple_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 3031,
+      "sha256": "050fa7587d5029acafe1f74420c74a4c1a696872d030754e0cac9ec13c8481a0"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/sphereface_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 368,
+      "sha256": "8cce66b78941aa43f633eba497a6b7c840366d29373664dc225d775082a41cde"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/triplet_margin_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2109,
+      "sha256": "961d1a2c552bb3c0832b699351198b560801a06ccc47fdaef4d9b3067ee4abcf"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/losses/tuplet_margin_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2080,
+      "sha256": "3627c2e993c6318cd12f01cf7471edcf54dcccd90a98ccd18e76a2a761b79f50"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/miners/__init__.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 553,
+      "sha256": "7568efff3c8340b80f05cc9b92ce3895a4001c1cf7bca0eb6baa799ca22146d3"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/miners/angular_miner.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2935,
+      "sha256": "1105a21ee8d0b7c689c7b7f0ad25660e5b763122db780cecce58bcf6c80c6c86"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/miners/base_miner.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 3090,
+      "sha256": "2729b4be4221a0b156149feb5b84120c50fed65b1afe7b854357456e7ce4aa4c"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/miners/batch_hard_miner.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 3090,
+      "sha256": "16297b4aec910b6923c62743ff9940b6faba9c8cd3f3f27ed7764dc4966affd0"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/miners/distance_weighted_miner.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2001,
+      "sha256": "7f9a66d9b87657df9d699f063ccc71b8d73efb1e1b21f6b97d96f2f2779ed474"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/miners/embeddings_already_packaged_as_triplets.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 502,
+      "sha256": "1ba6d06072fdaee4ec5ce663e4ad1e165328d49ccafd7d6af3adc3eede1feeae"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/miners/hdc_miner.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2199,
+      "sha256": "1df8830c8be5a061f9a678be709d8b24fa26a591b9c30743f1689ca1950a609f"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/miners/maximum_loss_miner.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1656,
+      "sha256": "db707a6edb028c1fe452ed44fea085ffda0655e146e2aa93ac1e0a24af905d23"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/miners/multi_similarity_miner.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2294,
+      "sha256": "fd3184678285f0e42dbd0b99c08a8d5e5f8d17b5bccdbdb18041b100f6b2b0e9"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/miners/pair_margin_miner.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1751,
+      "sha256": "3c0f601c791127d74aeb5a692be146e6c79224c2d5ab97f271395a139b58e03f"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/miners/triplet_margin_miner.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2471,
+      "sha256": "1c2de193209980d491ed085241e2379e9fb0c005180ad541388a4d75ab9a7eda"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/reducers/__init__.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 374,
+      "sha256": "3be7d2e5a4906213afacf90df2a5c3737781ad4159cf835d1913aad136dbe98b"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/reducers/avg_non_zero_reducer.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 169,
+      "sha256": "138e0bf298c1b200b75afe7f1c90723a3ea62a7a7c59c85fd036b14f72278496"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/reducers/base_reducer.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 3744,
+      "sha256": "3aad27e3a657beb4deed5eaf38e414daf65adc086be260147fc2fdf219229a51"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/reducers/class_weighted_reducer.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1079,
+      "sha256": "ac193a45a05cfe1c8186af9471357cfe16983825a5b8f3b79831cd4a94d449c7"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/reducers/divisor_reducer.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1820,
+      "sha256": "ffffb4af1f71e804b0c91bcdbe322d5d6b1b019edb56ee91a2eb7dc2db7a2a96"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/reducers/do_nothing_reducer.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 156,
+      "sha256": "30ffed746bff74247de5e466ed3ef5372970a335462f3bda84746ebc70db1bec"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/reducers/mean_reducer.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 472,
+      "sha256": "c03cc364b9d17d2d1b7464849304153f6696bff5ed85025b76be9c1512fcf36c"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/reducers/multiple_reducers.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1209,
+      "sha256": "cb04b6b2269126ce4ea0bdfb37a5aed5a04d0686167785b58be76bf74e47bdb0"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/reducers/threshold_reducer.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2577,
+      "sha256": "e8c8e1e6e99b888b22dce7c5bc31e1fb8ec8fe39a5dcf30f9ecb70e9fda3a87d"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/regularizers/__init__.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 344,
+      "sha256": "161edacaaaacba26bc8d58b43e490164108005f106238c1cf98af2a9fbe8ea61"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/regularizers/base_regularizer.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 514,
+      "sha256": "f0bdb47e7592b6cca7ee41d35f76701cb8ca16f0016b35cdef7e74bdaa258ce3"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/regularizers/center_invariant_regularizer.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 896,
+      "sha256": "c8345aa9fe2439b375228e8789b91ceb62a5728c712ed790dc7750c4a52c9409"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/regularizers/lp_regularizer.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 615,
+      "sha256": "810061eabc13ed87001d411ffe6988447f8e834d5e98b03f459ee9c57c1f1c31"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/regularizers/regular_face_regularizer.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1241,
+      "sha256": "cacb59d9405dbdd97ae0e01363ffa991f828cfd468ca2bb3c19c32e40c8275a4"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/regularizers/sparse_centers_regularizer.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2736,
+      "sha256": "27446dcd1369cbffda16384e08075aae8ed08bc5a3a3c4711435f0bae134d8ee"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/regularizers/zero_mean_regularizer.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 431,
+      "sha256": "a62915384963f453262a60f41e836b77b324ab3f7b41c1fe5d9340b832036d78"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/samplers/__init__.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 169,
+      "sha256": "0467d5245405b84227199e9cfb6dea47989d4d9bf61d91c10609d30845019e7e"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/samplers/fixed_set_of_triplets.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2183,
+      "sha256": "8ca20c5f760e112c6cc28b9aff5112ed5caf838e3cb78cd8397c3d6f19b54552"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/samplers/m_per_class_sampler.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2614,
+      "sha256": "f54c45b747625c6d6cfe958d93d0e994d7e96e4de39011947ee837b9303f664e"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/samplers/tuples_to_weights_sampler.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1780,
+      "sha256": "40901bf0c46a22381e2532a0cec3b570440a88fbf66d954f41b5e30400aa8792"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/testers/__init__.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 247,
+      "sha256": "5b1c6fcd71174c211525cf09cf2a363d128d060ed24933dcba3757da090efbe4"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/testers/base_tester.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 12315,
+      "sha256": "013a1d5dcc32b3b74dd0c8f1383174b25f3851c931cbab72cd52115ba901b9a0"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/testers/global_embedding_space.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1307,
+      "sha256": "97a10ebd39153365d70f4972a66db2d66a2ab0e8dfd982546703d0d925b09953"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/testers/global_twostream_embedding_space.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 3093,
+      "sha256": "7184b6e31743979bb6b38d372e04b0954d5d09d341a3472833fff8052d5933ef"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/testers/with_same_parent_label.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2617,
+      "sha256": "bb14a8400055ca073e34f9f351fb931d360229ac4b8e283649c09ef1fd4a9ae0"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/trainers/__init__.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 437,
+      "sha256": "52c500ff03331b94189ea00b3def3d8a4f5bb0a4d43c68b29c3c4e952981e601"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/trainers/base_trainer.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 13491,
+      "sha256": "fbe53a2d0aeada0bdf7d8796d0ea67319be95eeb8f693287b0f23966d4f5bce5"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/trainers/cascaded_embeddings.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2929,
+      "sha256": "91bdad1c6df1cb7d5eec18a5e093ae45de1fb99a9b49d1da06b695d00e4da0e1"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/trainers/deep_adversarial_metric_learning.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 7207,
+      "sha256": "8e259377a0aefffdf8ba0d4391dc5cfc3bfe9c3862721134df0e4f5370fd1ad2"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/trainers/metric_loss_only.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 625,
+      "sha256": "32a72adadf0306e3850cccddfc2e9a3f9d5aafbe00e597455351b14c7e5a8410"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/trainers/train_with_classifier.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1207,
+      "sha256": "ed960d77b2e81285f569b51c7f94be84bc3da414992e45dc0455b11874838bdb"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/trainers/twostream_metric_loss.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2206,
+      "sha256": "f9297a4d68cf9d194c7c39960110dc683ad233d032d5f654fddf2f52db6e2515"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/trainers/unsupervised_embeddings_using_augmentations.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1191,
+      "sha256": "aff0a1c5cbcaafccb8c9d4d1a8e8f359c85ce943d95f831527aa933ce0967099"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/utils/__init__.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/utils/accuracy_calculator.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 9609,
+      "sha256": "1b01e2347235d800df834591bc4c80dc99d5664d6e13455de5de1b0c82434d79"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/utils/common_functions.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 12991,
+      "sha256": "4d6619e721d3b31edcf10f1aa82ace764344dfc0221931383cedeafd827a72d0"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/utils/distributed.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2842,
+      "sha256": "9a1cc0ef364734310de4e01d445b859ff74adf2d4c787646dcceb7c41aa66c60"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/utils/inference.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 5936,
+      "sha256": "be096f88fdc73394167bde96501f2b642514e687d41a6a1e5c676cd62bf04fbb"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/utils/logging_presets.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 15947,
+      "sha256": "72682502ffd80eb86caed728a57f0fd9b73339c71aeda5a6e4e225f4924ccce8"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/utils/loss_and_miner_utils.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 8075,
+      "sha256": "d6d6dadf13687192730e8da65754b8abbf2b07bd86e3dfc60a5891775737581a"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/utils/loss_tracker.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1104,
+      "sha256": "6a9ed000f08a40962edfadc36746804e410e831ddcb41fc736511546cbfb1b01"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/utils/module_with_records.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 588,
+      "sha256": "b5b01144d3e16a7f6ac4ab3270ab4f902d8341cc4d53e1fa3d7f749c1708b7bf"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/utils/module_with_records_and_reducer.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1687,
+      "sha256": "5aa9354f7df6581a55ac3945bf14367362be6b4a295d26ad77ecdabc38f25edd"
+    }
+  },
+  {
+    "path": "src/training/_vendor/pytorch_metric_learning/utils/stat_utils.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2829,
+      "sha256": "ab982bd2257dbab7ae47459a06569ff3863fa0e54908dc4cb5de31ba4856f3a3"
+    }
+  },
+  {
+    "path": "src/training/data.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 8378,
+      "sha256": "410664a50b466035fed301ec94527364d4ba8cd440cc8c0bc9d1f30612acbfb5"
+    }
+  },
+  {
+    "path": "src/training/engine.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 33823,
+      "sha256": "7d338be218bd9818d93072e79013f95208844fa5c3d8debd5518d9331a86b83d"
+    }
+  },
+  {
+    "path": "src/training/imagenet.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 9326,
+      "sha256": "b68d32dc78b3aa6c6b03586725e172fd12042b70d34efe5de09049a53a8db233"
+    }
+  },
+  {
+    "path": "src/training/losses.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2072,
+      "sha256": "1590fef53721ef2e744ca5471357cdf8b7c66e24cf2452ed0c8915f83a0a4d3d"
+    }
+  },
+  {
+    "path": "src/training/state.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 3304,
+      "sha256": "111cb7c67969d84f58f8141a8d4b30ea8cf438803e6c17e0838238fb27ad1774"
+    }
+  },
+  {
+    "path": "tests/test_cxr7_contract.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 3367,
+      "sha256": "359684e3558b6ec4e9f7de0b488e8f911d7ef2d1c82a7d6c43fad4a67f919531"
+    }
+  },
+  {
+    "path": "tests/test_download.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2120,
+      "sha256": "fbe654f8d96433fc697cb78092e6054373cf2836ba34ecb98cc8823dc0c50cf6"
+    }
+  },
+  {
+    "path": "tests/test_examples.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 4341,
+      "sha256": "cc195555cc94c2832671f807e998e351c3a35aa5a662976846562ae41025d152"
+    }
+  },
+  {
+    "path": "tests/test_gpu_preflight.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 1226,
+      "sha256": "f259282dd531b1e647adc9827412b759513fd1804f04004556a10c9b9e4dfbcb"
+    }
+  },
+  {
+    "path": "tests/test_inference.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 3284,
+      "sha256": "52f0a69e5cf1d61025b0625a36666f9f2138baa50891c59385f6ddd9bc75cd14"
+    }
+  },
+  {
+    "path": "tests/test_metrics_progress.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 2329,
+      "sha256": "1879901ee6839fa932d33dec07a5867babef8b57adb948ee2cee97cf22e956b2"
+    }
+  },
+  {
+    "path": "tests/test_privacy_contract.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 6563,
+      "sha256": "8eeec28eab8a6b0ad022297137d6178b7aa8e6485b4239379196081e953922d8"
+    }
+  },
+  {
+    "path": "tests/test_privacy_cpu.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 4339,
+      "sha256": "5eb4ff9ed17d0200e780de0aa587b1f849883c6d874567b12b3a321129f8d2af"
+    }
+  },
+  {
+    "path": "tests/test_privacy_sweep.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 7944,
+      "sha256": "a049a9f2d99fb28e0af50ce0766d28dfd6c88909fb3aac6e44a9debd78243bad"
+    }
+  },
+  {
+    "path": "tests/test_release.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 3378,
+      "sha256": "210402fa827a0d4befd4cde52fb828350a8b91b7804f2ed9c6ddc158d7c6d01b"
+    }
+  },
+  {
+    "path": "tests/test_reports.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 4068,
+      "sha256": "ef6caded7c0a9f4339af55ae0d23727bdc7ce547f544cd1a0aa74ad80aaea0e0"
+    }
+  },
+  {
+    "path": "tests/test_training_fidelity.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 6853,
+      "sha256": "2d9a3ddb991cc60fa03ff1529dee59236d2a86123530f9f6f2420e3287d41b80"
+    }
+  },
+  {
+    "path": "tests/test_training_loop.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 5882,
+      "sha256": "31596b8d6fc4c845141f5b725875e45e2f3bfc8f2f14c779c147ac8d01635795"
+    }
+  },
+  {
+    "path": "tests/test_training_smoke_cpu.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 6089,
+      "sha256": "4abd69a6275fd8e361ddce1ab38982a64554c41f352434ee9c3666c9d99d4c1b"
+    }
+  },
+  {
+    "path": "tests/test_training_state.py",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 3009,
+      "sha256": "25c38fe5ddb49736682b009bbf5d0a877a2a23d3e9973b8b425e14fde6469afe"
+    }
+  },
+  {
+    "path": "검사/server.test.mjs",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 27548,
+      "sha256": "c59bddfe4e18ccc42751d4ed87e2755c212727fdc62b416e781d470992632935"
+    },
+    "after": null
+  },
+  {
+    "path": "검사/test_runner.py",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 6406,
+      "sha256": "0dd464d2d758c0db311ce0f6609df185e45dbf6f67b48d0ff7edea4295b21ea7"
+    },
+    "after": null
+  },
+  {
+    "path": "검증_범위_원본.md",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 13931,
+      "sha256": "95ef0571131715c64e8c57d1681e526daa9a03e37e1331cba769b6e3c58377a8"
+    }
+  },
+  {
+    "path": "대시보드_시작.cmd",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 66,
+      "sha256": "6afd54c4e5406176d351478c4ed39afee7231532306eff3e0955ac6fbee3c49a"
+    },
+    "after": null
+  },
+  {
+    "path": "문서/단계별_실험_구조.md",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 9684,
+      "sha256": "c96d87c19429c56416e4da017ab8b6866b5179cbf1eba37074669c93f7c9ce8a"
+    },
+    "after": null
+  },
+  {
+    "path": "문서/코로나_외부검증_정제.md",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 6912,
+      "sha256": "7ab913bfd2d0dfc361f6e66869d45fbdc6ebb9adbb24a3789dd2787002d8071b"
+    },
+    "after": null
+  },
+  {
+    "path": "문서/학습_조건.md",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 6330,
+      "sha256": "7628618539a88dc870aa820fb811174c989b39e0e5a30c61b976fc67ae0ee9c8"
+    },
+    "after": null
+  },
+  {
+    "path": "변경_기록.md",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 1963,
+      "sha256": "f40da43f863d89238c05b96f148e3aa962a94c6c848df60cb0fc9a375162f875"
+    },
+    "after": null
+  },
+  {
+    "path": "보고서_항목별_이행표.md",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 7765,
+      "sha256": "164b478ee1f70b8db508001965af3b82d72d516dfd35a442351bce3ec848c8ac"
+    },
+    "after": null
+  },
+  {
+    "path": "실행_안내_공개본.md",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 13629,
+      "sha256": "c6a7f11fe9ac9edfbce2e376bf44f3ae371d17b4ecaa99b1d99cd2e07768c77d"
+    }
+  },
+  {
+    "path": "실험 코드/cxr_reid/cleaning.py",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 10254,
+      "sha256": "bdcad02f9ec36630d8959681a2f21ed93886c430fc6eecb3de8d3115f047e897"
+    },
+    "after": null
+  },
+  {
+    "path": "실험 코드/train_from_scratch.py",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 2838,
+      "sha256": "662b5566315c79539b71a4ae1464f8844209fea215ad818975f0a3a66c6aa873"
+    },
+    "after": null
+  },
+  {
+    "path": "실험 코드/training/LICENSE",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    "after": null
+  },
+  {
+    "path": "실험 코드/training/LICENSE_PML",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 1090,
+      "sha256": "8487a9eae44e63ce55bb6d8a471a7fdadee6d1f9f2e923c2f1042e0ba9af85f9"
+    },
+    "after": null
+  },
+  {
+    "path": "실험 코드/training/NOTICE.md",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 1934,
+      "sha256": "93b551279b00c341735e32d702c4aba67c24a026ce504c8f7df5cf05df2e773e"
+    },
+    "after": null
+  },
+  {
+    "path": "실험 코드/training/__init__.py",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 114,
+      "sha256": "6b20212f0635b80452bf0d90379d1131a42aff92d91a4737827e6a646a9cab9d"
+    },
+    "after": null
+  },
+  {
+    "path": "실험 코드/training/data.py",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 8732,
+      "sha256": "0f629c4d8668d850aaf3740249dc615b1284f7ea9a97ceeaabf02692acc6e37d"
+    },
+    "after": null
+  },
+  {
+    "path": "실험 코드/training/engine.py",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 28943,
+      "sha256": "5090c47165585ae20f0bc4e38d9b25c601482f9c9a4f1d00d87fe76f49f99d4a"
+    },
+    "after": null
+  },
+  {
+    "path": "실험 코드/training/imagenet.py",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 9326,
+      "sha256": "b68d32dc78b3aa6c6b03586725e172fd12042b70d34efe5de09049a53a8db233"
+    },
+    "after": null
+  },
+  {
+    "path": "실험 코드/training/losses.py",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 2565,
+      "sha256": "04bde71e1a3b1ac7bd19cada40fb1a9da56e5a1741dbeafe0319adc88304cc99"
+    },
+    "after": null
+  },
+  {
+    "path": "실험 코드/training/state.py",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 3304,
+      "sha256": "111cb7c67969d84f58f8141a8d4b30ea8cf438803e6c17e0838238fb27ad1774"
+    },
+    "after": null
+  },
+  {
+    "path": "실험 코드/검사/test_cleaning.py",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 9322,
+      "sha256": "bf848b0432fc4a8412ef3e2266ce8139e1293923a5acd8d43e9ef7b3ba8c18cf"
+    },
+    "after": null
+  },
+  {
+    "path": "실험 코드/검사/test_covid_cleaning.py",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 12129,
+      "sha256": "469fc4bf2c172a46f523b6d937c9a992622bfbab589b832dd147fb6b44311146"
+    },
+    "after": null
+  },
+  {
+    "path": "원본_설계_비교.md",
+    "change": "새 폴더에만",
+    "before": null,
+    "after": {
+      "bytes": 6857,
+      "sha256": "15ddd3b3df4a0f7937d75f94ad734ac2e397c22ad12306161453f47876399a23"
+    }
+  },
+  {
+    "path": "화면/app.js",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 19850,
+      "sha256": "cd2439f9a96a6b4033cf0e43ed863f6a1b458e599cefcce3b747842d83ca3518"
+    },
+    "after": null
+  },
+  {
+    "path": "화면/assets/NanumGothic-Bold.ttf",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 2073868,
+      "sha256": "f96298f9fb18e364d2370f4c3ce948ac67a2b61af992d7234bc15c42b033c674"
+    },
+    "after": null
+  },
+  {
+    "path": "화면/assets/OFL.txt",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 4534,
+      "sha256": "eeacf16032901d0ed0456876ec77b8f0fda6b3fecec7d972f8543eb602e6c30f"
+    },
+    "after": null
+  },
+  {
+    "path": "화면/index.html",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 11592,
+      "sha256": "04f4c65803ef3aa281f4a4b97e9745032ed713df5821edae0f3b21a13018e616"
+    },
+    "after": null
+  },
+  {
+    "path": "화면/state.mjs",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 8686,
+      "sha256": "b4cd9a68aa13160594232e55d94b5fbea168e3aa98504212989c8c499ac13725"
+    },
+    "after": null
+  },
+  {
+    "path": "화면/style.css",
+    "change": "이전 폴더에만",
+    "before": {
+      "bytes": 19335,
+      "sha256": "1d37bf8c5289833ef364c98303f37d9209cd77fb0489b2ca507c837a7f779321"
+    },
+    "after": null
+  }
+]

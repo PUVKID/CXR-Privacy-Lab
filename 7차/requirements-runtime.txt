@@ -1,0 +1,10 @@
+# Reference versions only. The CMD reuses the existing E: venv; no automatic pip.
+# User GPU runtime uses cu126 torch/torchvision; local tests used CPU builds.
+torch==2.7.1
+torchvision==0.22.1
+numpy==1.26.4
+Pillow==11.1.0
+scikit-learn==1.5.2
+scipy==1.14.1
+# pytorch-metric-learning0.9.94 is bundled, not installed from PyPI.
+# No pandas, faiss, pytest or pytorch-lightning package is required at runtime.
