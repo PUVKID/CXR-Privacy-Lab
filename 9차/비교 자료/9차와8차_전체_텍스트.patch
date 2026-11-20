@@ -1,0 +1,744 @@
+--- 8차/README.md
++++ 9차/README.md
+@@ -1,123 +1,141 @@
+-# 8차 — 7차 실시간 연결과 실행 분리
++# 흉부 엑스레이 학습 진행 화면 · 9차
++
++| 읽기 수준 | 설명의 출발점 |
++| --- | --- |
++| [LEVEL 1 - Beginner](../docs/읽기안내/레벨1.md) | 용어와 화면 읽기 |
++| [LEVEL 2 - Explorer](../docs/읽기안내/레벨2.md) | 기록·계산·표시의 관계 |
++| [LEVEL 3 - Practitioner](../docs/읽기안내/레벨3.md) | 실행과 점검 |
++| [LEVEL 4 - Advanced](../docs/읽기안내/레벨4.md) | 구현 경계와 실패 처리 |
++| [LEVEL 5 - Expert](../docs/읽기안내/레벨5.md) | 전체 상세·검증 범위 |
++
++<a id="reading-level-1"></a>
++## LEVEL 1 - Beginner
++
++**현재 계산은7차, 새 진행 화면은9차**입니다. 에폭은 학습 자료를 한 바퀴 도는 단위이고, 배치는 한 번에 처리하는 묶음입니다. 같은7차 학습을 보면서 현재 바퀴가 얼마나 진행됐는지와 세 학습 과정 중 어디에 있는지를 구분합니다.
++
++| 보는 곳 | 읽는 방법 | 주의할 점 |
++| --- | --- | --- |
++| 에폭 막대 | 현재 배치를 이번 에폭의 전체 배치와 비교 | 100%는 이번 한 바퀴가 끝났다는 뜻 |
++| 학습 단계 막대 | 지금까지의 에폭·배치를 그 단계의 최대 예정 에폭과 비교 | 전체 실험 시간이나 성능의 완성도가 아님 |
++| 세 단계 흐름 | 검증 모델 → 검색 출력부 → 검색 전체 | 저장된 완료 증거와 현재 기록을 함께 확인 |
++| 손실 그래프 | 실제로 저장된 학습·검증 오차의 최근 관측을 확인 | 낮아졌다고 시험 정확도나 익명성이 보장되지는 않음 |
++| 빈 값·원값 | 기록이 없으면 미측정 안내, 있는 값은 원래 숫자로 확인 | 없는 오차를0으로 채우지 않음 |
++
++먼저 화면의 실험 차수와 학습 상태를 확인하고, 큰 막대 아래의 에폭·배치 숫자를 읽습니다. 그다음 손실 그림의 범위와 마지막 기록 시각을 봅니다. 앞부분을 생략한 최근 기록이라면 전체 학습 곡선으로 보고하지 않습니다. 조기 종료가 가능한 검증 모델은 최대100에폭을 다 채우지 않고 끝날 수 있으므로 막대가100%가 아니어도 실제 완료 기록이 있는지 따로 확인합니다.
++
++기존 표시용 PowerShell 창이나 브라우저를 닫는 일과 **숨김 학습 실행기를 종료하는 일은 다릅니다**. 별도 실행 중인 학습의 생존과 기록 증가를 확인해야 하며, 모든 PowerShell·Python을 일괄 종료하거나 재부팅해도 계속된다는 뜻은 아닙니다. 화면의 모션 정지는 그림의 움직임만 멈춥니다. 의료 사진·가중치·개인별 목록·운영 로그는 공개하지 않습니다.
++
++[같은 수준 프로젝트 안내](../docs/읽기안내/레벨1.md) · [직전8차 상세](../8차/README.md#reading-level-1) · [8→9 전체 비교](이전_차수_비교.md)
++
++<a id="reading-level-2"></a>
++## LEVEL 2 - Explorer
++
++9차는7차 계산 결과를 새로 만드는 학습기가 아니라, **기존 기록을 진행률·단계·추세로 연결하는 읽기 전용 화면**입니다. 에폭, 학습 단계, 전체 평가 조건은 분모가 다른 세 축입니다.
++
++| 연결 | 처리 | 화면에서의 뜻 |
++| --- | --- | --- |
++| 현재 진행 기록 → 에폭 | 현재 배치 / 해당 에폭 전체 배치 | 한 자료 순회의 진행 |
++| 에폭 기록 → 학습 단계 | 완료 에폭과 현재 배치 비율 / 단계 최대 에폭 | 검증100·출력부30·전체50 각각의 예정량 기준 |
++| 저장 완료 근거 → 단계 흐름 | 현재 기록과 완료 상태를 구분 | 다음 단계로 넘어간 근거를 표시 |
++| 유한한 크기의 이력 → 손실 추이 | 실제 정상 학습·검증 관측만 분리 | 누락·범위·마지막 시각을 함께 해석 |
++| 프로세스·최근 기록 → 현재 상태 | 파일 존재만으로 생존을 추정하지 않음 | 현재 실행과 과거 정상 관측을 분리 |
++
++세 단계 비율을 단순 평균해 전체 실험 시간 완료율로 부르지 않습니다. 검증 모델은 조기 종료할 수 있고 각 단계의 한 배치 비용도 다릅니다. 손실 그림은 관측한 오차의 변화이며 최종 검증 AUC나 검색 P@1과 다른 출력입니다. 조회할 기록이 부족하면 계산할 수 없다는 상태를 유지합니다.
++
++표시 창·화면 서버·학습 실행기가 분리돼 있으면 표시만 닫는 조작은 학습 종료 명령이 아닙니다. 다만 실제 실행기 종료·운영체제 종료·저장 실패까지 막는 보장은 아닙니다. 8차의 연결·입력 검증과 강도별 원값 조회는 보존하며9차는 학습 설정이나 변환별 재학습 구조를 추가하지 않습니다.
++
++[같은 수준 프로젝트 안내](../docs/읽기안내/레벨2.md) · [직전8차 상세](../8차/README.md#reading-level-2) · [8→9 전체 비교](이전_차수_비교.md)
++
++<a id="reading-level-3"></a>
++## LEVEL 3 - Practitioner
++
++**7차 계산을 유지한 채9차 화면을 여는 절차**입니다. 공개 사본에는 의료 자료·가중치·운영 원문이 없으며 로컬 연구 환경과 연결된 경우에만 실제 관측을 읽을 수 있습니다.
++
++| 순서 | 확인할 내용 | 보고할 근거 |
++| --- | --- | --- |
++| 1 |9차 서버·화면과7차 실험 연결 표시 | 다른 차수의 예전 화면과 구분 |
++| 2 | 현재 학습 단계·프로세스·기록 시각 | 살아 있는 실행과 과거 로그를 구분 |
++| 3 | 에폭·배치 원수와 에폭 막대 | 배치 분모를 확인한 해당 에폭의 진행률 |
++| 4 | 단계 최대 에폭과 완료 근거 | 최대 예정량과 실제 조기 종료·완료를 분리 |
++| 5 | 손실의 학습/검증 구분·표시 범위 | 최근 일부 이력인지와 마지막 관측 시각 |
++| 6 | 두 테마·모션 정지·키보드·작은 화면 | 실제 조작 상태와 값의 출처를 함께 점검 |
++
++9차 폴더에서 `node server.mjs`로 조회 서버를 실행하고 로컬8787 화면을 확인합니다. 이미 같은 포트에 서버가 있으면 중복 실행하거나 학습 프로세스를 종료해 해결하지 않습니다. 현재 서버의 차수와 주소는 실제 실행 환경에서 대조합니다.
++
++숫자가 비어 있거나 이력이 오래됐으면 미측정·확인 불가로 기록합니다. 손실을 정확도로 바꾸거나 이전 단계 곡선을 현재 단계 곡선으로 이어 붙이지 않습니다. 백분율 요약은 소수 첫째 자리 반올림이며 원수·원비율을 확인합니다. 표시용 창을 닫은 뒤에도 실제 학습 생존과 기록 증가가 이어지는지 따로 확인하고, 학습 실행기 전체 종료와 혼동하지 않습니다.
++
++[같은 수준 프로젝트 안내](../docs/읽기안내/레벨3.md) · [직전8차 상세](../8차/README.md#reading-level-3) · [8→9 전체 비교](이전_차수_비교.md)
++
++<a id="reading-level-4"></a>
++## LEVEL 4 - Advanced
++
++9차는 기존 읽기 경계와 상태 판정 위에 **진행 계산·이력 전달·시각화 경계**를 추가합니다. 학습 소스·분할·손실·optimizer·scheduler는 이 화면 변경의 대상이 아닙니다.
++
++| 구현 경계 | 검토할 계약 | 변경 영향 |
++| --- | --- | --- |
++| 진행 계산 | 에폭의 배치 비율과 단계 최대 에폭 비율을 구분 | 전체 시간 추정과 별개 |
++| 완료 상태 | 현재 기록·저장 완료 근거·오래된 상태를 구분 | 실제 완료를 단순 최대 에폭 도달로 대체하지 않음 |
++| 이력 전달 | 유한한 읽기 범위·정상 기록·단계·검증 구분 | 무제한 파일 전달과 누락을0으로 메우는 처리를 금지 |
++| 손실 표시 | 관측 구간·축·마지막 시각과 원값 유지 | 부분 이력을 전체 학습으로 오표시하지 않음 |
++| 화면 동작 | 테마·모션·포커스·작은 폭과 선택 상태 | 조회 동작이 학습 제어로 번지지 않음 |
++
++분모가 없는 기록은 unknown으로 유지해야 합니다. 단계 전환·재개·실패행의0·중복 또는 불완전 기록은 현재 상태와 마지막 정상 관측을 구분하는 기존 어댑터 계약과 함께 검토합니다. 진행 막대의 값이 유한하다는 검사만으로 과학적 해석이 맞다고 판단하지 않습니다.
++
++동일 실행의 표시 창과 숨김 학습 실행기는 별개 생명주기를 가질 수 있습니다. 서버 재시작·브라우저 종료가 학습 종료 API가 되어서는 안 되며, 기존 프로세스 정체 확인·읽기 경로 제한은 유지합니다. 구체적 읽기 상한·계산 함수·회귀 결과는9차 상세와8→9 전체 파일 비교에서 대조합니다.
++
++[같은 수준 프로젝트 안내](../docs/읽기안내/레벨4.md) · [직전8차 상세](../8차/README.md#reading-level-4) · [8→9 전체 비교](이전_차수_비교.md)
++
++<a id="reading-level-5"></a>
++## LEVEL 5 - Expert · 동결 구현의 전체 설명
++
++다음은9차 구현자가 동결한 안내의 전체 본문입니다. 수준별 해설을 추가하며 실제 코드·관측값을 바꾸지 않았습니다.
++
+ 
+-| 읽기 수준 | 설명의 출발점 |
+-| --- | --- |
+-| [LEVEL 1 - Beginner](../docs/읽기안내/레벨1.md) | 배경과 용어부터 |
+-| [LEVEL 2 - Explorer](../docs/읽기안내/레벨2.md) | 구성과 연결 원리 |
+-| [LEVEL 3 - Practitioner](../docs/읽기안내/레벨3.md) | 실제 실행과 결과 확인 |
+-| [LEVEL 4 - Advanced](../docs/읽기안내/레벨4.md) | 구현과 실패 처리 |
+-| [LEVEL 5 - Expert](../docs/읽기안내/레벨5.md) | 논문·코드·프로토콜 검토 |
++현재 계산은 **7차 학습**, 화면은 **9차 읽기 전용 대시보드**입니다. 7차 학습 코드·설정·가중치와8차 화면을 보존합니다. 이 화면은 학습을 시작하거나 중단하지 않습니다.
+ 
+-<a id="reading-level-1"></a>
+-## LEVEL 1 - Beginner · 배경과 용어부터 읽기
++| 영역 | 실제 근거 | 해석 |
++| --- | --- | --- |
++| 현재 에폭 | 현재 처리 배치 / 전체 배치 | 현재 자료 순회 진행; 남은 배치도 같은 분모에서 계산 |
++| 현재 학습 단계 | ((에폭−1)+배치/전체 배치)/예정 최대 에폭 | 최대 예정량의 비율이며 전체 실험 시간 완료율이 아님 |
++| 세 단계 흐름 | 현재 실행의 기록·후속 학습 단계·선택 가중치 | 검증 최대100 → 검색 출력부30 → 검색 전체50; 조기 종료와 최대량 도달 구분 |
++| 학습 손실 | 최근 정상 training 이벤트 | 가로축은 단계 내 누적 처리 배치; 손실 감소가 시험 성능을 뜻하지 않음 |
++| 검증 손실 | 실제 epoch_complete의 validation_loss | 가로축은 에폭; 학습 배치 손실과 별도 그래프 |
++| 결과 | 현재 실행의 평가 JSON/CSV | 2데이터셋 ×2과제 ×21조건=84개 상태; 미측정은0으로 대체하지 않음 |
+ 
+-| 구분 | 이 차수에서 하는 일 | 처음 읽을 때 확인할 뜻 |
+-| --- | --- | --- |
+-| 목적 | 기존5차 고정 연결 대신 현재7차 실행을 읽는 독립 대시보드입니다. 학습 모델·분할·수치 계산은 이 차수에서 바꾸지 않습니다. | 배우는 작업인지 평가인지 먼저 구분합니다. |
+-| 입력 | `7차/work/current_run.json`의 검증된 실행 ID와 고정 `runs/<UUID>` 경계의 진행·이벤트·설정·결과·현재 대표사진을 읽습니다. 포인터 path는 읽기 경로로 신뢰하지 않습니다. | 사진·목록·모델·설정의 역할은 다릅니다. |
+-| 처리 | 2데이터셋·2과제·21조건을 선택하고 실제 행만 연결합니다. 프로세스의 소스·출력 UUID·부모·생성 시각과 최근 진행 기록이 함께 맞을 때만 학습 중으로 표시합니다. | 화면과 계산 프로그램을 혼동하지 않습니다. |
+-| 설정·조건 | 블러·모자이크 모두0,1,2,4,8,16,32,64,128,256입니다. 상태3초 갱신·프로세스10초 캐시·GPU15초 캐시, 읽기 전용이며 시작·중단 API가 없습니다. | 설정 숫자는 성능 숫자가 아닙니다. |
+-| 출력 | 84개 과제 상태·42개 CSV행·전체 원값·최근 재개 stdout/stderr와 대표사진을 보여 줍니다. 정상 이력 생략 안내와 손상 오류, 현재 오류와 마지막 정상 기록을 나눕니다. | 파일이 있어야 측정값을 읽을 수 있습니다. |
+-| 과거·현재 관측 | 로컬 연결·보안·표시 검사를 수행하고7차 실제 진행과 프로세스의 연결을 확인했습니다. 이는7차의 전체 학습·평가·논문 성능 완료 증거가 아닙니다. | 이 차수에서 확인한 범위까지만 말합니다. |
+-| 한계 | global_step은 단계 내 처리 배치이며 혼합정밀도의 가중치 적용 생략 때문에 실제 적용 횟수와 다를 수 있습니다. 마지막 관측과 저장 체크포인트도 다르며 운영 분리가 재부팅·저장 실패를 막지는 않습니다. | 후속 차수의 해결을 과거에 소급하지 않습니다. |
+-| 실행·검사 | node server.mjs 후127.0.0.1:8787에서 화면8차·실험7차를 확인합니다. Node 검사와 실제 데이터셋/과제/21조건 선택·원값·양쪽 테마·모션·포커스 검증을 구분합니다. | 공개 설명만으로 의료 실험을 실행할 수 있는지 확인합니다. |
++## 진행과 그래프를 읽는 방법
+ 
+-**읽는 예:**7차가 일을 하는 작업장이라면8차는 그 작업장을 보는 현황판입니다. 화면을 새로고침하거나 데이터셋·강도를 바꿔도7차 학습 설정은 바뀌지 않습니다. 시작·종료 버튼을 제거해 예전5차를 잘못 제어하지 않게 했습니다.
++백분율은 소수 첫째 자리 반올림이며 원분자·분모·계산 원비율을 학습 수치 원값에서 확인합니다. 에폭·전체 에폭·배치·전체 배치가 정수 범위를 벗어나거나 분모가0/누락이면 막대는 미측정입니다. 조기 종료로 다음 학습 단계에 진입하면 최대 예정 비율이100%가 아니어도 이전 단계가 끝난 것입니다. 세 단계의 단순 평균을 전체 시간 진행률로 제시하지 않습니다.
+ 
+-실행 ID는 여러 실험 결과가 섞이지 않도록 붙이는 고유 표지입니다. 기록에 적힌 임의 경로를 따라가지 않고 현재 ID의 정해진 폴더만 봅니다. 최근 글이 쓰였다는 사실과 실제 계산 프로그램이 남아 있다는 사실을 함께 확인해야 학습 중으로 보입니다. 조회가 실패하면 확인 불가라고 표시합니다.
++최근256 KiB의 완성된 LF 행만 엄격 UTF-8/JSON/실행 경계로 검증합니다. 중간 손상이 있으면 손실 시계열을 채택하지 않습니다. 원본은 보존되며 잘린 앞부분과 작성 중 마지막 행은 따로 안내합니다. **이 그래프는 전체 학습 이력이 아닙니다.** 학습 곡선은 단계·에폭·시간 역전·누적 처리 배치 되감기에서 선을 끊습니다. 원값이0인 손실은 유효하고, 미측정 손실은 점을 만들지 않습니다. 축 눈금만4유효숫자로 줄여 쓰며 그래프 점 설명과 전체 학습 원값에는 저장 정밀도를 유지합니다.
+ 
+-**0을 읽는 방법:**오류를 남기는 과정에서 진행 칸이0으로 초기화돼도 이전 작업 전체가 사라졌다는 뜻은 아닙니다. 마지막 정상 기록과 저장된 체크포인트를 따로 봅니다. 처리 배치 수는 입력 묶음을 몇 번 다뤘는지이며, 계산값이 유효하지 않아 모델 수정이 생략된 배치까지 포함할 수 있어 실제 가중치 적용 횟수와 같지 않습니다.
++현재 기록과 오류 전 마지막 정상 기록, 오래된 관측과 실제 프로세스 확인을 구분합니다. 선택 가중치 파일만으로 단계 완료를 단정하지 않습니다. 두 과제 순차 학습 설정에서 후속 단계 관측 또는 실제 전체 학습 종료와 가중치 존재를 결합합니다. 현재 에폭 남은 배치는 표시하지만 재개·검증·자료 읽기가 섞인 로그에서 속도나 남은 시간을 만들지 않습니다. 처리 배치는 AMP에서 생략되는 가중치 적용 횟수와 다릅니다.
+ 
+-긴 학습 이력의 앞부분을 생략하는 것은 정상적인 조회 방식입니다. 최근256 KiB만 읽었다는 안내를 원값 옆에 남기고 손상된 기록만 오류로 알립니다. 밝고 어두운 테마, 모션 정지, 조건 선택과 숫자 펼침은 조회 기능이며 익명성 보장이나 학습 완료를 뜻하지 않습니다.
++## PowerShell 창과 학습 실행
+ 
+-**결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore@1은 고정 공격의1순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
++표시 창과 실제 학습 프로세스는 별개일 수 있습니다. 이번 확인에서 기존 표시 창에는 학습 자식이 없었고 실제 숨김 실행기 아래의 학습 프로세스는 별도로 관측됐습니다. 이 사실을 모든 PowerShell 창을 닫아도 안전하다는 일반 보장으로 확대하지 않습니다. 실행기나 실제 학습 프로세스 트리를 종료하면 학습이 중단될 수 있습니다. 이 화면의 모션 정지는 화면 움직임만 멈춥니다.
+ 
+-[1수준 프로젝트 안내](../docs/읽기안내/레벨1.md) · [직전 차수](../7차/README.md#reading-level-1) · [전체 파일 비교](이전_차수_비교.md)
++## 실행과 검사
+ 
+-### LEVEL 1 · 이 차수의 용어 풀이
++Node.js로 `server.mjs`를 실행하면 기본 로컬8787에서 화면을 제공합니다. 운영 서버 교체는 학습과 별개로 담당자가 수행하며 기존 학습 프로세스를 종료하지 않습니다. 시험 서버는 `createDashboard()`를 import하여8788 같은 별도 포트로 열 수 있습니다. 기본 실험 경계는 같은 프로젝트의 `7차`이며 UUID 포인터의 임의 경로를 따르지 않습니다.
+ 
+-| 용어 | 쉬운 뜻 |
+-| --- | --- |
+-| UUID·어댑터 | UUID는 실행 고유 표지이고 어댑터는7차 파일을 화면이 읽을 수 있는 상태로 바꾸는 연결 코드입니다. |
+-| JSON·CSV·stdout/stderr | JSON은 이름-값 기록, CSV는 표 파일입니다. stdout은 프로그램 출력, stderr는 경고·오류 출력이며 어느 실행에서 나온 것인지 함께 봅니다. |
+-| 처리 배치·AMP | 처리 배치는 다룬 입력 묶음입니다. 작은 정밀도를 쓰는 AMP가 유효하지 않은 숫자를 만나면 모델 숫자 적용을 생략할 수 있습니다. |
+-| 256 KiB·캐시·신선도 | KiB는 파일 크기 단위입니다. 캐시는 잠시 조회 결과를 재사용하는 방식, 신선도는 기록이 최근인지 보는 기준이며 그 자체로 프로세스 생존 증명은 아닙니다. |
++```text
++node --check server.mjs
++node --test 검사/server.test.mjs
++```
+ 
+-<a id="reading-level-2"></a>
+-## LEVEL 2 - Explorer · 구성과 조건의 관계
++이 차수 구현자 검사는29개입니다. 실제 PC·모바일 화면, 밝은/어두운 테마, 포커스·선택·모션 조작 검증과 독립 검토는 별도 단계이며 합성 검사 성공을 실험 성능 재현으로 표현하지 않습니다. 의료 자료·가중치·실행 로그는 공개하지 않습니다. 공개 소스만으로 전체 실험을 실행할 수 있다는 뜻이 아닙니다.
+ 
+-| 구성 요소 | 연결되는 자료·조건 | 해석 경계 |
+-| --- | --- | --- |
+-| 목적 | 기존5차 고정 연결 대신 현재7차 실행을 읽는 독립 대시보드입니다. 학습 모델·분할·수치 계산은 이 차수에서 바꾸지 않습니다. | 경로의 목적을 정하는 계약입니다. |
+-| 입력 | `7차/work/current_run.json`의 검증된 실행 ID와 고정 `runs/<UUID>` 경계의 진행·이벤트·설정·결과·현재 대표사진을 읽습니다. 포인터 path는 읽기 경로로 신뢰하지 않습니다. | 입력 출처가 바뀌면 결과 해석도 바뀝니다. |
+-| 처리 | 2데이터셋·2과제·21조건을 선택하고 실제 행만 연결합니다. 프로세스의 소스·출력 UUID·부모·생성 시각과 최근 진행 기록이 함께 맞을 때만 학습 중으로 표시합니다. | 앞 단계 통과가 뒤 단계의 전제입니다. |
+-| 설정·조건 | 블러·모자이크 모두0,1,2,4,8,16,32,64,128,256입니다. 상태3초 갱신·프로세스10초 캐시·GPU15초 캐시, 읽기 전용이며 시작·중단 API가 없습니다. | 분모·모델·표시 조건을 분리합니다. |
+-| 출력 | 84개 과제 상태·42개 CSV행·전체 원값·최근 재개 stdout/stderr와 대표사진을 보여 줍니다. 정상 이력 생략 안내와 손상 오류, 현재 오류와 마지막 정상 기록을 나눕니다. | 상태·미리보기·지표는 다른 출력입니다. |
+-| 과거·현재 관측 | 로컬 연결·보안·표시 검사를 수행하고7차 실제 진행과 프로세스의 연결을 확인했습니다. 이는7차의 전체 학습·평가·논문 성능 완료 증거가 아닙니다. | 관측과 기능 구현은 다른 증거입니다. |
+-| 한계 | global_step은 단계 내 처리 배치이며 혼합정밀도의 가중치 적용 생략 때문에 실제 적용 횟수와 다를 수 있습니다. 마지막 관측과 저장 체크포인트도 다르며 운영 분리가 재부팅·저장 실패를 막지는 않습니다. | 같지 않은 조건은 비교에 명시합니다. |
+-| 실행·검사 | node server.mjs 후127.0.0.1:8787에서 화면8차·실험7차를 확인합니다. Node 검사와 실제 데이터셋/과제/21조건 선택·원값·양쪽 테마·모션·포커스 검증을 구분합니다. | 검사 도구의 역할을 구분합니다. |
+-
+-8차 연결은 **포인터 검증→고정 실행 경계→상태·결과 어댑터→선택 화면**입니다. 기록 파일이 최근이라는 조건과 현재 프로세스의 소스·UUID·부모·생성 시각이 맞는 조건을 결합합니다. Windows 가상환경의 실행 전달 프로세스와 실제 Python 자식은 같은 계보이면 한 학습으로 묶습니다. 정상적인 이력 앞부분 생략은 오류가 아니지만 잘못된 JSON·UTF8·다른 실행 기록은 관측값으로 채택하지 않습니다. 읽기 전용 상태라 화면을 조작해 실험을 종료하는 경로도 없습니다.
+-
+-**결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore@1은 고정 공격의1순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
+-
+-[2수준 프로젝트 안내](../docs/읽기안내/레벨2.md) · [직전 차수](../7차/README.md#reading-level-2) · [전체 파일 비교](이전_차수_비교.md)
+-
+-<a id="reading-level-3"></a>
+-## LEVEL 3 - Practitioner · 실행·점검 절차
+-
+-| 점검 영역 | 해당 차수의 실제 절차·기록 | 진행·보고 조건 |
+-| --- | --- | --- |
+-| 목적 | 기존5차 고정 연결 대신 현재7차 실행을 읽는 독립 대시보드입니다. 학습 모델·분할·수치 계산은 이 차수에서 바꾸지 않습니다. | 현재 차수에 맞는 진입점을 고릅니다. |
+-| 입력 | `7차/work/current_run.json`의 검증된 실행 ID와 고정 `runs/<UUID>` 경계의 진행·이벤트·설정·결과·현재 대표사진을 읽습니다. 포인터 path는 읽기 경로로 신뢰하지 않습니다. | 누락·다른 모델·다른 목록을 대신 넣지 않습니다. |
+-| 처리 | 2데이터셋·2과제·21조건을 선택하고 실제 행만 연결합니다. 프로세스의 소스·출력 UUID·부모·생성 시각과 최근 진행 기록이 함께 맞을 때만 학습 중으로 표시합니다. | 실패한 앞 단계를 건너뛰지 않습니다. |
+-| 설정·조건 | 블러·모자이크 모두0,1,2,4,8,16,32,64,128,256입니다. 상태3초 갱신·프로세스10초 캐시·GPU15초 캐시, 읽기 전용이며 시작·중단 API가 없습니다. | 원 설정과 실제 실행 인자를 대조합니다. |
+-| 출력 | 84개 과제 상태·42개 CSV행·전체 원값·최근 재개 stdout/stderr와 대표사진을 보여 줍니다. 정상 이력 생략 안내와 손상 오류, 현재 오류와 마지막 정상 기록을 나눕니다. | 동일 실행의 출처·원값을 확인합니다. |
+-| 과거·현재 관측 | 로컬 연결·보안·표시 검사를 수행하고7차 실제 진행과 프로세스의 연결을 확인했습니다. 이는7차의 전체 학습·평가·논문 성능 완료 증거가 아닙니다. | 과거 실패와 미측정을 보고서에 남깁니다. |
+-| 한계 | global_step은 단계 내 처리 배치이며 혼합정밀도의 가중치 적용 생략 때문에 실제 적용 횟수와 다를 수 있습니다. 마지막 관측과 저장 체크포인트도 다르며 운영 분리가 재부팅·저장 실패를 막지는 않습니다. | 불명확한 항목을 성공으로 보고하지 않습니다. |
+-| 실행·검사 | node server.mjs 후127.0.0.1:8787에서 화면8차·실험7차를 확인합니다. Node 검사와 실제 데이터셋/과제/21조건 선택·원값·양쪽 테마·모션·포커스 검증을 구분합니다. | 실행 전 준비와 실행 후 검증을 나눕니다. |
+-
+-**조회 순서:**Node.js로8차 server.mjs를 실행한 뒤 화면8차·실험7차·읽기 전용 표시를 확인합니다. NIH/COVID19와 검증/검색을 고르고 원본·블러·모자이크의 원하는 강도로 이동합니다. 현재 UUID·결과 원값·측정 출처·분모를 확인하고 미측정을0점으로 기록하지 않습니다. 상단 학습 중 표시는 프로세스와 최근 기록 확인이 동반되어야 합니다. 오류 원문·마지막 정상 이벤트·저장 체크포인트를 비교해 재개 범위를 판단하되 이 화면에서 재개를 실행하지 않습니다. 두 테마·모션·키보드·3초 뒤 선택 유지와 최신 stdout/stderr 읽기를 점검합니다.
+-
+-**결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore@1은 고정 공격의1순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
+-
+-[3수준 프로젝트 안내](../docs/읽기안내/레벨3.md) · [직전 차수](../7차/README.md#reading-level-3) · [전체 파일 비교](이전_차수_비교.md)
+-
+-<a id="reading-level-4"></a>
+-## LEVEL 4 - Advanced · 설계 경계와 변경 영향
+-
+-| 구현 경계 | 보존하는 계약과 사실 | 변경 영향 |
+-| --- | --- | --- |
+-| 목적 | 기존5차 고정 연결 대신 현재7차 실행을 읽는 독립 대시보드입니다. 학습 모델·분할·수치 계산은 이 차수에서 바꾸지 않습니다. | 상태·제어·수치 계산의 책임을 분리합니다. |
+-| 입력 | `7차/work/current_run.json`의 검증된 실행 ID와 고정 `runs/<UUID>` 경계의 진행·이벤트·설정·결과·현재 대표사진을 읽습니다. 포인터 path는 읽기 경로로 신뢰하지 않습니다. | 출처 결합과 입력 검증의 경계입니다. |
+-| 처리 | 2데이터셋·2과제·21조건을 선택하고 실제 행만 연결합니다. 프로세스의 소스·출력 UUID·부모·생성 시각과 최근 진행 기록이 함께 맞을 때만 학습 중으로 표시합니다. | 실패 전파와 결과 격리를 검토합니다. |
+-| 설정·조건 | 블러·모자이크 모두0,1,2,4,8,16,32,64,128,256입니다. 상태3초 갱신·프로세스10초 캐시·GPU15초 캐시, 읽기 전용이며 시작·중단 API가 없습니다. | 재현 조건·설계 차이의 일부입니다. |
+-| 출력 | 84개 과제 상태·42개 CSV행·전체 원값·최근 재개 stdout/stderr와 대표사진을 보여 줍니다. 정상 이력 생략 안내와 손상 오류, 현재 오류와 마지막 정상 기록을 나눕니다. | 출력 계약을 바꾸면 소비자 검사도 필요합니다. |
+-| 과거·현재 관측 | 로컬 연결·보안·표시 검사를 수행하고7차 실제 진행과 프로세스의 연결을 확인했습니다. 이는7차의 전체 학습·평가·논문 성능 완료 증거가 아닙니다. | 증거의 범위를 유지합니다. |
+-| 한계 | global_step은 단계 내 처리 배치이며 혼합정밀도의 가중치 적용 생략 때문에 실제 적용 횟수와 다를 수 있습니다. 마지막 관측과 저장 체크포인트도 다르며 운영 분리가 재부팅·저장 실패를 막지는 않습니다. | 남은 위험과 의도된 변경을 구별합니다. |
+-| 실행·검사 | node server.mjs 후127.0.0.1:8787에서 화면8차·실험7차를 확인합니다. Node 검사와 실제 데이터셋/과제/21조건 선택·원값·양쪽 테마·모션·포커스 검증을 구분합니다. | 구조·실제 동작·모델 성능 검증을 구별합니다. |
+-
+-**어댑터 경계:**루트가 다른 정적8차와 실행7차를 분리하고 current_run의 path 대신 UUID 정규식·고정 경로·realpath로 읽기를 제한합니다. JSON/CSV의 UTF8 엄격 해석, JSONL의 LF·256KiB 범위·불완전 꼬리 표시, CSV 중복/완료 상태/유한 지표와 JSON 충돌 검사가 완료 판정을 지킵니다. 프로세스10초 캐시는 venv 전달자/실제 Python을 부모·생성 시각으로 한 계보에 묶고 최근90초 진행과 함께 해석합니다. 조회 실패는 학습 중으로 추정하지 않습니다. 모델 SHA가 일치하는 원본 평가만 먼저 보여 주며 변환 완료로 확대하지 않습니다. 이력 생략은 보조 안내, 손상은 오류이며7차 쓰기·종료 경로는 없습니다.
+-
+-**결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore@1은 고정 공격의1순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
+-
+-[4수준 프로젝트 안내](../docs/읽기안내/레벨4.md) · [직전 차수](../7차/README.md#reading-level-4) · [전체 파일 비교](이전_차수_비교.md)
+-
+-<a id="reading-level-5"></a>
+-## LEVEL 5 - Expert · 전체 상세와 근거
+-
+-## 8차 — 7차 실시간 연결과 실행 분리
+-
+-기존 대시보드의5차 고정 연결을7차 실제 실행 기록으로 바꾸는 화면 차수입니다. 학습 모델·설정·데이터 분할은 이 화면 변경으로 바꾸지 않습니다.
+-
+-검증·검색 출력부·검색 전체 학습과 원본·블러·모자이크 평가를 구분합니다. 두 데이터셋×두 과제×21조건을 읽으며42결과행과84과제조건을 혼동하지 않습니다. 양쪽 변환 강도는0·1·2·4·8·16·32·64·128·256입니다.
+-
+-Node.js로8차/server.mjs를 실행하고127.0.0.1:8787에 접속합니다. 현재7차의 검증된 UUID 아래 기록만 읽고 화면에서 학습 시작·종료 명령을 보내지 않습니다. 원본·강도 선택, 원값 확인, 테마·모션 제어는 조회입니다.
+-
+-오류가 남긴0과 마지막 정상 학습 로그·실제 체크포인트 저장을 구분합니다. 과거 training JSON만으로 현재 학습 중이라고 주장하지 않습니다. 대시보드와 학습 프로세스를 분리하더라도 OS 재부팅·저장장치 고장·모든 학습 오류를 방지하는 보장은 아닙니다.
+-
+-[5수준 프로젝트 안내](../docs/읽기안내/레벨5.md) · [직전 차수](../7차/README.md#reading-level-5)
+-
+-## 공개 화면 실행 범위
+-
+-공개 화면은 Node.js를 준비한 뒤 `node server.mjs`로 실행합니다. 로컬 환경에 고정된 `대시보드_시작.cmd`는 공개 사본에서 제외하고 실제 로컬 원본에 보존합니다. 실험7차와의 폴더 관계가 필요하며, 이 화면이 학습을 생성하거나 중단하지 않습니다.
++진행 막대의 요약 백분율은 원정수 분자·분모에서0.1% 단위로 직접 반올림합니다. 나눗셈 후 이진 부동소수 오차 때문에 경계값이 낮아지는 문제를 막고, 원비율과 저장값은 그대로 보존합니다. 2,100개 경계 조합과 별도 재현 사례를 검사합니다.
++
++
++## 공개 사본의 검증 범위
++
++| 근거 | 실제 확인 | 한계 |
++| --- | --- | --- |
++| 고정 구현 검사 | Node 회귀29개 통과와 문법 검사 | 합성 계약 검사이며7차 학습·평가 완주 증거가 아님 |
++| 실제 화면 | PC 밝은/어두운 테마,390×844 작은 화면의 넘침,Enter 원값 펼침·모션 정지/재생,콘솔 경고/오류 확인 | 사용한 도구에서 실제 hover를 지원하지 않아 마우스 오버 상태는 미검증 |
++| 기록·수치 | 실제 관측 구간·원값·미측정과 최대 예정량을 구분 | 모든 미래 UI·저장·학습 오류가 방지된다는 뜻이 아님 |
++
++설계와 작업계획의 미완료 체크 표시는 작성 시점의 계획을 보존한 것입니다. 이후 수행한 구현 검사와 위 화면 확인 범위는 따로 구분합니다. 논문·평가 해석의 한계는 [8차 재검토](../8차/논문과_실행_재검증.md)를 유지하며 새 원고·논문 PDF·성과를 만들지 않았습니다.
++
++[같은 수준 프로젝트 안내](../docs/읽기안내/레벨5.md) · [직전8차 상세](../8차/README.md#reading-level-5) · [전체 파일 비교](이전_차수_비교.md)
+--- 8차/adapter.mjs
++++ 9차/adapter.mjs
+@@ -64,7 +64,7 @@
+  const errors=[];
+  const pointer=await json(path.join(executionRoot,'work'),'current_run.json',errors);
+  const runId=pointer?.value?.run_id;
+- const base={revision:8,read_only:true,experiment:{screen_revision:8,execution_revision:7,condition_count:21,task_condition_count:84,datasets:DATASETS,tasks:TASKS},run_id:validRunId(runId)?runId:null,pointer_error:!validRunId(runId),pointer_created_at:pointer?.value?.created_at??null,errors,process_verified:false,updated_at:new Date().toISOString()};
++ const base={revision:9,read_only:true,experiment:{screen_revision:9,execution_revision:7,condition_count:21,task_condition_count:84,datasets:DATASETS,tasks:TASKS},run_id:validRunId(runId)?runId:null,pointer_error:!validRunId(runId),pointer_created_at:pointer?.value?.created_at??null,errors,process_verified:false,updated_at:new Date().toISOString()};
+  if(!validRunId(runId))return {...base,progress:null,conditions:adaptConditions(null,null,null,false),completed_task_conditions:0,training_phases:{},logs:{},previews:{}};
+  const folder=path.join(executionRoot,'runs',runId);
+  try{if(await fs.realpath(folder)!==path.resolve(await fs.realpath(executionRoot),'runs',runId))throw Error('실행 경계 불일치');}
+--- /dev/null
++++ 9차/docs/설계와_작업계획.md
+@@ -0,0 +1,35 @@
++# 학습 진행 시각화 설계와 작업계획
++
++목표는 같은 7차 학습을 중단하지 않고, 얼마나 진행했는지 실제 기록으로 읽기 쉽게 보여 주는 것입니다. 8차 화면은 보존하고 9차 화면에 반영합니다. 기존 Node 서버와 순수 JavaScript 구조를 유지합니다.
++
++| 화면 | 표시 기준 | 해석 |
++| --- | --- | --- |
++| 현재 에폭 | 현재 배치 / 에폭의 전체 배치 | 현재 자료 순회의 진행률 |
++| 현재 학습 단계 | ((현재 에폭−1)+현재 배치/전체 배치)/예정 최대 에폭 | 최대 예정 에폭을 기준으로 한 수치, 전체 실험 시간 비율이 아님 |
++| 학습 흐름 | 검증 모델 → 검색 출력부 → 검색 전체 | 저장된 완료 근거·현재 기록·실제 프로세스로 구분 |
++| 손실 추이 | 저장된 정상 학습 기록과 검증 기록 | 실제 관측 구간·축·누락·마지막 기록 시각을 표시 |
++| 진행 원값 | 배치·에폭·손실·학습률·원기록 | 표시를 위해 저장값을 바꾸지 않음 |
++
++검증 모델은 최대 100에폭과 조기 종료 규칙을 가지며 검색 출력부는 30에폭, 전체는 50에폭입니다. 이 셋을 단순 평균한 값을 시간 완료율로 표시하지 않습니다. 실제 조기 종료·단계 완료를 예정 최대 에폭 도달과 구분합니다. 속도나 예상 시각은 유효한 연속 관측이 충분하지 않으면 미측정으로 둡니다.
++
++## 구현 순서
++
++- [x] 기존 읽기 경계·상태·로그 선택을 유지하며 정상 학습 시계열을 유한한 크기로 전달합니다.
++- [x] 진행률 계산을 순수 함수로 나누고 0·누락·오류·중단·재개·단계 전환을 확인하는 검사를 작성합니다.
++- [x] 큰 진행 막대, 세 단계 상태, 실제 손실 그래프와 구간 안내를 구현합니다.
++- [x] 기존 평가 조건·원값·테마·모션 제어를 보존하고 관련 검사를 실행합니다.
++- [ ] 독립 검토 뒤 시험 포트에서 PC·작은 화면·테마·포커스·마우스 조작을 확인합니다.
++- [ ] 화면 서버만 교체해 기존 8787 주소로 연결하고 학습 프로세스·기록 증가를 다시 확인합니다.
++- [ ] 전체 차수·같은 읽기 수준 설명·전체 비교·공개 변경 기록을 갱신하고 두 공개 검사와 원격을 확인합니다.
++
++## 변경 경계와 검증
++
++7차의 학습 코드·설정·가중치·실행 식별자와 기존 차수는 변경하지 않습니다. 대시보드는 읽기 전용을 유지하며 모션 정지는 학습 정지가 아닙니다. 기존 흰색·회청색, 나눔고딕 Bold 700, 다크 모드, 백분율 소수 첫째 자리 반올림과 원값 확인을 유지합니다.
++
++정상 기록이 오래됐거나 현재 실행 프로세스가 확인되지 않으면 학습 중으로 단정하지 않습니다. 손실이 미측정이면 빈 그래프 안내를 표시하며 0으로 대체하지 않습니다. 손실 감소는 최종 재식별 성능이나 익명성의 증거가 아닙니다. 제한된 로그 꼬리로 그린 그림을 전체 학습 이력이라고 표시하지 않습니다.
++
++## 구현자 확인 범위
++
++Node29개 검사와 서버 문법 검사를 실행했습니다. 실제7차 기록을 읽기 전용으로 확인해 최근256KiB의 학습 손실 및 에폭 검증 손실이 전달되는 것을 확인했습니다. 그래프의 축 눈금만4유효숫자이며 점 설명과 전체 원값은 보존합니다. 실제 브라우저·운영 서버 교체·독립 검토·공개 반영 항목은 부모 담당으로 남겨 둡니다.
++
++진행 막대의 요약 백분율은 원정수 분자·분모에서0.1% 단위로 직접 반올림합니다. 나눗셈 후 이진 부동소수 오차 때문에 경계값이 낮아지는 문제를 막고, 원비율과 저장값은 그대로 보존합니다. 2,100개 경계 조합과 별도 재현 사례를 검사합니다.
+--- 8차/io.mjs
++++ 9차/io.mjs
+@@ -20,7 +20,7 @@
+ // 현재 실행의 고정 JSONL만 읽고 잘린 범위와 손상 기록을 별도로 알립니다.
+ export async function readTrainingHistory(file, runId, limit = 256 * 1024) {
+   let handle;
+-  const result = { source: 'training/events.jsonl', bytes: 0, truncated: false, incomplete_tail: false, status: 'missing', last_observed_progress: null };
++  const result = { source: 'training/events.jsonl', bytes: 0, truncated: false, incomplete_tail: false, status: 'missing', last_observed_progress: null, loss_samples: [], validation_samples: [] };
+   try {
+     handle = await fs.open(file, 'r');
+     const { size } = await handle.stat(); result.bytes = size;
+@@ -33,11 +33,18 @@
+     if (result.incomplete_tail) { const boundary = bytes.lastIndexOf(10); bytes = boundary < 0 ? bytes.subarray(0, 0) : bytes.subarray(0, boundary + 1); }
+     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+     const lines = text.split('\n'); lines.pop();
+-    let last = null;
++    let last = null; const losses=[], validations=[];
+     for (const line of lines) {
+       const record = JSON.parse(line);
+       if (!record || typeof record !== 'object' || Array.isArray(record)) throw new Error('invalid_record');
+       if (Object.hasOwn(record, 'run_id') && record.run_id !== runId) throw new Error('different_run');
++      if (record.status === 'epoch_complete') {
++        if (!['verification','retrieval_phase1','retrieval_phase2'].includes(record.phase) ||
++            !Number.isSafeInteger(record.epoch) || record.epoch < 1 || !Number.isSafeInteger(record.epochs) || record.epochs < record.epoch ||
++            typeof record.validation_loss !== 'number' || !Number.isFinite(record.validation_loss) ||
++            typeof record.updated_at !== 'string' || !Number.isFinite(Date.parse(record.updated_at))) throw new Error('invalid_training_record');
++        validations.push(record); continue;
++      }
+       if (record.status !== 'training') continue;
+       const integer = key => Number.isSafeInteger(record[key]) && record[key] >= 0;
+       if (!['verification', 'retrieval_phase1', 'retrieval_phase2'].includes(record.phase) ||
+@@ -45,10 +52,10 @@
+           typeof record.loss !== 'number' || !Number.isFinite(record.loss) ||
+           typeof record.learning_rate !== 'number' || !Number.isFinite(record.learning_rate) || record.learning_rate < 0 ||
+           typeof record.updated_at !== 'string' || !/^\d{4}-\d\d-\d\dT.*(?:Z|[+-]\d\d:\d\d)$/.test(record.updated_at) || !Number.isFinite(Date.parse(record.updated_at))) throw new Error('invalid_training_record');
+-      last = record;
++      last = record; losses.push(record);
+     }
+     result.status = result.incomplete_tail ? 'incomplete_tail' : result.truncated ? 'truncated' : 'ok';
+-    result.last_observed_progress = last;
++    result.last_observed_progress = last; result.loss_samples=losses; result.validation_samples=validations;
+     return result;
+   } catch (error) {
+     if (error.code === 'ENOENT') return result;
+--- 8차/server.mjs
++++ 9차/server.mjs
+@@ -24,7 +24,7 @@
+   try{
+    const host=`127.0.0.1:${server.address().port}`;
+    if(req.headers.host!==host)return send(403,{error:'로컬 Host만 허용합니다.'});
+-   // 8차 화면에는 실험 생성·종료·파일 쓰기 요청이 없습니다.
++   // 9차 화면에는 실험 생성·종료·파일 쓰기 요청이 없습니다.
+    if(req.method!=='GET')return send(405,{error:'읽기 전용 대시보드입니다. 실험 제어 요청은 제공하지 않습니다.'});
+    if(req.url==='/api/status')return send(200,await status());
+    const preview=/^\/api\/preview\/(NIH|COVID19)\/([a-z]+_\d{3})\.png$/.exec(req.url);
+@@ -45,5 +45,5 @@
+ }
+ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  const server=createDashboard();server.on('error',error=>{console.error(`[대시보드 시작 실패] ${error.code}: ${error.message}`);process.exitCode=1;});
+- server.listen(8787,'127.0.0.1',()=>console.log('화면 8차 · 실험 7차 · 읽기 전용: http://127.0.0.1:8787'));
++ server.listen(8787,'127.0.0.1',()=>console.log('화면 9차 · 실험 7차 · 읽기 전용: http://127.0.0.1:8787'));
+ }
+--- 8차/검사/server.test.mjs
++++ 9차/검사/server.test.mjs
+@@ -31,7 +31,7 @@
+ });
+ 
+ test('현재 포인터의 path는 무시하고 검증한 UUID의 7차 기록만 연결합니다',()=>fixture(async f=>{
+- await f.write('progress.json',training);const s=await(await f.get('/api/status')).json();assert.equal(s.revision,8);assert.equal(s.experiment.execution_revision,7);assert.equal(s.read_only,true);assert.equal(s.run_id,ID);assert.equal(s.progress.global_step,57);assert.equal(s.process_verified,false);assert.equal(s.conditions.length,84);assert.equal(s.completed_task_conditions,0);
++ await f.write('progress.json',training);const s=await(await f.get('/api/status')).json();assert.equal(s.revision,9);assert.equal(s.experiment.execution_revision,7);assert.equal(s.read_only,true);assert.equal(s.run_id,ID);assert.equal(s.progress.global_step,57);assert.equal(s.process_verified,false);assert.equal(s.conditions.length,84);assert.equal(s.completed_task_conditions,0);
+ }));
+ 
+ test('잘못된 UUID·누락 포인터는 다른 차수나 임의 경로로 대체하지 않습니다',()=>fixture(async f=>{
+@@ -102,9 +102,9 @@
+  assert.equal(formatPercent('0.9878048780487805'),'98.8%');assert.equal(formatPercent('0.987499999999999999'),'98.7%');assert.equal(formatPercent('9.875e-1'),'98.8%');assert.equal(formatPercent('98.789',{ratio:false}),'98.8%');assert.match(percentNotice('0.9999999999999999999'),/100% 미만/);assert.match(percentNotice('1'),/정확히 1/);assert.match(percentNotice('100',{ratio:false}),/정확히 100/);assert.equal(formatRaw(0),'0');for(const value of [null,'',NaN,Infinity])assert.equal(formatRaw(value),'미측정');
+ });
+ 
+-test('정적화면은8차·실험7차이며 테마·모션·키보드선택·원값펼침을 유지합니다',()=>fixture(async f=>{
++test('정적화면은9차·실험7차이며 테마·모션·키보드선택·원값펼침을 유지합니다',()=>fixture(async f=>{
+  const response=await f.get('/');assert.equal(response.status,200);const html=await response.text(),js=await fs.readFile(path.join(ROOT,'화면/app.js'),'utf8'),css=await fs.readFile(path.join(ROOT,'화면/style.css'),'utf8');
+- assert.match(html,/화면 8차 · 실험 7차/);assert.match(html,/84개 상태/);assert.doesNotMatch(html,/id="(?:start|stop)"/);assert.doesNotMatch(js,/method:'POST'|innerHTML/);assert.match(js,/history.replaceState/);assert.match(js,/data-dataset/);assert.match(js,/ArrowLeft/);assert.match(js,/expanded.has/);assert.match(js,/localStorage.getItem\('cxr-theme'\)/);assert.match(js,/timeZone:'Asia\/Seoul'/);
++ assert.match(html,/화면 9차 · 실험 7차/);assert.match(html,/84개 상태/);assert.doesNotMatch(html,/id="(?:start|stop)"/);assert.doesNotMatch(js,/method:'POST'|innerHTML/);assert.match(js,/history.replaceState/);assert.match(js,/data-dataset/);assert.match(js,/ArrowLeft/);assert.match(js,/expanded.has/);assert.match(js,/localStorage.getItem\('cxr-theme'\)/);assert.match(js,/timeZone:'Asia\/Seoul'/);
+  assert.match(css,/\.motion:hover,\.motion:active,\.motion:disabled\{background:transparent\}/);assert.match(css,/min-height:44px/);assert.match(css,/prefers-reduced-motion/);assert.match(css,/data-theme=dark/);assert.match(response.headers.get('content-security-policy'),/default-src 'self'/);
+ }));
+ 
+@@ -136,29 +136,91 @@
+  const {createProcessObserver}=await import('../process.mjs');let calls=0;const observer=createProcessObserver(async()=>{calls++;throw Error('fixture failure');});
+  const results=await Promise.all([observer('E:/실험/7차',ID,null),observer('E:/실험/7차',ID,null)]);assert.equal(calls,1);assert.ok(results.every(result=>result.status==='unavailable'&&!result.verified));await observer('E:/실험/7차',ID,null);assert.equal(calls,1);
+ });
+-
+-test('잘못된 UTF-8 JSON·CSV는 대체문자로 채택하지 않고 읽기 오류로 드러냅니다',()=>fixture(async f=>{
+- await fs.writeFile(path.join(f.run,'privacy_results.csv'),Buffer.from([100,97,116,97,115,101,116,10,0xff]));await fs.writeFile(path.join(f.run,'progress.json'),Buffer.from([123,34,0xff,34,58,49,125]));
+- const s=await readSevenStatus(f.dir);assert.equal(s.progress,null);assert.equal(s.completed_task_conditions,0);assert.ok(s.errors.some(e=>e.source==='privacy_results.csv'));assert.ok(s.errors.some(e=>e.source==='progress.json'));
+-}));
+-
+-test('원본 성능은 같은 실행 모델 SHA가 일치할 때만 먼저 표시하며 변환 완료로 확장하지 않습니다',()=>{
+- const sha='a'.repeat(64),artifacts={published_cxr_initialization:false,verification_sha256:sha},baseline={NIH:{verification:metrics.verification,verification_sha256:sha}};
+- let rows=adaptConditions(null,null,null,false,baseline,artifacts);assert.equal(rows.filter(r=>r.status==='complete').length,1);assert.equal(rows.find(r=>r.status==='complete').source,'evaluation_results.json');assert.equal(rows.find(r=>r.dataset==='NIH'&&r.task==='verification'&&r.condition==='blur_000').status,'waiting');
+- rows=adaptConditions(null,null,null,false,baseline,{...artifacts,verification_sha256:'b'.repeat(64)});assert.equal(rows.filter(r=>r.status==='complete').length,0);assert.equal(rows.find(r=>r.dataset==='NIH'&&r.task==='verification'&&r.condition==='original_000').status,'error');
+-});
+-
+-test('정상 이력 생략은 한국어 보조 안내로 표시하고 손상·읽기 실패만 오류로 표시합니다',async()=>{
+- const {historyNotice}=await import('../화면/state.mjs');
+- const truncated=historyNotice({status:'truncated',truncated:true});assert.equal(truncated.error,'');assert.match(truncated.info,/최근 256 KiB/);assert.match(truncated.info,/앞부분.*생략/);assert.doesNotMatch(truncated.info,/truncated/);
+- const partial=historyNotice({status:'incomplete_tail',truncated:true,incomplete_tail:true});assert.equal(partial.error,'');assert.match(partial.info,/작성 중인 마지막 행/);assert.match(partial.info,/앞부분.*생략/);
+- for(const status of ['malformed','unreadable','invalid_record','different_run','invalid_training_record','unknown']){
+-  const result=historyNotice({status,truncated:true});assert.ok(result.error.length>0);assert.doesNotMatch(result.error,new RegExp(status));assert.match(result.info,/원본 파일은 보존/);
+- }
+- assert.deepEqual(historyNotice(null),{info:'',error:''});assert.equal(historyNotice({status:'ok'}).error,'');assert.equal(historyNotice({status:'missing'}).error,'');
+- const js=await fs.readFile(path.join(ROOT,'화면/app.js'),'utf8'),html=await fs.readFile(path.join(ROOT,'화면/index.html'),'utf8');assert.match(js,/historyMessage.error/);assert.match(js,/history-note/);assert.match(html,/id="history-note"/);assert.doesNotMatch(js,/'events.jsonl: '\+s.history.status/);
+-});
+-
+-test('공격 실패율과 처리 배치 수는 가중치 적용 횟수·보수 표현과 구분합니다',async()=>{
+- const js=await fs.readFile(path.join(ROOT,'화면/app.js'),'utf8');assert.match(js,/고정 공격의 1순위 재식별 실패율이며 익명성 보장이 아닙니다/);assert.doesNotMatch(js,/공격 실패율의 보수/);assert.match(js,/단계 내 누적 처리 배치/);assert.match(js,/처리 배치 수는 가중치 적용 횟수가 아닙니다/);assert.doesNotMatch(js,/누적 갱신 \$\{metric\(training.global_step\)/);
+-});
++
++test('잘못된 UTF-8 JSON·CSV는 대체문자로 채택하지 않고 읽기 오류로 드러냅니다',()=>fixture(async f=>{
++ await fs.writeFile(path.join(f.run,'privacy_results.csv'),Buffer.from([100,97,116,97,115,101,116,10,0xff]));await fs.writeFile(path.join(f.run,'progress.json'),Buffer.from([123,34,0xff,34,58,49,125]));
++ const s=await readSevenStatus(f.dir);assert.equal(s.progress,null);assert.equal(s.completed_task_conditions,0);assert.ok(s.errors.some(e=>e.source==='privacy_results.csv'));assert.ok(s.errors.some(e=>e.source==='progress.json'));
++}));
++
++test('원본 성능은 같은 실행 모델 SHA가 일치할 때만 먼저 표시하며 변환 완료로 확장하지 않습니다',()=>{
++ const sha='a'.repeat(64),artifacts={published_cxr_initialization:false,verification_sha256:sha},baseline={NIH:{verification:metrics.verification,verification_sha256:sha}};
++ let rows=adaptConditions(null,null,null,false,baseline,artifacts);assert.equal(rows.filter(r=>r.status==='complete').length,1);assert.equal(rows.find(r=>r.status==='complete').source,'evaluation_results.json');assert.equal(rows.find(r=>r.dataset==='NIH'&&r.task==='verification'&&r.condition==='blur_000').status,'waiting');
++ rows=adaptConditions(null,null,null,false,baseline,{...artifacts,verification_sha256:'b'.repeat(64)});assert.equal(rows.filter(r=>r.status==='complete').length,0);assert.equal(rows.find(r=>r.dataset==='NIH'&&r.task==='verification'&&r.condition==='original_000').status,'error');
++});
++
++test('정상 이력 생략은 한국어 보조 안내로 표시하고 손상·읽기 실패만 오류로 표시합니다',async()=>{
++ const {historyNotice}=await import('../화면/state.mjs');
++ const truncated=historyNotice({status:'truncated',truncated:true});assert.equal(truncated.error,'');assert.match(truncated.info,/최근 256 KiB/);assert.match(truncated.info,/앞부분.*생략/);assert.doesNotMatch(truncated.info,/truncated/);
++ const partial=historyNotice({status:'incomplete_tail',truncated:true,incomplete_tail:true});assert.equal(partial.error,'');assert.match(partial.info,/작성 중인 마지막 행/);assert.match(partial.info,/앞부분.*생략/);
++ for(const status of ['malformed','unreadable','invalid_record','different_run','invalid_training_record','unknown']){
++  const result=historyNotice({status,truncated:true});assert.ok(result.error.length>0);assert.doesNotMatch(result.error,new RegExp(status));assert.match(result.info,/원본 파일은 보존/);
++ }
++ assert.deepEqual(historyNotice(null),{info:'',error:''});assert.equal(historyNotice({status:'ok'}).error,'');assert.equal(historyNotice({status:'missing'}).error,'');
++ const js=await fs.readFile(path.join(ROOT,'화면/app.js'),'utf8'),html=await fs.readFile(path.join(ROOT,'화면/index.html'),'utf8');assert.match(js,/historyMessage.error/);assert.match(js,/history-note/);assert.match(html,/id="history-note"/);assert.doesNotMatch(js,/'events.jsonl: '\+s.history.status/);
++});
++
++test('공격 실패율과 처리 배치 수는 가중치 적용 횟수·보수 표현과 구분합니다',async()=>{
++ const js=await fs.readFile(path.join(ROOT,'화면/app.js'),'utf8');assert.match(js,/고정 공격의 1순위 재식별 실패율이며 익명성 보장이 아닙니다/);assert.doesNotMatch(js,/공격 실패율의 보수/);assert.match(js,/단계 내 누적 처리 배치/);assert.match(js,/처리 배치 수는 가중치 적용 횟수가 아닙니다/);assert.doesNotMatch(js,/누적 갱신 \$\{metric\(training.global_step\)/);
++});
++
++test('현재 에폭과 최대 예정 단계는 정확한 분모만 사용하고 미지값을0으로 채우지 않습니다',async()=>{
++ const {trainingFractions}=await import('../화면/state.mjs');
++ const result=trainingFractions(training);assert.equal(result.epoch,17/40);assert.equal(result.phase,(1+17/40)/9);assert.equal(result.remaining,23);assert.equal(formatPercent(result.epoch),'42.5%');assert.equal(formatPercent(result.phase),'15.8%');
++ assert.equal(trainingFractions({...training,step:0}).epoch,0);
++ for(const value of [null,{...training,steps:0},{...training,steps:null},{...training,step:41},{...training,epoch:0},{...training,epoch:10},{...training,epoch:1.5}])assert.equal(trainingFractions(value),null);
++});
++
++test('실제 학습·에폭 검증 기록을 반환하고 손상행과 다른실행이면 전체 시계열을 채택하지 않습니다',()=>fixture(async f=>{
++ const validation={phase:'verification',status:'epoch_complete',epoch:2,epochs:9,step:40,loss:0.1,validation_loss:0.2,updated_at:'2030-01-02T10:01:00Z'};
++ await f.write('events.jsonl',JSON.stringify(training)+'\n'+JSON.stringify(validation)+'\n');let h=await readTrainingHistory(path.join(f.run,'events.jsonl'),ID);assert.deepEqual(h.loss_samples,[training]);assert.deepEqual(h.validation_samples,[validation]);
++ const s=await readSevenStatus(f.dir);assert.deepEqual(s.history.validation_samples,[validation]);
++ for(const bad of ['{broken}',JSON.stringify({...validation,validation_loss:null}),JSON.stringify({...training,run_id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'})]){
++  await f.write('events.jsonl',JSON.stringify(training)+'\n'+bad+'\n');h=await readTrainingHistory(path.join(f.run,'events.jsonl'),ID);assert.deepEqual(h.loss_samples,[]);assert.deepEqual(h.validation_samples,[]);assert.equal(h.last_observed_progress,null);
++ }
++}));
++
++test('손실 선은 단계·에폭·재개 되감기·시간 역전 경계에서 분리하고0손실은 유지합니다',async()=>{
++ const {lossSegments}=await import('../화면/state.mjs');
++ const point=(step,time,other={})=>({...training,global_step:step,updated_at:`2030-01-02T10:00:${String(time).padStart(2,'0')}Z`,...other});
++ const segments=lossSegments([point(1,1,{loss:0}),point(2,2),point(1,3),point(2,4,{epoch:3}),point(3,5,{epoch:3,phase:'retrieval_phase1'}),point(4,4,{epoch:3,phase:'retrieval_phase1'})]);
++ assert.deepEqual(segments.map(x=>x.length),[2,1,1,1,1]);assert.equal(segments[0][0].value,0);assert.deepEqual(lossSegments([{...training,loss:null}]),[]);
++ assert.equal(lossSegments([point(1,1,{epoch:1,validation_loss:0.2}),point(2,2,{epoch:2,validation_loss:0.1})],'validation_loss')[0].length,2);
++});
++
++test('단계완료는 가중치존재만으로 주장하지 않고 후속단계 또는 실제전체종료와 결합합니다',async()=>{
++ const {phaseTimeline,trainingFractions}=await import('../화면/state.mjs');
++ const phases={verification:{selected_weights:true},retrieval_phase1:{selected_weights:true}};
++ assert.equal(phaseTimeline({progress:training,training_phases:phases,config:{tasks:'both'}})[0].complete,false);
++ const s={progress:{...training,phase:'retrieval_phase1',epoch:1,epochs:30},training_phases:phases,config:{tasks:'both'}};
++ assert.equal(phaseTimeline(s)[0].complete,true);assert.equal(phaseTimeline(s)[1].complete,false);assert.equal(phaseTimeline({...s,config:{tasks:'retrieval'}})[0].complete,false);
++ const completed=phaseTimeline({...s,progress:{phase:'complete',status:'completed'}});assert.equal(completed[0].complete,true);assert.equal(completed[2].complete,false);
++ assert.equal(trainingFractions({...training,epoch:3,epochs:100,step:40}).phase,0.03);
++});
++
++test('학습시각화는모바일테마·원값·분모·기록범위를보존하고ETA를만들지않습니다',async()=>{
++ const html=await fs.readFile(path.join(ROOT,'화면/index.html'),'utf8'),js=await fs.readFile(path.join(ROOT,'화면/app.js'),'utf8'),css=await fs.readFile(path.join(ROOT,'화면/style.css'),'utf8');
++ for(const id of ['epoch-progress','phase-progress','loss-chart','validation-chart'])assert.match(html,new RegExp('id="'+id+'"'));
++ assert.match(html,/전체 실험 시간 완료율이 아닙니다/);assert.match(html,/조기 종료/);assert.match(html,/남은 시간은 계산하지 않습니다/);assert.match(js,/progress_fractions:f/);assert.match(js,/lossSegments\(selected,key\)/);assert.match(js,/최근 256 KiB 범위/);assert.match(css,/@media\(max-width:500px\)/);assert.match(css,/stroke:var\(--accent\)/);
++});
++
++test('원정수 진행률은 이진 나눗셈 반올림 경계에서도 정확하고 원비율은 보존합니다',async()=>{
++ const {formatProgressPercent,trainingFractions}=await import('../화면/state.mjs');
++ const a={epoch:1,epochs:100,step:8666,steps:24760},b={...a,epoch:2,step:11142};
++ assert.equal(formatProgressPercent(a,'phase'),'0.4%');assert.equal(formatProgressPercent(b,'phase'),'1.5%');
++ assert.equal(trainingFractions(a).phase,((a.epoch-1)+a.step/a.steps)/a.epochs);assert.equal(formatProgressPercent({...a,step:0}),'0.0%');assert.equal(formatProgressPercent({...a,step:24760}),'100.0%');
++ assert.equal(formatProgressPercent({...a,steps:null}),'미측정');assert.equal(formatProgressPercent(a,'other'),'미측정');
++});
++
++test('2100개 에폭·최대예정 경계조건에서 원정수와 독립 구성한 기대 표시를 확인합니다',async()=>{
++ const {formatProgressPercent}=await import('../화면/state.mjs');let cases=0;
++ const display=tenths=>Math.floor(tenths/10)+'.'+tenths%10+'%';
++ for(let epoch=1;epoch<=100;epoch++)for(let index=0;index<=20;index++){
++  // 단계 백분율은 (epoch−1)+index/20 이므로 홀수 index가 정확히 반올림 경계입니다.
++  const p={epoch,epochs:100,step:index*100,steps:2000};
++  assert.equal(formatProgressPercent(p,'phase'),display((epoch-1)*10+Math.floor((index+1)/2)));
++  assert.equal(formatProgressPercent(p,'epoch'),display(index*50));
++  // 에폭 백분율은 index/10+0.05 이므로 항상 올림 경계입니다.
++  assert.equal(formatProgressPercent({...p,step:index*2+1},'epoch'),display(index+1));cases++;
++ }
++ assert.equal(cases,2100);
++});
+--- 8차/논문과_실행_재검증.md
++++ /dev/null
+@@ -1,58 +0,0 @@
+-# 7차 원 논문 정합성과 실행 재검증
+-
+-2026-11-20 확인입니다. **7차는 저자 공식 구현을 기준으로 새로 학습하는 Windows 포팅**입니다. 공개 최종 CXR 가중치만 평가하는 경로가 아니며, 논문의 모든 환경·분석·성과가 같다는 결론도 아닙니다.
+-
+-## 학습·평가 조건 대조
+-
+-| 항목 | 확인한7차 동작 | 판단 |
+-| --- | --- | --- |
+-| 초기값·검증 구조 | ImageNet ResNet50,128특징·절대차·최종 판별 | 공개 최종 CXR 모델로 학습 시작하지 않음 |
+-| 검증 최적화 | 256px·배치32·Adam1e-4·최대100에폭·patience5 | 최저 검증손실 가중치 선택 |
+-| RNP | 양성 유지,학습·검증 음성을 에폭마다 재생성 | 공식 randomized 코드 분기에 대응 |
+-| 판정 | 확률이0.5보다 클 때 양성 | 시험 결과로 임계값 선택하지 않음 |
+-| 검색 구조 | 1024px·128차원,출력부30/전체50에폭 | phase1 freeze·BNtrain,phase2 최종 가중치 |
+-| 검색 최적화 | SGD momentum0.9·weight decay1e-5·OneCycle maxLR0.158489 | 원 목록61,755에서1,930배치/에폭 |
+-| 메모리 손실 | PML0.9.94·CBM128·block8 | validation에서도 같은 큐 갱신 유지 |
+-| AMP | 비유한 기울기에서 optimizer 갱신 생략·배율 축소 | 같은 배치를 다시 수행하는 앞 차수와 다름 |
+-| 기준 평가 | L2 정규화·제곱 L2·정확한 자기영상 대각 제외 | 원 FAISS의 첫 이웃 제거·동률과 차이 가능 |
+-| 변환 평가 | 고정 모델·원본 갤러리,질의만 변형 | 강도별 재학습 아님 |
+-| 데이터 | NIH112,120·COVID781 저자 원본 목록 | 앞 차수112,086·777 정제 목록과 다름 |
+-
+-공식 고정 커밋의 Agent·SiameseDataset·검색 phase1·phase2 네 파일을 새로 받아 로컬 참조 사본과 바이트·SHA-2564/4 일치를 확인했습니다. 모든 공식 파일을 원격에서 새로 검증했다는 뜻은 아닙니다. 현재 재개 전 합성·계약 검사86개가 통과했습니다. 손실·기울기,큐 갱신,원 sampler 함수 대조,체크포인트 복원,바인딩 불일치 거부,AMP skip,질의만 변형·자기영상 제외 회귀의 범위이며 실제 전체 학습 완주를 대신하지 않습니다.
+-
+-## 같다고 단정할 수 없는 부분
+-
+-| 구분 | 차이 또는 남은 한계 | 해석 |
+-| --- | --- | --- |
+-| 본문과 공식 코드 | 본문은 같은 balanced validation/test를 설명하고 공식 RNP는 검증 음성도 재생성 | 7차는 공식 RNP 구현 경로를 따름 |
+-| 검증 메모리 | validation·sanity2배치가 같은 CBM 큐에 들어감 | 누수 방어를 강화한 새 설계라고 부르지 않음 |
+-| 중복 | 원 저자 목록의 동일 픽셀 중복을 제거하지 않음 | 자기 파일 제외만으로 모든 중복 영향 해소 아님 |
+-| 실행 환경 | Windows·RTX4090·PyTorch2·현대 torchvision | 역사적 런타임의 이진 동등성 미확인 |
+-| 수치·난수 | epoch seed·worker 재개·활성값 재계산·BN복원 | 전체 원본 난수 호출열과 동일하지 않음 |
+-| 평가 통계 | 결정적 동률·pair bootstrap 마지막 인덱스 버그 수정 | 원 FAISS 동률·원 bootstrap과 차이 가능 |
+-| 연구 범위 | CheXpert·모든 부가 분석은 미포함 | 전체 논문 재현 완료 아님 |
+-
+-**원 논문 충실도와 더 엄격한 누수 방어는 구분해야 합니다.** 4~6차의 중복 제외·validation 큐 갱신 방어를7차에 몰래 혼합하지 않았습니다. 원본 기준 결과를 얻더라도 중복 보존과 메모리 혼입의 영향을 별도 해석해야 하며, 논문 수치와 같게 보이도록 시험 조건이나 허용 오차를 새로 고르지 않습니다.
+-
+-## 중단과 재개에서 확인한 사실
+-
+-| 확인점 | 관측 | 범위 |
+-| --- | --- | --- |
+-| 기존 중단 | 11월20일08:22KST 진행JSON의 원자 교체 WinError5 | PowerShell 문법·CUDA 오류로 확정할 근거 없음 |
+-| 오류 표시 | failed 행의 epoch/step0과 앞선 실제 학습 기록이 다름 | 실제 학습0으로 표시하지 않음 |
+-| 보존 | 실패 원문·임시 진행·체크포인트 사본과 해시 확인 | 원본 보존,학습 소스 변경 없음 |
+-| 재개 | 같은 실행의 지원 resume,설정·분할·체크포인트 결합 검사 | 새 실행·새 모델 초기화 아님 |
+-| 실제 진행 | 재개 뒤 global146501→146526→146601 | 실패 순간146551을 넘어 처리 배치 전진 확인 |
+-| 실행 분리 | 숨김 실행 관리자·실제 학습과 조회 화면 분리 | 모니터 창 종료와 학습 종료를 구분 |
+-
+-global_step은 학습 단계 안에서 처리한 배치의 누적값입니다. 검색의 혼합정밀도에서 비유한 기울기로 optimizer 적용을 건너뛴 배치도 포함하므로, 실제 가중치 갱신 횟수와 같다고 추정하지 않습니다. 위 재개 관측은 FP32 검증 단계의 실제 처리 진행 증거입니다.
+-
+-실패 순간 파일을 보유한 프로세스는 확인되지 않았습니다. Windows 파일 공유 충돌·보안 프로그램 등은 가능한 원인일 뿐 확정하지 않았습니다. 실패 뒤 종료 상태 기록은 성공했고 원본 파일의 영구 쓰기 금지를 확인한 것은 아닙니다. 원인을 추정해 학습 소스나 결합 검사를 약화하지 않고 기존 체크포인트로 재개했습니다. 미래의 모든 저장 오류·운영체제 종료를 방지한다는 보장은 아닙니다.
+-
+-## 지표 해석과 근거
+-
+-PrivacyScore@1=100×(1−P@1)는 고정한 공격에서의1순위 검색 실패율입니다. **익명성·진단 효용·법적 적합성의 증명이 아닙니다.** 결과는 데이터셋·변환 강도·질의 분모·갤러리 조건을 함께 읽습니다. 백분율은 소수 첫째 자리 반올림과 전체 원값을 함께 확인하며 미측정은0으로 바꾸지 않습니다. 논문 기준 수치를 이번 실행의 성능으로 표시하지 않습니다.
+-
+-[원 논문](https://doi.org/10.1038/s41598-022-19045-3) · [공식 고정 커밋](https://github.com/kaipackhaeuser/CXR-Patient-ReID/tree/880168f564afa07936a8d8fb3b868b140ab937d9) · [Windows 파일 공유 계약](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea) · [Python os.replace](https://docs.python.org/3.12/library/os.html#os.replace)
+-
+-의료 영상·영상별 목록·가중치·실행 원문 로그·실행 식별자와 운영 영수증은 로컬에 보존하고 공개하지 않습니다. 현재 학습 및 평가 전체 완료·논문 성능 재현은 아직 확인되지 않았습니다.
+--- 8차/화면/app.js
++++ 9차/화면/app.js
+@@ -1,4 +1,4 @@
+-import { describeExperiment, formatPercent, formatRaw, percentNotice, EXPERIMENT_PLAN, CONDITIONS, DATASETS, TASKS, conditionState, trainingPhaseStates, trainingDisplay, historyNotice } from '/state.mjs';
++import { describeExperiment, formatPercent, formatRaw, percentNotice, EXPERIMENT_PLAN, CONDITIONS, DATASETS, TASKS, conditionState, trainingPhaseStates, trainingDisplay, historyNotice, trainingFractions, lossSegments, phaseTimeline, formatProgressPercent } from '/state.mjs';
+ const icons = {
+  home:'M3 11 12 3l9 8M5 10v11h5v-7h4v7h5V10',layers:'m3 7 9-4 9 4-9 5-9-5Zm0 5 9 5 9-5M3 17l9 5 9-5',database:'M21 6c0 2-4 4-9 4S3 8 3 6s4-4 9-4 9 2 9 4ZM3 6v12c0 2 4 4 9 4s9-2 9-4V6M3 12c0 2 4 4 9 4s9-2 9-4',chart:'M4 21V12h4v9M10 21V7h4v14M16 21V3h4v18',file:'M5 2h10l5 5v15H5V2Zm10 0v6h5M8 12h9M8 16h7',chip:'M6 6h12v12H6V6ZM3 8h3M3 12h3M3 16h3M18 8h3M18 12h3M18 16h3M8 3v3M12 3v3M16 3v3M8 18v3M12 18v3M16 18v3',trophy:'M7 3h10v7c0 7-10 7-10 0V3Zm0 2H3v3c0 4 4 5 5 5M17 5h4v3c0 4-4 5-5 5M12 16v6M7 22h10',image:'M3 4h18v16H3V4Zm1 13 5-6 4 4 3-4 5 6M15 8h.01',drop:'M12 2C10 7 4 10 4 15a8 8 0 0 0 16 0c0-5-6-8-8-13Z',grid:'M3 3h6v6H3V3Zm12 0h6v6h-6V3ZM3 15h6v6H3v-6Zm12 0h6v6h-6v-6Z'};
+ document.querySelectorAll('[data-icon]').forEach(el => { const svg = document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.setAttribute('viewBox','0 0 24 24'); svg.setAttribute('fill','none'); svg.setAttribute('stroke','currentColor'); svg.setAttribute('stroke-width','1.8'); svg.setAttribute('stroke-linecap','round'); svg.setAttribute('stroke-linejoin','round'); svg.setAttribute('aria-hidden','true'); const p=document.createElementNS(svg.namespaceURI,'path'); p.setAttribute('d',icons[el.dataset.icon] || icons.file); svg.append(p); el.prepend(svg); });
+@@ -94,7 +94,7 @@
+  $('log-info').textContent=names.map(name=>`${name}: ${s.logs?.[name]?.selection||'기록 대기'} · 원본 ${s.logs?.[name]?.bytes??0} B${s.logs?.[name]?.truncated?' · 최근 64 KiB만 표시':''}`).join(' / ');
+ }
+ function render(s){
+- latest=s;$('status').textContent=describeExperiment(s).status;$('revision-label').textContent='화면 8차 · 실험 7차 · 읽기 전용';
++ latest=s;$('status').textContent=describeExperiment(s).status;$('revision-label').textContent='화면 9차 · 실험 7차 · 읽기 전용';
+  $('gpu').textContent=s.gpu.name;$('gpu-detail').textContent=s.gpu.utilization===null?'장치 조회 불가 · 학습 가능 여부를 뜻하지 않습니다.':`사용률 ${s.gpu.utilization}% · VRAM ${s.gpu.used} / ${s.gpu.total} MB`;
+  $('result-count').textContent=`${s.completed_task_conditions}/84개 과제·조건`;$('download-summary').textContent='NIH + COVID19 · 저자 원본 목록';
+  const display=trainingDisplay(s),training=display.progress,names={verification:'검증 모델',retrieval_phase1:'검색 출력부',retrieval_phase2:'검색 전체',evaluation:'원본 성능 평가',privacy:'변환 조건 평가'};
+@@ -102,8 +102,8 @@
+  $('training-detail').textContent=training?`배치 ${metric(training.step)} / ${metric(training.steps)} · 단계 내 누적 처리 배치 ${metric(training.global_step)} · 손실 ${metric(training.loss)} · 학습률 ${metric(training.learning_rate)} · ${observedTime(training.updated_at)} · ${display.lastObserved?'events.jsonl 마지막 정상 기록':'progress.json 기록'} · ${s.process?.verified?'실제 프로세스 확인 · PID '+s.process.proofs[0].pid:'실행 프로세스 신원 미확인'}`:'현재 기록이 없다는 것이 0회 학습을 뜻하지 않습니다.';
+  $('training-detail').textContent+=' · 처리 배치 수는 가중치 적용 횟수가 아닙니다. 혼합정밀도에서 값이 유효하지 않으면 해당 가중치 적용을 생략할 수 있습니다.';
+  $('training-raw').textContent=JSON.stringify({current_progress_raw:s.progress_raw,last_observed_progress:s.last_observed_progress??null,history:s.history??null,process:s.process??null},null,2);
+- for(const phase of trainingPhaseStates(s)){
+-  const card=document.querySelector(`.training-phase[data-phase="${phase.name}"]`);card.classList.remove('done');card.classList.toggle('active',!!phase.active);card.querySelector('.training-phase-state').textContent=phase.label;
++ for(const phase of phaseTimeline(s)){
++  const card=document.querySelector(`.training-phase[data-phase="${phase.name}"]`);card.classList.toggle('done',phase.complete);card.classList.toggle('active',!!phase.active);card.querySelector('.training-phase-state').textContent=phase.label;
+   card.querySelector('.training-phase-detail').textContent=phase.progress?`에폭 ${metric(phase.progress.epoch)} / ${metric(phase.progress.epochs)} · 단계 내 누적 처리 배치 ${metric(phase.progress.global_step)} · ${observedTime(phase.progress.updated_at)}`:phase.proof.selected_weights?'선택 가중치 파일 있음 · 최종 성능 완료와 별개':'현재 실행의 단계 기록 대기';
+   card.querySelector('pre').textContent=JSON.stringify({progress:phase.progress,...phase.proof},null,2);
+  }
+@@ -113,7 +113,7 @@
+  notice([p?.error,s.pointer_error?'7차 현재 실행 포인터 또는 경계를 확인할 수 없습니다.':null,...(s.errors||[]).map(e=>e.source+' · '+e.error),historyMessage.error].filter(Boolean).join('\n'));
+  $('check-model').textContent=s.config?'✓':'○';$('check-data').textContent=s.preflight?'✓':'○';$('check-validation').textContent=s.preflight?'기록':'○';
+  $('downloads').textContent=s.config?`seed ${metric(s.config.seed)} · 검증 작업자 ${metric(s.config.verification_workers)} · 검색 작업자 ${metric(s.config.retrieval_workers)} · ${s.config.protocol?.dataset_cleaning_policy||'정책 확인 전'} · 사전 검사 파일 존재는 전수 픽셀 해시 검증을 의미하지 않습니다.`:'7차 학습 설정 기록 대기';
+- renderExplorer(s);renderLog(s);
++ renderTrainingVisual(s);renderExplorer(s);renderLog(s);
+  const tbody=$('result-rows'),expanded=new Set([...tbody.querySelectorAll('details[open]')].map(x=>x.dataset.key));tbody.replaceChildren();
+  for(const ds of DATASETS)for(const condition of CONDITIONS){
+   const verification=conditionState(s,ds,'verification',condition.id),retrieval=conditionState(s,ds,'retrieval',condition.id);
+@@ -128,3 +128,36 @@
+ }
+ async function refresh(){try{const response=await fetch('/api/status',{cache:'no-store'});if(!response.ok)throw Error('상태 조회 실패');render(await response.json());}catch(error){$('status').textContent='서버 연결 확인 필요';notice(error.message);}}
+ refresh();setInterval(refresh,3000);
++
++function setProgress(id,ratio,label){
++ const node=$(id);node.classList.toggle('unknown',ratio===null);
++ node.querySelector('span').style.width=ratio===null?'0%':String(ratio*100)+'%';
++ if(ratio===null){node.removeAttribute('aria-valuenow');node.setAttribute('aria-valuetext','미측정');}
++ else{node.setAttribute('aria-valuenow',String(ratio*100));node.setAttribute('aria-valuetext',label);}
++}
++function renderTrainingVisual(s){
++ const display=trainingDisplay(s),p=display.progress,f=trainingFractions(p);
++ $('progress-context').textContent=display.lastObserved?'오류·중단 전 마지막 정상 관측':s.fresh&&s.process?.verified?'현재 관측 · 실제 프로세스 확인':s.fresh?'최근 관측 · 실행 신원 미확인':'과거 관측 · 현재 실행 미확인';
++ $('progress-title').textContent=p?`에폭 ${metric(p.epoch)} / ${metric(p.epochs)}`:'학습 기록 대기';
++ $('epoch-percent').textContent=formatProgressPercent(p,'epoch');$('phase-percent').textContent=formatProgressPercent(p,'phase');
++ setProgress('epoch-progress',f?.epoch??null,formatProgressPercent(p,'epoch'));setProgress('phase-progress',f?.phase??null,formatProgressPercent(p,'phase'));
++ $('epoch-count').textContent=f?`${p.step.toLocaleString('ko-KR')} / ${p.steps.toLocaleString('ko-KR')} 배치 처리 · 이 에폭에 남은 배치 ${f.remaining.toLocaleString('ko-KR')} · ${observedTime(p.updated_at)}`:'현재 배치·전체 배치 분모를 확인할 수 없습니다. 0%로 대체하지 않습니다.';
++ drawLoss('loss-chart','loss-caption',s.history?.loss_samples,'loss',p?.phase);
++ drawLoss('validation-chart','validation-caption',s.history?.validation_samples,'validation_loss',p?.phase);
++ $('training-raw').textContent=JSON.stringify({current_progress_raw:s.progress_raw,last_observed_progress:s.last_observed_progress??null,progress_fractions:f,history:s.history??null,process:s.process??null},null,2);
++}
++function drawLoss(id,captionId,samples,key,phase){
++ const svg=$(id);svg.replaceChildren();const selected=(samples||[]).filter(p=>p.phase===phase),segments=lossSegments(selected,key),points=segments.flat();
++ const caption=$(captionId);caption.textContent=points.length?`${phase==='verification'?'검증 모델':phase==='retrieval_phase1'?'검색 출력부':'검색 전체'} · 정상 관측 ${points.length}개 · 마지막 ${observedTime(points.at(-1).updated_at)} · 최근 256 KiB 범위 · 재개/에폭 경계에서 선 분리`:key==='loss'?'최근 256 KiB 범위에 이 단계의 정상 학습 손실 기록이 없습니다.':'최근 256 KiB 범위에 이 단계의 에폭 완료·검증 손실 기록이 없습니다.';
++ function element(name,attributes,text){const node=document.createElementNS('http://www.w3.org/2000/svg',name);for(const [k,v] of Object.entries(attributes))node.setAttribute(k,String(v));if(text!==undefined)node.textContent=text;svg.append(node);return node;}
++ if(!points.length){element('text',{x:360,y:120,'text-anchor':'middle',class:'chart-label'},'기록 대기 · 미측정');return;}
++ const xs=points.map(p=>p.x),ys=points.map(p=>p.value),xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys);
++ const x=v=>68+(v-xmin)/(xmax-xmin||1)*632,y=v=>190-(v-ymin)/(ymax-ymin||1)*160;
++ element('path',{d:'M68 24V190H700',class:'chart-axis'});
++ for(const [v,pos] of [[ymax,30],[ymin,190]])element('text',{x:60,y:pos,'text-anchor':'end',class:'chart-label'},Number(v).toPrecision(4));
++ element('text',{x:68,y:220,class:'chart-label'},String(xmin));element('text',{x:700,y:220,'text-anchor':'end',class:'chart-label'},String(xmax));
++ for(const group of segments){
++  if(group.length>1)element('polyline',{points:group.map(p=>x(p.x)+','+y(p.value)).join(' '),class:'chart-line'});
++  for(const point of group){const circle=element('circle',{cx:x(point.x),cy:y(point.value),r:3,class:'chart-point'});const title=document.createElementNS(svg.namespaceURI,'title');title.textContent=`${key==='loss'?'처리 배치':'에폭'} ${point.x} · 손실 ${point.value} · ${observedTime(point.updated_at)}`;circle.append(title);}
++ }
++}
+--- 8차/화면/index.html
++++ 9차/화면/index.html
+@@ -1,9 +1,10 @@
+ <!doctype html>
+ <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CXR Privacy Lab — 흉부 X선 재식별·프라이버시 실험</title><link rel="stylesheet" href="/style.css"><script type="module" src="/app.js"></script></head>
+ <body><aside><a class="brand" href="#overview"><span class="brand-icon">♧</span><span>CXR Privacy Lab<small>흉부 X선 재식별<br>연구 플랫폼</small></span></a><nav aria-label="주 탐색"><a href="#overview" class="selected" data-icon="home">개요</a><a href="#stages" data-icon="layers">실험 단계</a><a href="#datasets" data-icon="database">데이터셋</a><a href="#results" data-icon="chart">결과</a><a href="#logs" data-icon="file">실행 기록</a></nav><div class="local">로컬 실험 워크스페이스<br><span>외부 업로드 없음</span></div></aside>
+-<main id="overview"><header><div><h1>흉부 X선 프라이버시 실험</h1><p><span id="revision-label">화면 8차 · 실험 7차</span> · 2개 데이터셋 × 2개 과제 × 21조건 = 84개 상태</p></div><div class="actions"><button id="theme" aria-pressed="false" title="화면 테마 전환">다크 모드</button><span id="status" role="status">실행 상태 확인 중</span><span class="read-only">읽기 전용 · 실험 제어 없음</span></div></header><div id="notice" role="alert" hidden></div>
++<main id="overview"><header><div><h1>흉부 X선 프라이버시 실험</h1><p><span id="revision-label">화면 9차 · 실험 7차</span> · 2개 데이터셋 × 2개 과제 × 21조건 = 84개 상태</p></div><div class="actions"><button id="theme" aria-pressed="false" title="화면 테마 전환">다크 모드</button><span id="status" role="status">실행 상태 확인 중</span><span class="read-only">읽기 전용 · 실험 제어 없음</span></div></header><div id="notice" role="alert" hidden></div>
+ <section class="metrics" aria-label="핵심 상태"><article class="metric"><span class="metric-icon" data-icon="chip"></span><div><h2>GPU</h2><strong id="gpu">확인 중</strong><small id="gpu-detail">실제 장치 조회</small></div></article><article class="metric"><span class="metric-icon" data-icon="database"></span><div><h2>데이터셋</h2><strong>NIH + COVID-19</strong><small id="download-summary">7차 원본 목록 사용 · NIH + COVID19</small></div></article><article class="metric"><span class="metric-icon" data-icon="trophy"></span><div><h2>평가 결과</h2><strong id="result-count">아직 없음</strong><small>실제 평가 산출물 기준</small></div></article></section>
+-<section class="panel training-panel" aria-label="새 모델 학습 상태"><div class="section-title"><h2>새 모델 학습</h2><span>검증 모델 → 검색 모델 출력부 → 전체 네트워크</span></div><p class="training-once">학습은 검증 모델 → 검색 출력부 → 검색 전체 순서로 한 번 진행합니다. 아래 평가 강도마다 다시 학습하지 않습니다.</p><div class="training-phases"><article class="training-phase" data-phase="verification"><h3>검증 모델</h3><p class="training-phase-plan">최대 100에폭 · patience 5</p><strong class="training-phase-state">학습 대기</strong><p class="training-phase-detail">현재 실행 기록 확인 중</p><details class="raw-values"><summary>단계별 원기록 보기</summary><pre>미측정</pre></details></article><article class="training-phase" data-phase="retrieval_phase1"><h3>검색 모델 출력부</h3><p class="training-phase-plan">출력부 30에폭</p><strong class="training-phase-state">학습 대기</strong><p class="training-phase-detail">현재 실행 기록 확인 중</p><details class="raw-values"><summary>단계별 원기록 보기</summary><pre>미측정</pre></details></article><article class="training-phase" data-phase="retrieval_phase2"><h3>검색 모델 전체</h3><p class="training-phase-plan">전체 50에폭</p><strong class="training-phase-state">학습 대기</strong><p class="training-phase-detail">현재 실행 기록 확인 중</p><details class="raw-values"><summary>단계별 원기록 보기</summary><pre>미측정</pre></details></article></div><p id="training-state">데이터 검증 후 새 학습 시작</p><p id="training-detail">공개 CXR 최종 가중치 사용 안 함 · 논문상 ImageNet 초기화</p><p id="history-note" class="section-caption" hidden></p><details class="raw-values"><summary>학습 수치 원값 보기</summary><p>손실·학습률은 표시를 위해 반올림하지 않습니다. 아래는 현재 진행 JSON 원문과 마지막 정상 관측을 구분해 확인할 수 있습니다.</p><pre id="training-raw">미측정</pre></details></section><section class="panel pipeline" id="stages"><div class="section-title"><div><h2>영상 변환과 평가 흐름</h2><p class="section-caption">변환 미리보기 · 평가 결과 아님</p></div><button class="motion" id="motion" aria-pressed="false">모션 정지 <span class="switch"></span></button></div><div class="scene"><article class="stage" data-stage="1"><div class="stage-heading"><span>01</span><h3><button type="button" class="stage-pick" data-stage-select="1" aria-pressed="false">원본 평가 · 조건 보기 ↗</button></h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-original" alt="원본 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">원본 영상</span></div></div><p class="stage-description">원본 영상의 재식별 성능 확인</p><span class="stage-status">평가 대기</span></article><article class="stage" data-stage="2"><div class="stage-heading"><span>02</span><h3><button type="button" class="stage-pick" data-stage-select="2" aria-pressed="false">블러 평가 · 조건 보기 ↗</button></h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-blur" alt="블러 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">블러 영상</span></div></div><p class="stage-description">원본에 블러를 적용해 10수준 비교</p><span class="stage-status">평가 대기</span></article><article class="stage" data-stage="3"><div class="stage-heading"><span>03</span><h3><button type="button" class="stage-pick" data-stage-select="3" aria-pressed="false">모자이크 평가 · 조건 보기 ↗</button></h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-mosaic" alt="모자이크 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">모자이크 영상</span></div></div><p class="stage-description">원본을 모자이크 처리해 10수준 비교</p><span class="stage-status">평가 대기</span></article></div><div class="pipeline-bottom"><p class="phase" id="phase">실험 상태를 확인하고 있습니다.</p><a href="#results">평가 결과 보기 <span aria-hidden="true">↗</span></a></div><p class="preview-note">동일한 원본 영상에서 각 변환을 독립적으로 적용합니다. 미리보기는 변환 예시이며, 실제 평가 수치는 아래 결과 표에 표시됩니다.</p></section><section class="panel condition-explorer" id="condition-explorer"><div class="section-title"><div><h2>평가 조건 둘러보기</h2><p class="section-caption">단계와 강도를 선택하면 그 조건의 현재 실행 결과만 표시합니다.</p></div><span>원본 1 · 블러 10 · 모자이크 10</span></div>
++<section class="panel training-panel" aria-label="새 모델 학습 상태"><div class="section-title"><h2>새 모델 학습</h2><span>검증 모델 → 검색 모델 출력부 → 전체 네트워크</span></div><p class="training-once">학습은 검증 모델 → 검색 출력부 → 검색 전체 순서로 한 번 진행합니다. 아래 평가 강도마다 다시 학습하지 않습니다.</p><div class="training-visual" aria-label="관측된 학습 진행"><div class="progress-heading"><div><small id="progress-context">현재 기록 확인 중</small><h3 id="progress-title">현재 에폭</h3></div><strong id="epoch-percent">미측정</strong></div><div id="epoch-progress" class="progress-track" role="progressbar" aria-label="현재 에폭 처리 배치" aria-valuemin="0" aria-valuemax="100"><span></span></div><p id="epoch-count">처리 배치 분모 확인 중</p><div class="phase-progress-heading"><span>현재 단계 · 최대 예정 에폭 기준</span><strong id="phase-percent">미측정</strong></div><div id="phase-progress" class="progress-track phase-track" role="progressbar" aria-label="최대 예정 에폭 대비 현재 단계 진행" aria-valuemin="0" aria-valuemax="100"><span></span></div><p id="progress-limits">최대 예정량의 비율이며 전체 실험 시간 완료율이 아닙니다. 조기 종료하면 이 비율이100%가 아니어도 단계가 완료될 수 있습니다.</p><p id="eta-note">남은 시간은 계산하지 않습니다. 재개·검증·자료 읽기 시간이 섞인 기록에서 속도를 추정하지 않습니다.</p></div>
++<div class="training-phases"><article class="training-phase" data-phase="verification"><h3>검증 모델</h3><p class="training-phase-plan">최대 100에폭 · patience 5</p><strong class="training-phase-state">학습 대기</strong><p class="training-phase-detail">현재 실행 기록 확인 중</p><details class="raw-values"><summary>단계별 원기록 보기</summary><pre>미측정</pre></details></article><article class="training-phase" data-phase="retrieval_phase1"><h3>검색 모델 출력부</h3><p class="training-phase-plan">출력부 30에폭</p><strong class="training-phase-state">학습 대기</strong><p class="training-phase-detail">현재 실행 기록 확인 중</p><details class="raw-values"><summary>단계별 원기록 보기</summary><pre>미측정</pre></details></article><article class="training-phase" data-phase="retrieval_phase2"><h3>검색 모델 전체</h3><p class="training-phase-plan">전체 50에폭</p><strong class="training-phase-state">학습 대기</strong><p class="training-phase-detail">현재 실행 기록 확인 중</p><details class="raw-values"><summary>단계별 원기록 보기</summary><pre>미측정</pre></details></article></div><p id="training-state">데이터 검증 후 새 학습 시작</p><p id="training-detail">공개 CXR 최종 가중치 사용 안 함 · 논문상 ImageNet 초기화</p><div class="loss-charts"><figure><figcaption><h3>최근 학습 손실</h3><span>가로축: 단계 내 누적 처리 배치 · 세로축: 손실 · 눈금 4유효숫자</span></figcaption><svg id="loss-chart" viewBox="0 0 720 240" role="img" aria-label="실제 최근 학습 손실 추이"></svg><p id="loss-caption">정상 학습 관측 대기</p></figure><figure><figcaption><h3>에폭별 검증 손실</h3><span>가로축: 에폭 · 세로축: 검증 손실 · 눈금 4유효숫자</span></figcaption><svg id="validation-chart" viewBox="0 0 720 240" role="img" aria-label="실제 에폭별 검증 손실 추이"></svg><p id="validation-caption">최근 범위에 검증 기록 없음</p></figure></div><p id="history-note" class="section-caption" hidden></p><details class="raw-values"><summary>학습 수치 원값 보기</summary><p>손실·학습률은 표시를 위해 반올림하지 않습니다. 아래는 현재 진행 JSON 원문과 마지막 정상 관측을 구분해 확인할 수 있습니다.</p><pre id="training-raw">미측정</pre></details></section><section class="panel pipeline" id="stages"><div class="section-title"><div><h2>영상 변환과 평가 흐름</h2><p class="section-caption">변환 미리보기 · 평가 결과 아님</p></div><button class="motion" id="motion" aria-pressed="false">모션 정지 <span class="switch"></span></button></div><div class="scene"><article class="stage" data-stage="1"><div class="stage-heading"><span>01</span><h3><button type="button" class="stage-pick" data-stage-select="1" aria-pressed="false">원본 평가 · 조건 보기 ↗</button></h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-original" alt="원본 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">원본 영상</span></div></div><p class="stage-description">원본 영상의 재식별 성능 확인</p><span class="stage-status">평가 대기</span></article><article class="stage" data-stage="2"><div class="stage-heading"><span>02</span><h3><button type="button" class="stage-pick" data-stage-select="2" aria-pressed="false">블러 평가 · 조건 보기 ↗</button></h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-blur" alt="블러 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">블러 영상</span></div></div><p class="stage-description">원본에 블러를 적용해 10수준 비교</p><span class="stage-status">평가 대기</span></article><article class="stage" data-stage="3"><div class="stage-heading"><span>03</span><h3><button type="button" class="stage-pick" data-stage-select="3" aria-pressed="false">모자이크 평가 · 조건 보기 ↗</button></h3></div><div class="image-space"><div class="image-panel"><div class="image-surface"><img id="preview-mosaic" alt="모자이크 평가용 흉부 X선 변환 미리보기" hidden><span class="preview-fallback">미리보기 준비 중</span></div><span class="image-caption">모자이크 영상</span></div></div><p class="stage-description">원본을 모자이크 처리해 10수준 비교</p><span class="stage-status">평가 대기</span></article></div><div class="pipeline-bottom"><p class="phase" id="phase">실험 상태를 확인하고 있습니다.</p><a href="#results">평가 결과 보기 <span aria-hidden="true">↗</span></a></div><p class="preview-note">동일한 원본 영상에서 각 변환을 독립적으로 적용합니다. 미리보기는 변환 예시이며, 실제 평가 수치는 아래 결과 표에 표시됩니다.</p></section><section class="panel condition-explorer" id="condition-explorer"><div class="section-title"><div><h2>평가 조건 둘러보기</h2><p class="section-caption">단계와 강도를 선택하면 그 조건의 현재 실행 결과만 표시합니다.</p></div><span>원본 1 · 블러 10 · 모자이크 10</span></div>
+ <div class="selection-controls"><div role="group" aria-label="평가 데이터셋"><button type="button" data-dataset="NIH" aria-pressed="true">NIH</button><button type="button" data-dataset="COVID19" aria-pressed="false">COVID-19</button></div><div role="group" aria-label="평가 과제"><button type="button" data-task="verification" aria-pressed="true">환자 동일 여부 검증</button><button type="button" data-task="retrieval" aria-pressed="false">같은 환자 영상 검색</button></div></div><div id="condition-tabs" class="condition-tabs" role="tablist" aria-label="평가 단계"></div><div id="condition-chips" class="condition-chips" aria-label="전체 21개 평가 조건"></div>
+ <div id="condition-detail" class="condition-detail" role="tabpanel" tabindex="0"><div class="condition-heading"><h3 id="condition-title">원본 평가 · 0</h3><strong id="condition-status">평가 대기 · 미측정</strong></div>
+ <p id="condition-description"></p><p id="condition-model"></p><p id="condition-input"></p>
+--- 8차/화면/state.mjs
++++ 9차/화면/state.mjs
+@@ -100,3 +100,45 @@
+  const normal=['ok','missing','truncated','incomplete_tail'];
+  return {info:messages.join(' '),error:normal.includes(history.status)?'':errors[history.status]||'학습 이력의 검사 상태를 확인할 수 없습니다.'};
+ }
++
++// 분모와 범위를 확인한 관측만 진행 막대에 사용합니다. 미지 값은 0으로 바꾸지 않습니다.
++export function trainingFractions(record){
++ const valid=(x,min=0)=>Number.isSafeInteger(x)&&x>=min;
++ if(!record||!valid(record.epoch,1)||!valid(record.epochs,1)||record.epoch>record.epochs||
++    !valid(record.step)||!valid(record.steps,1)||record.step>record.steps)return null;
++ return {epoch:record.step/record.steps,phase:((record.epoch-1)+record.step/record.steps)/record.epochs,
++  remaining:record.steps-record.step,raw:{epoch:record.epoch,epochs:record.epochs,step:record.step,steps:record.steps}};
++}
++// 단계·에폭·시간·처리 순서가 되감기면 선을 끊어 재개 구간을 이어 그리지 않습니다.
++export function lossSegments(samples,key='loss'){
++ const segments=[];let previous=null;
++ for(const sample of samples||[]){
++  const time=Date.parse(sample.updated_at),value=sample[key];
++  if(typeof value!=='number'||!Number.isFinite(value)||!Number.isFinite(time)) {previous=null;continue;}
++  const x=key==='validation_loss'?sample.epoch:sample.global_step;
++  if(!Number.isSafeInteger(x)||x<0){previous=null;continue;}
++  if(!previous||previous.phase!==sample.phase||sample.epoch<previous.epoch||time<=Date.parse(previous.updated_at)||
++      x<=(key==='validation_loss'?previous.epoch:previous.global_step)||key==='loss'&&sample.epoch!==previous.epoch)segments.push([]);
++  segments.at(-1).push({...sample,x,value});previous=sample;
++ }
++ return segments;
++}
++export function phaseTimeline(s){
++ const names=['verification','retrieval_phase1','retrieval_phase2'],display=trainingDisplay(s),current=names.indexOf(display.progress?.phase);
++ return trainingPhaseStates(s).map((phase,index)=>{
++  const laterObserved=s.config?.tasks==='both'&&current>index;
++  const allDone=s.progress?.phase==='complete'&&s.progress?.status==='completed'&&s.config?.tasks==='both';
++  const complete=(laterObserved||allDone)&&phase.proof.selected_weights===true;
++  return {...phase,complete,label:complete?'학습 단계 완료 · 후속 단계/종료 기록 확인':phase.label};
++ });
++}
++
++// 나눗셈으로 생기는 이진 부동소수 오차를 거치지 않고 원정수에서 0.1% 단위로 반올림합니다.
++export function formatProgressPercent(record,kind='epoch'){
++ if(!trainingFractions(record)||!['epoch','phase'].includes(kind))return '미측정';
++ const step=BigInt(record.step),steps=BigInt(record.steps);
++ const numerator=kind==='epoch'?step:(BigInt(record.epoch)-1n)*steps+step;
++ const denominator=kind==='epoch'?steps:BigInt(record.epochs)*steps;
++ const units=(numerator*2000n+denominator)/(denominator*2n);
++ const digits=String(units).padStart(2,'0');return digits.slice(0,-1)+'.'+digits.slice(-1)+'%';
++}
+--- 8차/화면/style.css
++++ 9차/화면/style.css
+@@ -1,18 +1,21 @@
+-@font-face{font-family:Nanum;src:url('/assets/NanumGothic-Bold.ttf') format('truetype');font-weight:700;font-display:swap}
+-/* 학습 단계와 평가 조건을 분리하고 선택 상태는 크기 변화 없이 표시합니다. */
+-.training-phases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}.training-phase{padding:16px;border:1px solid var(--border);border-radius:12px;min-width:0;background:var(--surface)}.training-phase.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}.training-phase.done{background:var(--soft)}.training-phase-plan,.training-once{font-size:12px;color:var(--muted);line-height:1.8}.training-phase-state{display:block;color:var(--accent-strong);font-size:13px;margin:10px 0}.training-phase-detail{font-size:11px;color:var(--muted);line-height:1.8;overflow-wrap:anywhere}.training-phase .raw-values pre{min-width:0}.stage-pick{width:100%;min-height:48px;padding:8px 12px;font-size:14px;line-height:1.5;background:var(--surface)}.stage-pick[aria-pressed=true]{border-color:var(--accent);background:var(--selected)}.condition-explorer{margin-bottom:18px}.condition-tabs{display:flex;gap:10px;margin:20px 0 16px}.condition-tabs button{flex:1;min-height:50px;padding:10px;border:1px solid var(--border);font-size:14px}.condition-tabs button[aria-selected=true]{background:var(--accent);color:var(--button-text);border-color:var(--accent)}.condition-chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}.condition-group{border:1px solid var(--border);border-radius:12px;padding:14px;min-width:0}.condition-group.selected-group{border-color:var(--accent);background:var(--soft)}.condition-group h3{font-size:12px;margin-bottom:12px}.chips{display:flex;gap:7px;flex-wrap:wrap}.condition-chip{padding:8px;min-width:60px;min-height:53px;border-radius:9px;font-size:12px;line-height:1.5}.condition-chip small{display:block;font-size:9px;color:var(--muted)}.condition-chip[aria-pressed=true]{border-color:var(--accent);background:var(--selected);box-shadow:inset 0 0 0 1px var(--accent)}.condition-chip[data-status=error]{border-color:var(--error)}.condition-chip[data-status=running]{border-color:var(--accent-strong)}.condition-detail{border:1px solid var(--border);background:var(--soft);border-radius:13px;padding:19px}.condition-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}.condition-heading strong{font-size:12px;color:var(--accent-strong)}.condition-detail p{font-size:12px;line-height:1.9;color:var(--muted);overflow-wrap:anywhere}.condition-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0}.condition-metrics>div{background:var(--surface);padding:15px;border:1px solid var(--border);border-radius:10px;min-width:0}.condition-metrics dt{font-size:11px;color:var(--muted)}.condition-metrics dd{margin:10px 0 0;font-size:18px;overflow-wrap:anywhere}.rounding-note{display:block;color:var(--muted);font-size:10px;line-height:1.6;max-width:180px;margin:6px auto 0}.condition-detail .rounding-notice{color:var(--accent-strong)}.verification-scope{margin-top:17px;font-size:12px;color:var(--muted);line-height:1.9}.verification-scope summary{min-height:44px;padding:10px 0;cursor:pointer;color:var(--text)}.verification-scope summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px}.condition-source{font-size:10px!important}.condition-detail:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+-@media(max-width:1050px){.condition-chips{grid-template-columns:1fr}.condition-group{padding:12px}.condition-chip{min-width:64px}.training-phase{padding:12px}.condition-metrics dd{font-size:16px}}
+-@media(max-width:700px){.training-phases{grid-template-columns:1fr}.condition-tabs{gap:6px}.condition-tabs button{font-size:12px}.condition-detail{padding:14px}.condition-metrics{grid-template-columns:1fr}.stage-pick{font-size:14px}.condition-explorer .section-title{align-items:flex-start}}
+-/* 원값 펼침은 조작 영역과 긴 십진 문자열을 양쪽 테마에서 유지합니다. */
+-.raw-values{text-align:left;font-size:11px;max-width:100%}.raw-values summary{cursor:pointer;min-height:44px;padding:12px 6px;color:var(--accent-strong);list-style-position:inside}.raw-values summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:6px}.raw-values pre{height:auto;max-height:280px;min-width:180px;max-width:600px;margin:6px 0;overflow:auto;font-size:11px;overflow-wrap:anywhere}.raw-values p{color:var(--muted);line-height:1.8}.training-panel>.raw-values{margin-top:8px}
+-:root{color-scheme:light;--bg:#fff;--sidebar:#f4f7fb;--surface:#fff;--text:#26364a;--muted:#7b8a9e;--accent:#607da2;--accent-strong:#4e6a90;--soft:#edf2f8;--selected:#dfe8f4;--border:#e0e6ed;--shadow:#3451710d;--deep-shadow:#253b6024;--image-frame:#b5c6dc;--image-edge:#829ab9;--image-back:#a2b6d0;--image-caption:#f0f4fa;--film:#121c2b;--terminal:#1c293a;--terminal-text:#d8e5f5;--error:#ad666a;--notice-bg:#fff1e8;--notice-text:#975e3a;--button-text:#fff;--focus:#789ac7;--switch-off:#b0bdce;--switch-thumb:#fff}
+-:root[data-theme=dark]{color-scheme:dark;--bg:#151c27;--sidebar:#1a2432;--surface:#1d2838;--text:#e4ebf5;--muted:#a1b0c5;--accent:#91acca;--accent-strong:#a8bfdb;--soft:#2a3a50;--selected:#334963;--border:#35465e;--shadow:#0002;--deep-shadow:#0006;--image-frame:#607a9b;--image-edge:#3f5674;--image-back:#4e6685;--image-caption:#293c55;--film:#0b111b;--terminal:#101822;--terminal-text:#cfdded;--error:#e19ca1;--notice-bg:#422e2c;--notice-text:#f0c3a8;--button-text:#172335;--focus:#a8c8f0;--switch-off:#526780;--switch-thumb:#151c27}
+-*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:24px}body{margin:0;color:var(--text);background:var(--bg);font-family:Nanum,sans-serif;font-weight:700;font-size:15px}button,a{font:inherit}button{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:11px;min-height:44px;padding:10px 19px;transition:background .2s}button:hover{background:var(--soft)}button:disabled{opacity:.45;cursor:not-allowed}a{color:inherit;text-decoration:none}svg{display:block}aside{width:226px;position:fixed;inset:0 auto 0 0;background:var(--sidebar);padding:30px 10px;display:flex;flex-direction:column}.brand{display:flex;align-items:flex-start;gap:10px;margin:0 10px 35px;font-size:23px;letter-spacing:-1.2px}.brand-icon{background:var(--accent);color:var(--button-text);border-radius:11px;display:grid;place-items:center;min-width:43px;width:43px;height:47px}.brand-icon svg{width:34px;height:34px}.brand small{font-size:13px;line-height:1.6;letter-spacing:0;display:block;margin-top:7px;color:var(--muted)}nav{display:grid;gap:9px}nav a{display:flex;gap:19px;align-items:center;font-size:19px;padding:14px 20px;border-radius:12px}nav a.selected{background:var(--selected)}nav svg{width:24px;height:24px;color:var(--accent)}.local{margin:auto 17px 0;font-size:11px;line-height:1.9;color:var(--muted)}main{margin-left:226px;padding:29px 25px 20px;max-width:1900px}header{display:flex;justify-content:space-between;align-items:center;gap:20px;margin:0 5px 26px}h1{font-size:37px;letter-spacing:-1.8px;margin:0 0 10px;line-height:1.3}header p{margin:0;color:var(--muted);font-size:15px;line-height:1.6}.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.primary{background:var(--accent);color:var(--button-text);border-color:var(--accent);box-shadow:0 2px 0 var(--accent-strong);font-size:17px}.primary:hover{background:var(--accent-strong)}.actions>span{background:var(--soft);color:var(--accent-strong);padding:12px 15px;border-radius:12px;font-size:13px}.actions button:last-child{font-size:16px}#theme{font-size:12px;min-height:36px;padding:8px 12px}.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:21px}.metric,.panel{border:1px solid var(--border);background:var(--surface);border-radius:16px;box-shadow:0 3px 8px var(--shadow)}.metric{display:flex;gap:19px;align-items:center;padding:19px 21px;min-height:105px}.metric-icon{width:57px;height:57px;border-radius:18px;background:var(--soft);color:var(--accent);display:grid;place-items:center;flex-shrink:0}.metric-icon svg{width:32px;height:32px}.metric h2{font-size:14px;margin:0 0 8px}.metric strong{font-size:25px;letter-spacing:-.7px;display:block;overflow-wrap:anywhere}.metric small{display:block;color:var(--muted);font-size:10px;line-height:1.6;margin-top:7px}.panel{padding:17px 19px;scroll-margin-top:20px}.section-title{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:15px}.section-title h2{margin:0;display:flex;gap:11px;align-items:center;font-size:23px;letter-spacing:-1px}.section-title h2:before{content:'';width:5px;height:24px;border-radius:5px;background:var(--accent);display:block}.section-title>span{font-size:11px;color:var(--muted)}.section-caption{margin:8px 0 0 16px;font-size:11px;color:var(--muted)}.motion{border:1px solid transparent;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 8px;font-size:12px;min-height:44px;min-width:44px;white-space:nowrap;flex-shrink:0;background:transparent;color:var(--text);user-select:none}.motion:hover,.motion:active,.motion:disabled{background:transparent}.motion:hover{color:var(--accent-strong)}.motion:focus-visible{outline:3px solid var(--focus);outline-offset:2px}.motion:disabled{opacity:.65}.motion .switch{flex-shrink:0;box-shadow:inset 0 0 0 1px var(--accent-strong)}.switch{width:42px;height:24px;border-radius:20px;background:var(--accent);position:relative}.switch:after{content:'';width:18px;height:18px;position:absolute;top:3px;right:4px;background:var(--switch-thumb);border:1px solid var(--image-edge);border-radius:50%}.paused .switch{background:var(--switch-off)}.paused .switch:after{right:20px}
+-.pipeline{padding:20px 25px;margin-bottom:18px;overflow:hidden}.scene{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:45px;padding:3px 20px 15px;position:relative}.stage{position:relative;min-width:0;text-align:center}.stage:not(:last-child):after{content:'→';position:absolute;right:-35px;top:47%;font-size:25px;color:var(--image-frame)}.stage.active:not(:last-child):after,.stage.done:not(:last-child):after{color:var(--accent-strong)}.stage-heading{display:flex;align-items:center;justify-content:center;gap:8px;margin:10px 0 8px}.stage-heading>span{font-size:11px;color:var(--accent)}h3{font-size:17px;margin:0;letter-spacing:-.5px}.image-space{perspective:950px;padding:15px 6px 22px}.image-panel{position:relative;isolation:isolate;width:100%;max-width:265px;margin:auto;padding:9px 9px 0;border:1px solid var(--image-frame);border-radius:10px;background:var(--image-frame);box-shadow:7px 9px 0 var(--image-edge),11px 15px 0 var(--image-back),15px 20px 24px var(--deep-shadow);transform-style:preserve-3d;transform:rotateY(-8deg) rotateX(3deg);animation:panel-tilt 9s ease-in-out infinite;transition:background .2s}.stage:nth-child(2) .image-panel{animation-delay:-3s}.stage:nth-child(3) .image-panel{animation-delay:-6s}.image-surface{width:100%;height:clamp(190px,18vw,270px);position:relative;background:var(--film);border:1px solid var(--image-edge);border-radius:5px;overflow:hidden;display:grid;place-items:center}.image-surface img{width:100%;height:100%;object-fit:contain;display:block}.image-surface img[hidden]{display:none}.preview-fallback{color:var(--muted);font-size:12px;padding:12px;line-height:1.8}.image-caption{display:block;padding:9px 4px;background:var(--image-caption);margin:0 -9px;border-radius:0 0 9px 9px;font-size:12px;color:var(--text)}.stage-description{color:var(--muted);font-size:11px;line-height:1.6;margin:8px 0 10px;min-height:18px}.stage-status{display:inline-block;color:var(--muted);border:1px solid var(--border);background:var(--soft);border-radius:20px;padding:6px 15px;font-size:11px}.stage.active .stage-status,.stage.done .stage-status{color:var(--accent-strong);border-color:var(--accent)}.stage.active .image-panel{outline:2px solid var(--accent);outline-offset:4px}.stage.failed .stage-status{color:var(--error);border-color:var(--error)}.stage.failed .image-panel{outline:2px solid var(--error);outline-offset:4px}.pipeline-bottom{border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:15px;padding-top:13px}.phase{margin:0;color:var(--accent-strong);font-size:13px;line-height:1.7}.pipeline-bottom a{font-size:12px;white-space:nowrap;color:var(--accent-strong)}.preview-note{font-size:10px;line-height:1.8;color:var(--muted);margin:7px 0 0}.middle{display:grid;grid-template-columns:.95fr 1.05fr;gap:17px;margin-bottom:17px}.check{display:grid;grid-template-columns:27px 130px 1fr;align-items:center;gap:8px;border-top:1px solid var(--border);padding:12px 6px}.check span{font-size:22px;color:var(--accent)}.check b{font-size:14px}.check small{font-size:11px;color:var(--muted);line-height:1.6}.downloads{font-size:10px;color:var(--muted);line-height:1.8;margin:5px 6px 0;max-height:68px;overflow:auto;overflow-wrap:anywhere}pre{background:var(--terminal);color:var(--terminal-text);border:1px solid var(--border);border-radius:10px;padding:14px;font:700 12px/1.8 Nanum,sans-serif;white-space:pre-wrap;word-break:break-word;height:159px;overflow:auto;margin:0}#log-info{font-size:10px;color:var(--muted);display:block;margin-top:8px}.live{color:var(--accent)!important;display:flex;align-items:center;gap:6px;white-space:nowrap}.live i{background:var(--accent);width:6px;height:6px;border-radius:50%}.log-tabs{display:flex;gap:5px}.log-tabs button{padding:9px 15px;border-radius:8px;font-size:13px;min-height:35px}.log-tabs button[aria-selected=true]{background:var(--accent);color:var(--button-text);border-color:var(--accent)}.result-panel{padding:17px}.table-scroll{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px;text-align:center}th{background:var(--soft);padding:13px 12px;white-space:nowrap}th:first-child{border-radius:9px 0 0 9px}th:last-child{border-radius:0 9px 9px 0}td{padding:13px 10px;border-bottom:1px solid var(--border);color:var(--text)}.empty{text-align:center;padding:17px 0;color:var(--muted)}.empty svg{width:28px;height:28px;margin:auto}.empty p{font-size:13px;margin:9px}.result-note{font-size:10px;color:var(--muted);line-height:1.8;margin:10px 4px 0}footer{font-size:10px;color:var(--muted);text-align:center;padding-top:15px;line-height:1.8}#notice{background:var(--notice-bg);color:var(--notice-text);padding:14px;border-radius:10px;margin-bottom:15px}button:focus-visible,a:focus-visible,pre:focus-visible{outline:3px solid var(--focus);outline-offset:4px}.paused .image-panel{animation-play-state:paused}
+-@keyframes panel-tilt{0%,100%{transform:rotateY(-8deg) rotateX(3deg) translateY(0)}50%{transform:rotateY(3deg) rotateX(-2deg) translateY(-4px)}}
+-@media(max-width:1350px){header{align-items:flex-start;flex-direction:column;gap:17px}.actions{width:100%}.metric{gap:12px;padding:17px 15px}.metric strong{font-size:21px}.metric-icon{width:45px;height:49px}.check{grid-template-columns:23px 105px 1fr}.check b{font-size:12px}.check small{font-size:10px}.log-tabs button{font-size:12px;padding:9px 11px}.scene{padding:3px 8px 15px;gap:35px}.stage:not(:last-child):after{right:-28px}.image-surface{height:clamp(170px,18vw,235px)}}
+-@media(max-width:1050px){aside{width:190px}.brand{font-size:19px;gap:7px;margin-left:5px;margin-right:5px}.brand-icon{min-width:36px;width:36px;height:41px}.brand small{font-size:11px}nav a{font-size:17px;padding:13px 16px;gap:15px}main{margin-left:190px;padding:24px 18px}h1{font-size:33px}.metrics{gap:10px}.metric{gap:10px;padding:15px 12px;align-items:flex-start}.metric strong{font-size:18px}.metric-icon{width:35px;height:40px}.metric-icon svg{width:25px;height:25px}.metric h2{font-size:12px}.metric small{font-size:9px}.middle{grid-template-columns:1fr}.pipeline{padding:18px 17px}.scene{gap:25px;padding:3px 0 12px}.stage:not(:last-child):after{font-size:18px;right:-21px}.image-space{padding-left:0;padding-right:9px}.image-panel{padding:6px 6px 0;box-shadow:5px 7px 0 var(--image-edge),8px 11px 0 var(--image-back),10px 15px 19px var(--deep-shadow)}.image-caption{margin:0 -6px;font-size:10px}.image-surface{height:175px}.stage-heading{gap:5px}h3{font-size:14px}.stage-description{font-size:10px;min-height:33px}.stage-status{font-size:10px;padding:5px 10px}.check{grid-template-columns:28px 140px 1fr}.check b{font-size:14px}.check small{font-size:12px}}
+-@media(max-width:700px){aside{position:static;width:100%;padding:16px;display:block}.brand{font-size:24px;margin:0 0 15px;align-items:center;gap:10px}.brand small{font-size:11px;margin-top:3px}.brand-icon{width:45px;height:45px}.local{display:none}nav{display:flex;gap:2px;overflow-x:auto}nav a{font-size:12px;padding:10px 8px;gap:6px;white-space:nowrap;flex:1;justify-content:center}nav svg{width:17px;height:17px}main{margin:0;padding:20px 13px}header{margin:0 2px 20px}h1{font-size:29px;letter-spacing:-1.4px}header p{font-size:12px}.actions{justify-content:flex-start;gap:8px}.actions>span{order:-1;font-size:12px}.actions button{padding:9px 12px;font-size:14px;min-height:40px}#theme{margin-left:auto}.actions .primary{order:2}.actions #stop{order:3}.metrics{grid-template-columns:1fr;gap:8px;margin-bottom:15px}.metric{padding:13px 18px;min-height:80px;gap:17px;align-items:center}.metric-icon{width:47px;height:47px}.metric strong{font-size:22px}.metric small{font-size:10px;margin-top:4px}.metric h2{margin-bottom:5px}.panel{padding:16px}.section-title{flex-wrap:wrap}.section-title h2{font-size:21px}.section-caption{font-size:10px}.motion{font-size:10px;gap:6px}.switch{width:35px;height:21px}.switch:after{width:15px;height:15px}.paused .switch:after{right:17px}.scene{grid-template-columns:1fr;gap:25px;padding:7px 25px 12px}.stage{padding-bottom:20px}.stage:not(:last-child):after{content:'↓';right:calc(50% - 8px);top:auto;bottom:-18px;font-size:23px}.stage-heading{margin-bottom:8px}h3{font-size:19px}.stage-heading>span{font-size:13px}.image-space{padding:12px 20px 23px}.image-panel{max-width:270px;padding:8px 8px 0;box-shadow:6px 8px 0 var(--image-edge),10px 13px 0 var(--image-back),13px 18px 25px var(--deep-shadow)}.image-caption{margin:0 -8px;font-size:12px}.image-surface{height:255px}.stage-description{min-height:0;font-size:12px;margin:10px 0}.stage-status{font-size:11px}.pipeline-bottom{align-items:flex-start}.phase{font-size:11px}.pipeline-bottom a{font-size:10px}.preview-note{font-size:9px}.check{grid-template-columns:23px 118px 1fr}.check b{font-size:13px}.check small{font-size:10px}.log-tabs button{font-size:12px;padding:8px 10px}.section-title>span{font-size:9px}.middle{gap:14px}th{font-size:11px}td{font-size:11px}.result-note{font-size:9px}}
++@font-face{font-family:Nanum;src:url('/assets/NanumGothic-Bold.ttf') format('truetype');font-weight:700;font-display:swap}
++/* 학습 단계와 평가 조건을 분리하고 선택 상태는 크기 변화 없이 표시합니다. */
++.training-phases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}.training-phase{padding:16px;border:1px solid var(--border);border-radius:12px;min-width:0;background:var(--surface)}.training-phase.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}.training-phase.done{background:var(--soft)}.training-phase-plan,.training-once{font-size:12px;color:var(--muted);line-height:1.8}.training-phase-state{display:block;color:var(--accent-strong);font-size:13px;margin:10px 0}.training-phase-detail{font-size:11px;color:var(--muted);line-height:1.8;overflow-wrap:anywhere}.training-phase .raw-values pre{min-width:0}.stage-pick{width:100%;min-height:48px;padding:8px 12px;font-size:14px;line-height:1.5;background:var(--surface)}.stage-pick[aria-pressed=true]{border-color:var(--accent);background:var(--selected)}.condition-explorer{margin-bottom:18px}.condition-tabs{display:flex;gap:10px;margin:20px 0 16px}.condition-tabs button{flex:1;min-height:50px;padding:10px;border:1px solid var(--border);font-size:14px}.condition-tabs button[aria-selected=true]{background:var(--accent);color:var(--button-text);border-color:var(--accent)}.condition-chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}.condition-group{border:1px solid var(--border);border-radius:12px;padding:14px;min-width:0}.condition-group.selected-group{border-color:var(--accent);background:var(--soft)}.condition-group h3{font-size:12px;margin-bottom:12px}.chips{display:flex;gap:7px;flex-wrap:wrap}.condition-chip{padding:8px;min-width:60px;min-height:53px;border-radius:9px;font-size:12px;line-height:1.5}.condition-chip small{display:block;font-size:9px;color:var(--muted)}.condition-chip[aria-pressed=true]{border-color:var(--accent);background:var(--selected);box-shadow:inset 0 0 0 1px var(--accent)}.condition-chip[data-status=error]{border-color:var(--error)}.condition-chip[data-status=running]{border-color:var(--accent-strong)}.condition-detail{border:1px solid var(--border);background:var(--soft);border-radius:13px;padding:19px}.condition-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}.condition-heading strong{font-size:12px;color:var(--accent-strong)}.condition-detail p{font-size:12px;line-height:1.9;color:var(--muted);overflow-wrap:anywhere}.condition-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0}.condition-metrics>div{background:var(--surface);padding:15px;border:1px solid var(--border);border-radius:10px;min-width:0}.condition-metrics dt{font-size:11px;color:var(--muted)}.condition-metrics dd{margin:10px 0 0;font-size:18px;overflow-wrap:anywhere}.rounding-note{display:block;color:var(--muted);font-size:10px;line-height:1.6;max-width:180px;margin:6px auto 0}.condition-detail .rounding-notice{color:var(--accent-strong)}.verification-scope{margin-top:17px;font-size:12px;color:var(--muted);line-height:1.9}.verification-scope summary{min-height:44px;padding:10px 0;cursor:pointer;color:var(--text)}.verification-scope summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px}.condition-source{font-size:10px!important}.condition-detail:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
++@media(max-width:1050px){.condition-chips{grid-template-columns:1fr}.condition-group{padding:12px}.condition-chip{min-width:64px}.training-phase{padding:12px}.condition-metrics dd{font-size:16px}}
++@media(max-width:700px){.training-phases{grid-template-columns:1fr}.condition-tabs{gap:6px}.condition-tabs button{font-size:12px}.condition-detail{padding:14px}.condition-metrics{grid-template-columns:1fr}.stage-pick{font-size:14px}.condition-explorer .section-title{align-items:flex-start}}
++/* 원값 펼침은 조작 영역과 긴 십진 문자열을 양쪽 테마에서 유지합니다. */
++.raw-values{text-align:left;font-size:11px;max-width:100%}.raw-values summary{cursor:pointer;min-height:44px;padding:12px 6px;color:var(--accent-strong);list-style-position:inside}.raw-values summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:6px}.raw-values pre{height:auto;max-height:280px;min-width:180px;max-width:600px;margin:6px 0;overflow:auto;font-size:11px;overflow-wrap:anywhere}.raw-values p{color:var(--muted);line-height:1.8}.training-panel>.raw-values{margin-top:8px}
++:root{color-scheme:light;--bg:#fff;--sidebar:#f4f7fb;--surface:#fff;--text:#26364a;--muted:#7b8a9e;--accent:#607da2;--accent-strong:#4e6a90;--soft:#edf2f8;--selected:#dfe8f4;--border:#e0e6ed;--shadow:#3451710d;--deep-shadow:#253b6024;--image-frame:#b5c6dc;--image-edge:#829ab9;--image-back:#a2b6d0;--image-caption:#f0f4fa;--film:#121c2b;--terminal:#1c293a;--terminal-text:#d8e5f5;--error:#ad666a;--notice-bg:#fff1e8;--notice-text:#975e3a;--button-text:#fff;--focus:#789ac7;--switch-off:#b0bdce;--switch-thumb:#fff}
++:root[data-theme=dark]{color-scheme:dark;--bg:#151c27;--sidebar:#1a2432;--surface:#1d2838;--text:#e4ebf5;--muted:#a1b0c5;--accent:#91acca;--accent-strong:#a8bfdb;--soft:#2a3a50;--selected:#334963;--border:#35465e;--shadow:#0002;--deep-shadow:#0006;--image-frame:#607a9b;--image-edge:#3f5674;--image-back:#4e6685;--image-caption:#293c55;--film:#0b111b;--terminal:#101822;--terminal-text:#cfdded;--error:#e19ca1;--notice-bg:#422e2c;--notice-text:#f0c3a8;--button-text:#172335;--focus:#a8c8f0;--switch-off:#526780;--switch-thumb:#151c27}
++*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:24px}body{margin:0;color:var(--text);background:var(--bg);font-family:Nanum,sans-serif;font-weight:700;font-size:15px}button,a{font:inherit}button{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:11px;min-height:44px;padding:10px 19px;transition:background .2s}button:hover{background:var(--soft)}button:disabled{opacity:.45;cursor:not-allowed}a{color:inherit;text-decoration:none}svg{display:block}aside{width:226px;position:fixed;inset:0 auto 0 0;background:var(--sidebar);padding:30px 10px;display:flex;flex-direction:column}.brand{display:flex;align-items:flex-start;gap:10px;margin:0 10px 35px;font-size:23px;letter-spacing:-1.2px}.brand-icon{background:var(--accent);color:var(--button-text);border-radius:11px;display:grid;place-items:center;min-width:43px;width:43px;height:47px}.brand-icon svg{width:34px;height:34px}.brand small{font-size:13px;line-height:1.6;letter-spacing:0;display:block;margin-top:7px;color:var(--muted)}nav{display:grid;gap:9px}nav a{display:flex;gap:19px;align-items:center;font-size:19px;padding:14px 20px;border-radius:12px}nav a.selected{background:var(--selected)}nav svg{width:24px;height:24px;color:var(--accent)}.local{margin:auto 17px 0;font-size:11px;line-height:1.9;color:var(--muted)}main{margin-left:226px;padding:29px 25px 20px;max-width:1900px}header{display:flex;justify-content:space-between;align-items:center;gap:20px;margin:0 5px 26px}h1{font-size:37px;letter-spacing:-1.8px;margin:0 0 10px;line-height:1.3}header p{margin:0;color:var(--muted);font-size:15px;line-height:1.6}.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.primary{background:var(--accent);color:var(--button-text);border-color:var(--accent);box-shadow:0 2px 0 var(--accent-strong);font-size:17px}.primary:hover{background:var(--accent-strong)}.actions>span{background:var(--soft);color:var(--accent-strong);padding:12px 15px;border-radius:12px;font-size:13px}.actions button:last-child{font-size:16px}#theme{font-size:12px;min-height:36px;padding:8px 12px}.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:21px}.metric,.panel{border:1px solid var(--border);background:var(--surface);border-radius:16px;box-shadow:0 3px 8px var(--shadow)}.metric{display:flex;gap:19px;align-items:center;padding:19px 21px;min-height:105px}.metric-icon{width:57px;height:57px;border-radius:18px;background:var(--soft);color:var(--accent);display:grid;place-items:center;flex-shrink:0}.metric-icon svg{width:32px;height:32px}.metric h2{font-size:14px;margin:0 0 8px}.metric strong{font-size:25px;letter-spacing:-.7px;display:block;overflow-wrap:anywhere}.metric small{display:block;color:var(--muted);font-size:10px;line-height:1.6;margin-top:7px}.panel{padding:17px 19px;scroll-margin-top:20px}.section-title{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:15px}.section-title h2{margin:0;display:flex;gap:11px;align-items:center;font-size:23px;letter-spacing:-1px}.section-title h2:before{content:'';width:5px;height:24px;border-radius:5px;background:var(--accent);display:block}.section-title>span{font-size:11px;color:var(--muted)}.section-caption{margin:8px 0 0 16px;font-size:11px;color:var(--muted)}.motion{border:1px solid transparent;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 8px;font-size:12px;min-height:44px;min-width:44px;white-space:nowrap;flex-shrink:0;background:transparent;color:var(--text);user-select:none}.motion:hover,.motion:active,.motion:disabled{background:transparent}.motion:hover{color:var(--accent-strong)}.motion:focus-visible{outline:3px solid var(--focus);outline-offset:2px}.motion:disabled{opacity:.65}.motion .switch{flex-shrink:0;box-shadow:inset 0 0 0 1px var(--accent-strong)}.switch{width:42px;height:24px;border-radius:20px;background:var(--accent);position:relative}.switch:after{content:'';width:18px;height:18px;position:absolute;top:3px;right:4px;background:var(--switch-thumb);border:1px solid var(--image-edge);border-radius:50%}.paused .switch{background:var(--switch-off)}.paused .switch:after{right:20px}
++.pipeline{padding:20px 25px;margin-bottom:18px;overflow:hidden}.scene{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:45px;padding:3px 20px 15px;position:relative}.stage{position:relative;min-width:0;text-align:center}.stage:not(:last-child):after{content:'→';position:absolute;right:-35px;top:47%;font-size:25px;color:var(--image-frame)}.stage.active:not(:last-child):after,.stage.done:not(:last-child):after{color:var(--accent-strong)}.stage-heading{display:flex;align-items:center;justify-content:center;gap:8px;margin:10px 0 8px}.stage-heading>span{font-size:11px;color:var(--accent)}h3{font-size:17px;margin:0;letter-spacing:-.5px}.image-space{perspective:950px;padding:15px 6px 22px}.image-panel{position:relative;isolation:isolate;width:100%;max-width:265px;margin:auto;padding:9px 9px 0;border:1px solid var(--image-frame);border-radius:10px;background:var(--image-frame);box-shadow:7px 9px 0 var(--image-edge),11px 15px 0 var(--image-back),15px 20px 24px var(--deep-shadow);transform-style:preserve-3d;transform:rotateY(-8deg) rotateX(3deg);animation:panel-tilt 9s ease-in-out infinite;transition:background .2s}.stage:nth-child(2) .image-panel{animation-delay:-3s}.stage:nth-child(3) .image-panel{animation-delay:-6s}.image-surface{width:100%;height:clamp(190px,18vw,270px);position:relative;background:var(--film);border:1px solid var(--image-edge);border-radius:5px;overflow:hidden;display:grid;place-items:center}.image-surface img{width:100%;height:100%;object-fit:contain;display:block}.image-surface img[hidden]{display:none}.preview-fallback{color:var(--muted);font-size:12px;padding:12px;line-height:1.8}.image-caption{display:block;padding:9px 4px;background:var(--image-caption);margin:0 -9px;border-radius:0 0 9px 9px;font-size:12px;color:var(--text)}.stage-description{color:var(--muted);font-size:11px;line-height:1.6;margin:8px 0 10px;min-height:18px}.stage-status{display:inline-block;color:var(--muted);border:1px solid var(--border);background:var(--soft);border-radius:20px;padding:6px 15px;font-size:11px}.stage.active .stage-status,.stage.done .stage-status{color:var(--accent-strong);border-color:var(--accent)}.stage.active .image-panel{outline:2px solid var(--accent);outline-offset:4px}.stage.failed .stage-status{color:var(--error);border-color:var(--error)}.stage.failed .image-panel{outline:2px solid var(--error);outline-offset:4px}.pipeline-bottom{border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:15px;padding-top:13px}.phase{margin:0;color:var(--accent-strong);font-size:13px;line-height:1.7}.pipeline-bottom a{font-size:12px;white-space:nowrap;color:var(--accent-strong)}.preview-note{font-size:10px;line-height:1.8;color:var(--muted);margin:7px 0 0}.middle{display:grid;grid-template-columns:.95fr 1.05fr;gap:17px;margin-bottom:17px}.check{display:grid;grid-template-columns:27px 130px 1fr;align-items:center;gap:8px;border-top:1px solid var(--border);padding:12px 6px}.check span{font-size:22px;color:var(--accent)}.check b{font-size:14px}.check small{font-size:11px;color:var(--muted);line-height:1.6}.downloads{font-size:10px;color:var(--muted);line-height:1.8;margin:5px 6px 0;max-height:68px;overflow:auto;overflow-wrap:anywhere}pre{background:var(--terminal);color:var(--terminal-text);border:1px solid var(--border);border-radius:10px;padding:14px;font:700 12px/1.8 Nanum,sans-serif;white-space:pre-wrap;word-break:break-word;height:159px;overflow:auto;margin:0}#log-info{font-size:10px;color:var(--muted);display:block;margin-top:8px}.live{color:var(--accent)!important;display:flex;align-items:center;gap:6px;white-space:nowrap}.live i{background:var(--accent);width:6px;height:6px;border-radius:50%}.log-tabs{display:flex;gap:5px}.log-tabs button{padding:9px 15px;border-radius:8px;font-size:13px;min-height:35px}.log-tabs button[aria-selected=true]{background:var(--accent);color:var(--button-text);border-color:var(--accent)}.result-panel{padding:17px}.table-scroll{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px;text-align:center}th{background:var(--soft);padding:13px 12px;white-space:nowrap}th:first-child{border-radius:9px 0 0 9px}th:last-child{border-radius:0 9px 9px 0}td{padding:13px 10px;border-bottom:1px solid var(--border);color:var(--text)}.empty{text-align:center;padding:17px 0;color:var(--muted)}.empty svg{width:28px;height:28px;margin:auto}.empty p{font-size:13px;margin:9px}.result-note{font-size:10px;color:var(--muted);line-height:1.8;margin:10px 4px 0}footer{font-size:10px;color:var(--muted);text-align:center;padding-top:15px;line-height:1.8}#notice{background:var(--notice-bg);color:var(--notice-text);padding:14px;border-radius:10px;margin-bottom:15px}button:focus-visible,a:focus-visible,pre:focus-visible{outline:3px solid var(--focus);outline-offset:4px}.paused .image-panel{animation-play-state:paused}
++@keyframes panel-tilt{0%,100%{transform:rotateY(-8deg) rotateX(3deg) translateY(0)}50%{transform:rotateY(3deg) rotateX(-2deg) translateY(-4px)}}
++@media(max-width:1350px){header{align-items:flex-start;flex-direction:column;gap:17px}.actions{width:100%}.metric{gap:12px;padding:17px 15px}.metric strong{font-size:21px}.metric-icon{width:45px;height:49px}.check{grid-template-columns:23px 105px 1fr}.check b{font-size:12px}.check small{font-size:10px}.log-tabs button{font-size:12px;padding:9px 11px}.scene{padding:3px 8px 15px;gap:35px}.stage:not(:last-child):after{right:-28px}.image-surface{height:clamp(170px,18vw,235px)}}
++@media(max-width:1050px){aside{width:190px}.brand{font-size:19px;gap:7px;margin-left:5px;margin-right:5px}.brand-icon{min-width:36px;width:36px;height:41px}.brand small{font-size:11px}nav a{font-size:17px;padding:13px 16px;gap:15px}main{margin-left:190px;padding:24px 18px}h1{font-size:33px}.metrics{gap:10px}.metric{gap:10px;padding:15px 12px;align-items:flex-start}.metric strong{font-size:18px}.metric-icon{width:35px;height:40px}.metric-icon svg{width:25px;height:25px}.metric h2{font-size:12px}.metric small{font-size:9px}.middle{grid-template-columns:1fr}.pipeline{padding:18px 17px}.scene{gap:25px;padding:3px 0 12px}.stage:not(:last-child):after{font-size:18px;right:-21px}.image-space{padding-left:0;padding-right:9px}.image-panel{padding:6px 6px 0;box-shadow:5px 7px 0 var(--image-edge),8px 11px 0 var(--image-back),10px 15px 19px var(--deep-shadow)}.image-caption{margin:0 -6px;font-size:10px}.image-surface{height:175px}.stage-heading{gap:5px}h3{font-size:14px}.stage-description{font-size:10px;min-height:33px}.stage-status{font-size:10px;padding:5px 10px}.check{grid-template-columns:28px 140px 1fr}.check b{font-size:14px}.check small{font-size:12px}}
++@media(max-width:700px){aside{position:static;width:100%;padding:16px;display:block}.brand{font-size:24px;margin:0 0 15px;align-items:center;gap:10px}.brand small{font-size:11px;margin-top:3px}.brand-icon{width:45px;height:45px}.local{display:none}nav{display:flex;gap:2px;overflow-x:auto}nav a{font-size:12px;padding:10px 8px;gap:6px;white-space:nowrap;flex:1;justify-content:center}nav svg{width:17px;height:17px}main{margin:0;padding:20px 13px}header{margin:0 2px 20px}h1{font-size:29px;letter-spacing:-1.4px}header p{font-size:12px}.actions{justify-content:flex-start;gap:8px}.actions>span{order:-1;font-size:12px}.actions button{padding:9px 12px;font-size:14px;min-height:40px}#theme{margin-left:auto}.actions .primary{order:2}.actions #stop{order:3}.metrics{grid-template-columns:1fr;gap:8px;margin-bottom:15px}.metric{padding:13px 18px;min-height:80px;gap:17px;align-items:center}.metric-icon{width:47px;height:47px}.metric strong{font-size:22px}.metric small{font-size:10px;margin-top:4px}.metric h2{margin-bottom:5px}.panel{padding:16px}.section-title{flex-wrap:wrap}.section-title h2{font-size:21px}.section-caption{font-size:10px}.motion{font-size:10px;gap:6px}.switch{width:35px;height:21px}.switch:after{width:15px;height:15px}.paused .switch:after{right:17px}.scene{grid-template-columns:1fr;gap:25px;padding:7px 25px 12px}.stage{padding-bottom:20px}.stage:not(:last-child):after{content:'↓';right:calc(50% - 8px);top:auto;bottom:-18px;font-size:23px}.stage-heading{margin-bottom:8px}h3{font-size:19px}.stage-heading>span{font-size:13px}.image-space{padding:12px 20px 23px}.image-panel{max-width:270px;padding:8px 8px 0;box-shadow:6px 8px 0 var(--image-edge),10px 13px 0 var(--image-back),13px 18px 25px var(--deep-shadow)}.image-caption{margin:0 -8px;font-size:12px}.image-surface{height:255px}.stage-description{min-height:0;font-size:12px;margin:10px 0}.stage-status{font-size:11px}.pipeline-bottom{align-items:flex-start}.phase{font-size:11px}.pipeline-bottom a{font-size:10px}.preview-note{font-size:9px}.check{grid-template-columns:23px 118px 1fr}.check b{font-size:13px}.check small{font-size:10px}.log-tabs button{font-size:12px;padding:8px 10px}.section-title>span{font-size:9px}.middle{gap:14px}th{font-size:11px}td{font-size:11px}.result-note{font-size:9px}}
+ @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}}.training-panel{margin-bottom:24px;padding:24px 28px}.training-panel p{line-height:1.8}.training-panel #training-state{font-size:21px}.training-panel .section-title span{color:var(--muted);font-size:12px}@media(max-width:600px){.training-panel .section-title{display:block}.training-panel #training-state{font-size:17px}}
+-/* 데이터셋·과제 선택은 기존 테마와 모션 버튼의 상태 규칙을 유지합니다. */
++/* 데이터셋·과제 선택은 기존 테마와 모션 버튼의 상태 규칙을 유지합니다. */
+ .selection-controls{display:flex;flex-wrap:wrap;gap:12px;margin:18px 0}.selection-controls>div{display:flex;flex-wrap:wrap;gap:6px}.selection-controls button{min-height:44px}.selection-controls button[aria-pressed=true]{background:var(--accent);color:var(--button-text);border-color:var(--accent)}.selection-controls button:focus-visible{outline:3px solid var(--focus);outline-offset:3px}.read-only{font-size:12px;color:var(--muted)}.condition-metrics{grid-template-columns:repeat(4,minmax(0,1fr))}.condition-metrics dd{overflow-wrap:anywhere}#notice{white-space:pre-wrap}.condition-chip[data-status=observed]{border-color:var(--accent)}@media(max-width:900px){.condition-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:500px){.selection-controls{display:block}.selection-controls>div{margin:8px 0}.selection-controls button{font-size:12px;padding:10px}.condition-metrics{grid-template-columns:1fr}}
++
++/* 학습량과 관측 손실을 넓은 영역에서 읽고 테마별 대비를 유지합니다. */
++.training-visual{padding:24px;margin:20px 0;background:var(--soft);border:1px solid var(--border);border-radius:14px}.progress-heading,.phase-progress-heading{display:flex;justify-content:space-between;align-items:center;gap:16px}.progress-heading h3{font-size:25px;margin:6px 0 15px}.progress-heading small{color:var(--muted)}.progress-heading>strong{font-size:40px;color:var(--accent-strong)}.progress-track{height:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}.progress-track>span{height:100%;display:block;background:var(--accent);border-radius:12px}.progress-track.unknown{border-style:dashed}.phase-track{height:10px;margin-top:10px}.phase-progress-heading{font-size:13px;margin-top:22px}.training-visual p{font-size:12px;line-height:1.8;overflow-wrap:anywhere}.training-visual #progress-limits,.training-visual #eta-note{color:var(--muted);font-size:11px}.training-phase.done{border-color:var(--accent);background:var(--soft)}.loss-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:22px}.loss-charts figure{margin:0;padding:16px;border:1px solid var(--border);border-radius:12px;min-width:0;background:var(--surface)}.loss-charts h3{margin-bottom:7px}.loss-charts figcaption span,.loss-charts p{font-size:11px;color:var(--muted);line-height:1.8}.loss-charts svg{display:block;width:100%;min-height:170px;overflow:visible}.chart-axis{stroke:var(--border);fill:none;stroke-width:2}.chart-line{stroke:var(--accent);stroke-width:2;fill:none;vector-effect:non-scaling-stroke}.chart-point{fill:var(--accent-strong)}.chart-label{fill:var(--text);font-size:12px;font-family:Nanum,sans-serif;font-weight:700}@media(max-width:1100px){.loss-charts{grid-template-columns:1fr}}@media(max-width:500px){.training-visual{padding:16px}.progress-heading>strong{font-size:30px}.progress-heading h3{font-size:20px}.phase-progress-heading{align-items:flex-start}.loss-charts figure{padding:10px}.loss-charts svg{min-height:130px}}

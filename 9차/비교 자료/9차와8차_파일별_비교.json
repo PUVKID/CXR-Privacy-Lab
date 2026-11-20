@@ -1,0 +1,181 @@
+{
+  "before_revision": "8차",
+  "after_revision": "9차",
+  "scope": "양쪽 공개 자료 전체, 비교 문서·비교 산출물만 자기 포함 방지를 위해 제외",
+  "previous_only_meaning": "이전 폴더에만 존재하며8차 원본을 삭제했다는 뜻이 아님",
+  "files": [
+    {
+      "path": "README.md",
+      "status": "modified",
+      "before": {
+        "bytes": 18839,
+        "sha256": "52654686a8b56072c13aad0f0aee575077e2544f1c5365ab89c8f755a5798b0c"
+      },
+      "after": {
+        "bytes": 15041,
+        "sha256": "d4ced5ba5768faf49568cce9071057f800f44c8d4b3479e70821090a12504a3c"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "adapter.mjs",
+      "status": "modified",
+      "before": {
+        "bytes": 9853,
+        "sha256": "1d577050882e725cbbae06c187a18b17ccf3ef58bcd6e2824f797c8d49ec8da8"
+      },
+      "after": {
+        "bytes": 9853,
+        "sha256": "73dc4f81064598a8ba9708a031ffbe48167b7267e836292cf160e4fcfcd3a4be"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "docs/설계와_작업계획.md",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 3967,
+        "sha256": "b439e11a8c55b639ee897a8e8bb43f7d23b4189e4f9d6d164b8723173801ddca"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "io.mjs",
+      "status": "modified",
+      "before": {
+        "bytes": 4573,
+        "sha256": "72a7e7e70140c2d98f113afcdecf02a55802f8ade410506f3f9e940a21fa4714"
+      },
+      "after": {
+        "bytes": 5328,
+        "sha256": "2a582654823c3f4da3a608daa012264c34d90287846573b01c8be406eaed84ab"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "process.mjs",
+      "status": "unchanged",
+      "before": {
+        "bytes": 4828,
+        "sha256": "1f5e00d7f1f378a98ca34744b33949e6dc6d7f49338f2335f42359b6687a0a51"
+      },
+      "after": {
+        "bytes": 4828,
+        "sha256": "1f5e00d7f1f378a98ca34744b33949e6dc6d7f49338f2335f42359b6687a0a51"
+      }
+    },
+    {
+      "path": "server.mjs",
+      "status": "modified",
+      "before": {
+        "bytes": 4640,
+        "sha256": "d8d6c4711acc71666c4861a4f4b46ea88cd9fc76794de1c142c13c65c2463d13"
+      },
+      "after": {
+        "bytes": 4640,
+        "sha256": "3cee5ac9e7a7165f00504400c0c6b6667b393fe3d23c00199820f8599ad398f3"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "검사/server.test.mjs",
+      "status": "modified",
+      "before": {
+        "bytes": 19490,
+        "sha256": "68748f5f352abfa5fa328d0b3e352c83fbb47fb3ce2cdff1ef864efd800e584e"
+      },
+      "after": {
+        "bytes": 25687,
+        "sha256": "45e92ddc57394a82c7dcdae8650303940c499388da52a49f33d18d0098467eb0"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "논문과_실행_재검증.md",
+      "status": "previous_only",
+      "before": {
+        "bytes": 6606,
+        "sha256": "37ca07e5c4cf40309053e4a0e9a8d4f5eb02a62132188817f0b35da7e6e8511a"
+      },
+      "after": null,
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "화면/app.js",
+      "status": "modified",
+      "before": {
+        "bytes": 20382,
+        "sha256": "b8f3c7e189662d9f375261093450e2a2a7e64d61acb1d038a30eabeb97703394"
+      },
+      "after": {
+        "bytes": 24598,
+        "sha256": "4a8d98bbfa7d14f13f2d0746cb515f71ae476948cb0953f53e39b18a763cd7cb"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "화면/assets/NanumGothic-Bold.ttf",
+      "status": "unchanged",
+      "before": {
+        "bytes": 2073868,
+        "sha256": "f96298f9fb18e364d2370f4c3ce948ac67a2b61af992d7234bc15c42b033c674"
+      },
+      "after": {
+        "bytes": 2073868,
+        "sha256": "f96298f9fb18e364d2370f4c3ce948ac67a2b61af992d7234bc15c42b033c674"
+      }
+    },
+    {
+      "path": "화면/assets/OFL.txt",
+      "status": "unchanged",
+      "before": {
+        "bytes": 4534,
+        "sha256": "eeacf16032901d0ed0456876ec77b8f0fda6b3fecec7d972f8543eb602e6c30f"
+      },
+      "after": {
+        "bytes": 4534,
+        "sha256": "eeacf16032901d0ed0456876ec77b8f0fda6b3fecec7d972f8543eb602e6c30f"
+      }
+    },
+    {
+      "path": "화면/index.html",
+      "status": "modified",
+      "before": {
+        "bytes": 12404,
+        "sha256": "22f3cdf0efb973ee9566438bf3804994ecfbd6ef0302b3af26e10ec451239fb2"
+      },
+      "after": {
+        "bytes": 14299,
+        "sha256": "5265d666d9dbf30e14e7af92a906963cb7f159c90df39434a56ee9cd484700b8"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "화면/state.mjs",
+      "status": "modified",
+      "before": {
+        "bytes": 7813,
+        "sha256": "18eadedbee8cdf66f5bc722ec02bd68c275f17d269f37bb82ce37425d4a6c22a"
+      },
+      "after": {
+        "bytes": 10599,
+        "sha256": "42e3f8dc887766e8b7bd489a17cc891316e468cfbe2d1a20cb7caca8bb059d18"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "화면/style.css",
+      "status": "modified",
+      "before": {
+        "bytes": 20365,
+        "sha256": "a995bd162ad06749c0b50e94537ebf959b81d427fe0b4267d9287d86b8a71ec6"
+      },
+      "after": {
+        "bytes": 22489,
+        "sha256": "0eea4e026e6b4fcedeba93e8d2855d28d3c37b564729ea2b50316eb216a8d036"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    }
+  ]
+}
