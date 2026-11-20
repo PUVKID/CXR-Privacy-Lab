@@ -151,6 +151,7 @@ class QueueSafetyTests(unittest.TestCase):
         with patch.object(q, 'prevent_sleep', return_value=nullcontext()), \
              patch.object(q, 'ProcessHandle', return_value=nullcontext(fake_handle)), \
              patch.object(q, 'wait_baseline'), patch.object(q, 'baseline_artifact_gate', return_value={'completed_task_conditions': 84}), \
+             patch.object(q, 'cxr_processes', return_value=[]), \
              patch.object(q, 'gpu_processes', return_value=[]), patch.object(q, 'run_child', side_effect=child):
             try:
                 q.execute(root, args)
@@ -163,17 +164,17 @@ class QueueSafetyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             state, seen = self.run_fixture(Path(directory))
             self.assertEqual(state['status'], 'completed')
-            self.assertEqual(len(seen), 40)
-            self.assertEqual([item[2] for item in seen], ['training', 'evaluation'] * 20)
-            self.assertEqual(len({item[1] for item in seen}), 20)
-            self.assertEqual(len({item[0] for item in seen}), 20)
+            self.assertEqual(len(seen), 42)
+            self.assertEqual([item[2] for item in seen], ['training', 'evaluation'] * 21)
+            self.assertEqual(len({item[1] for item in seen}), 21)
+            self.assertEqual(len({item[0] for item in seen}), 21)
 
     def test_queue_failure_never_starts_later_condition(self):
         with tempfile.TemporaryDirectory() as directory:
             state, seen = self.run_fixture(Path(directory), fail_condition='blur_002')
             self.assertEqual(state['status'], 'failed')
-            self.assertEqual([item[0] for item in seen], ['blur_000', 'blur_000', 'blur_001', 'blur_001', 'blur_002'])
-            self.assertTrue(all(row['status'] == 'pending' for row in state['conditions'][3:]))
+            self.assertEqual([item[0] for item in seen], ['original_000', 'original_000', 'blur_000', 'blur_000', 'blur_001', 'blur_001', 'blur_002'])
+            self.assertTrue(all(row['status'] == 'pending' for row in state['conditions'][4:]))
 
 
 if __name__ == '__main__':

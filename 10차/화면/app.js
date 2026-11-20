@@ -1,4 +1,4 @@
-import { describeExperiment, formatPercent, formatRaw, percentNotice, EXPERIMENT_PLAN, CONDITIONS, DATASETS, TASKS, conditionState, trainingPhaseStates, trainingDisplay, historyNotice, trainingFractions, lossSegments, phaseTimeline, formatProgressPercent, INDEPENDENT_CONDITIONS, independentLabel } from '/state.mjs';
+import { describeExperiment, formatPercent, formatRaw, percentNotice, EXPERIMENT_PLAN, CONDITIONS, DATASETS, TASKS, conditionState, trainingPhaseStates, trainingDisplay, historyNotice, trainingFractions, lossSegments, phaseTimeline, formatProgressPercent, INDEPENDENT_CONDITIONS, TRAINING_CONDITIONS, independentLabel } from '/state.mjs';
 const icons = {
  home:'M3 11 12 3l9 8M5 10v11h5v-7h4v7h5V10',layers:'m3 7 9-4 9 4-9 5-9-5Zm0 5 9 5 9-5M3 17l9 5 9-5',database:'M21 6c0 2-4 4-9 4S3 8 3 6s4-4 9-4 9 2 9 4ZM3 6v12c0 2 4 4 9 4s9-2 9-4V6M3 12c0 2 4 4 9 4s9-2 9-4',chart:'M4 21V12h4v9M10 21V7h4v14M16 21V3h4v18',file:'M5 2h10l5 5v15H5V2Zm10 0v6h5M8 12h9M8 16h7',chip:'M6 6h12v12H6V6ZM3 8h3M3 12h3M3 16h3M18 8h3M18 12h3M18 16h3M8 3v3M12 3v3M16 3v3M8 18v3M12 18v3M16 18v3',trophy:'M7 3h10v7c0 7-10 7-10 0V3Zm0 2H3v3c0 4 4 5 5 5M17 5h4v3c0 4-4 5-5 5M12 16v6M7 22h10',image:'M3 4h18v16H3V4Zm1 13 5-6 4 4 3-4 5 6M15 8h.01',drop:'M12 2C10 7 4 10 4 15a8 8 0 0 0 16 0c0-5-6-8-8-13Z',grid:'M3 3h6v6H3V3Zm12 0h6v6h-6V3ZM3 15h6v6H3v-6Zm12 0h6v6h-6v-6Z'};
 document.querySelectorAll('[data-icon]').forEach(el => { const svg = document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.setAttribute('viewBox','0 0 24 24'); svg.setAttribute('fill','none'); svg.setAttribute('stroke','currentColor'); svg.setAttribute('stroke-width','1.8'); svg.setAttribute('stroke-linecap','round'); svg.setAttribute('stroke-linejoin','round'); svg.setAttribute('aria-hidden','true'); const p=document.createElementNS(svg.namespaceURI,'path'); p.setAttribute('d',icons[el.dataset.icon] || icons.file); svg.append(p); el.prepend(svg); });
@@ -74,7 +74,7 @@ function renderExplorer(s){
  $('condition-rounding').textContent=percentages.map(([value,options])=>percentNotice(value,options)).filter(Boolean).join(' · ')||'백분율은 소수 첫째 자리로 반올림합니다. 전체 원값은 아래에서 확인하세요.';
  $('condition-denominator').textContent=task==='verification'?`실제 검증 쌍 ${metric(values?.n_pairs)}`:`실제 검색 유효 질의 ${metric(values?.eligible_queries)} · 미측정 수량은 채워 넣지 않습니다.`;
  $('condition-rule').textContent='원본·blur0·mosaic0·mosaic1은 원본 결과 재사용 대상입니다. 재사용 사실과 실제 완료 여부는 아래 원기록을 따릅니다. PrivacyScore@1은 고정 공격의 1순위 재식별 실패율이며 익명성 보장이 아닙니다.';
- $('condition-source').textContent=s.run_id?`7차/runs/${s.run_id}/${row?.source||'privacy_results.json'} · ${dataset}/${selected.id}/${task} · ${row?.measurement_source||'미측정'}`:'현재 실행 ID를 확인할 수 없습니다.';
+ $('condition-source').textContent=s.experiment?.execution_revision===10?'7차 고정 모델 평가 보관 영역 · 새10차 결과를 혼합하지 않습니다.':s.run_id?`7차/runs/${s.run_id}/${row?.source||'privacy_results.json'} · ${dataset}/${selected.id}/${task} · ${row?.measurement_source||'미측정'}`:'현재 실행 ID를 확인할 수 없습니다.';
  $('condition-raw').textContent=JSON.stringify({dataset,task,condition:selected.id,status:state.status,source:row?.source??null,error:row?.error??null,stored_values:row?.raw??null},null,2);
  // 사진은 현재 실행의 고정 이름으로만 요청합니다. 사진 유무와 평가 완료는 별개입니다.
  for(const plan of EXPERIMENT_PLAN){
@@ -94,9 +94,9 @@ function renderLog(s){
  $('log-info').textContent=names.map(name=>`${name}: ${s.logs?.[name]?.selection||'기록 대기'} · 원본 ${s.logs?.[name]?.bytes??0} B${s.logs?.[name]?.truncated?' · 최근 64 KiB만 표시':''}`).join(' / ');
 }
 function render(s){
- latest=s;$('status').textContent=describeExperiment(s).status;$('original-training-state').textContent=describeExperiment(s).status;$('revision-label').textContent='화면 10차 · 실험 7차 · 읽기 전용';
+ latest=s;const currentState=s.experiment?.execution_revision===10?independentLabel(s.status):describeExperiment(s).status;$('status').textContent=currentState;$('original-training-state').textContent=currentState;$('revision-label').textContent='화면 10차 · 새 실험 10차 · 읽기 전용';
  $('gpu').textContent=s.gpu.name;$('gpu-detail').textContent=s.gpu.utilization===null?'장치 조회 불가 · 학습 가능 여부를 뜻하지 않습니다.':`사용률 ${s.gpu.utilization}% · VRAM ${s.gpu.used} / ${s.gpu.total} MB`;
- $('result-count').textContent=`${s.completed_task_conditions}/84개 과제·조건`;$('download-summary').textContent='NIH + COVID19 · 저자 원본 목록';
+ $('result-count').textContent=s.experiment?.execution_revision===10?`${s.independent?.conditions?.filter(row=>row.status==='complete').length??0}/21조건 학습·평가 완료`:`${s.completed_task_conditions}/84개 과제·조건`;$('download-summary').textContent='NIH + COVID19 · 저자 원본 목록';
  const display=trainingDisplay(s),training=display.progress,names={verification:'검증 모델',retrieval_phase1:'검색 출력부',retrieval_phase2:'검색 전체',evaluation:'원본 성능 평가',privacy:'변환 조건 평가'};
  $('training-state').textContent=training?`${display.lastObserved?'오류 전 마지막 관측 · ':''}${names[training.phase]||'진행 기록'} · 에폭 ${metric(training.epoch)} / ${metric(training.epochs)}`:display.terminal?'오류·중단 상태 · 정상 학습 기록 확인 불가':'학습 기록 대기';
  $('training-detail').textContent=training?`배치 ${metric(training.step)} / ${metric(training.steps)} · 단계 내 누적 처리 배치 ${metric(training.global_step)} · 손실 ${metric(training.loss)} · 학습률 ${metric(training.learning_rate)} · ${observedTime(training.updated_at)} · ${display.lastObserved?'events.jsonl 마지막 정상 기록':'progress.json 기록'} · ${s.process?.verified?'실제 프로세스 확인 · PID '+s.process.proofs[0].pid:'실행 프로세스 신원 미확인'}`:'현재 기록이 없다는 것이 0회 학습을 뜻하지 않습니다.';
@@ -110,9 +110,9 @@ function render(s){
  const historyMessage=historyNotice(s.history);
  $('history-note').textContent=historyMessage.info;$('history-note').hidden=!historyMessage.info;
  const p=s.progress;$('phase').textContent=p?`${names[p.phase]||p.phase} · 저장 상태 ${p.status} · ${observedTime(p.updated_at)}`:'현재 실행 포인터를 확인하고 있습니다.';
- notice([p?.error,s.pointer_error?'7차 현재 실행 포인터 또는 경계를 확인할 수 없습니다.':null,...(s.errors||[]).map(e=>e.source+' · '+e.error),historyMessage.error].filter(Boolean).join('\n'));
+ notice([p?.error,s.pointer_error?'10차 새 원본 실행 경계를 확인할 수 없습니다.':null,...(s.errors||[]).map(e=>e.source+' · '+e.error),historyMessage.error].filter(Boolean).join('\n'));
  $('check-model').textContent=s.config?'✓':'○';$('check-data').textContent=s.preflight?'✓':'○';$('check-validation').textContent=s.preflight?'기록':'○';
- $('downloads').textContent=s.config?`seed ${metric(s.config.seed)} · 검증 작업자 ${metric(s.config.verification_workers)} · 검색 작업자 ${metric(s.config.retrieval_workers)} · ${s.config.protocol?.dataset_cleaning_policy||'정책 확인 전'} · 사전 검사 파일 존재는 전수 픽셀 해시 검증을 의미하지 않습니다.`:'7차 학습 설정 기록 대기';
+ $('downloads').textContent=s.config?`seed ${metric(s.config.seed)} · 검증 작업자 ${metric(s.config.verification_workers)} · 검색 작업자 ${metric(s.config.retrieval_workers)} · ${s.config.protocol?.dataset_cleaning_policy||'정책 확인 전'} · 사전 검사 파일 존재는 전수 픽셀 해시 검증을 의미하지 않습니다.`:'10차 새 원본 학습 설정 기록 대기';
  renderTrainingVisual(s);renderIndependentOverview(s.independent);renderExplorer(s);renderLog(s);
  const tbody=$('result-rows'),expanded=new Set([...tbody.querySelectorAll('details[open]')].map(x=>x.dataset.key));tbody.replaceChildren();
  for(const ds of DATASETS)for(const condition of CONDITIONS){
@@ -163,6 +163,7 @@ function drawLoss(id,captionId,samples,key,phase){
 }
 
 let independentSelection='blur_000',independentRequest=0;
+$('original-detail').addEventListener('click',()=>selectIndependent('original_000'));
 const independentButtons=new Map();
 for(const [index,condition] of INDEPENDENT_CONDITIONS.entries()){
  const button=document.createElement('button');button.type='button';button.dataset.independent=condition.id;button.setAttribute('aria-pressed',String(condition.id===independentSelection));
@@ -185,8 +186,8 @@ async function refreshIndependent(){
  catch(error){if(id===independentSelection&&request===independentRequest){renderIndependentDetail(null);$('independent-status').textContent='조건 기록 확인 불가';}}
 }
 function renderIndependentDetail(value){
- const condition=INDEPENDENT_CONDITIONS.find(c=>c.id===independentSelection),p=trainingDisplay(value||{}).progress,f=trainingFractions(p);
- $('independent-title').textContent=(condition.mode==='blur'?'블러':'모자이크')+' '+condition.strength+' px · 독립 학습';
+ const condition=TRAINING_CONDITIONS.find(c=>c.id===independentSelection),p=trainingDisplay(value||{}).progress,f=trainingFractions(p);
+ $('independent-title').textContent=condition.mode==='original'?'새 원본 · 10차 original_000':(condition.mode==='blur'?'블러':'모자이크')+' '+condition.strength+' px · 독립 학습';
  $('independent-description').textContent=condition.identity?'픽셀 변형이 없는 항등 조건입니다. 학습 결과를 원본에서 재사용하지 않고 독립 모델을 만듭니다.':'원영상에 해당 강도를 적용한 뒤 모델 입력 전처리를 수행하는 독립 학습 조건입니다.';
  $('independent-status').textContent=independentLabel(value?.status||'unknown');
  $('independent-observation').textContent=p?`선택 조건의 ${({verification:'검증 모델',retrieval_phase1:'검색 출력부',retrieval_phase2:'검색 전체'})[p.phase]||'단계 기록'} · 에폭 ${metric(p.epoch)} / ${metric(p.epochs)} · ${observedTime(p.updated_at)} · ${value.last_observed_progress===p?'오류 전 마지막 관측':'저장된 진행 관측'}`:'선택한 조건의 학습 기록이 없습니다. 원본이나 다른 조건의 기록을 대신 표시하지 않습니다.';

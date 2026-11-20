@@ -303,10 +303,45 @@ test('독립완료는큐문구만믿지않고현재조건의선택가중치와NI
 }));
 
 
-test('주탐색의강도별학습은실제독립영역으로이동하고84상태는고정모델평가로한정합니다',async()=>{
+test('새21주탐색의강도별학습은실제영역으로이동하고이전평가와분리합니다',async()=>{
  const html=await fs.readFile(path.join(ROOT,'화면/index.html'),'utf8'),js=await fs.readFile(path.join(ROOT,'화면/app.js'),'utf8');
  const nav=html.match(/<nav[^>]*>([\s\S]*?)<\/nav>/)[1];
  assert.match(nav,/<a href="#independent-training"[^>]*>강도별 학습<\/a>/);assert.match(html,/<section[^>]*id="independent-training"/);
- assert.match(html,/원본 고정 모델 평가 · 2개 데이터셋 × 2개 과제 × 21조건 = 84개 상태/);assert.match(html,/원본 7차 학습/);assert.match(html,/원본1 \+ 독립20 = 21개 학습 조건/);
+ assert.match(html,/10차 새 원본 \+ 블러10 \+ 모자이크10/);assert.match(html,/새 원본 10차 학습/);assert.match(html,/원본1 \+ 독립20 = 21개 학습 조건/);
+ assert.match(html,/id="original-detail"/);assert.match(js,/selectIndependent\('original_000'\)/);assert.match(js,/TRAINING_CONDITIONS\.find/);
  assert.match(js,/document\.querySelectorAll\('nav a'\)/);assert.match(js,/a\.classList\.add\('selected'\)/);
+});
+
+test('새21조건은항등원본정의와별도지문을가지며20조건선택을보존합니다',()=>fixture(async f=>{
+ const {TRAINING_CONDITIONS,INDEPENDENT_CONDITIONS}=await import('../화면/state.mjs');
+ const {independentDefinition,independentFingerprint,readIndependentOverview,readIndependentCondition}=await import('../adapter.mjs');
+ await independentFixture(f);assert.equal((await readIndependentCondition(f.dir,'original_000')).progress,null);
+ assert.equal(TRAINING_CONDITIONS.length,21);assert.equal(INDEPENDENT_CONDITIONS.length,20);
+ assert.deepEqual(independentDefinition('original_000'),{id:'original_000',mode:'original',strength:0,identity_transform:true,operator_mode:'original',operator_strength:0,units:'none',training_sides:'all_training_and_validation_images',evaluation_sides:'transformed_query_and_transformed_gallery',original_image_modified:false});
+ assert.notEqual(independentFingerprint('original_000'),independentFingerprint('blur_000'));
+ await independentFixture(f,s=>{s.start_mode='fresh_all_21';s.baseline={status:'not_required'};s.status='ready';s.conditions.unshift({id:'original_000',mode:'original',strength:0,identity_transform:true,status:'pending',run_id:null,training_subdir:null,condition_fingerprint:independentFingerprint('original_000'),initialization:'fresh_imagenet_seed3',error:null});});
+ const value=await readIndependentOverview(f.dir);assert.equal(value.conditions.length,21);assert.equal(value.conditions[0].id,'original_000');assert.equal(value.conditions[0].status,'pending');
+ const state=JSON.parse(await fs.readFile(path.join(f.work,'queue/state.json'),'utf8'));state.conditions[1].run_id=ID;state.conditions[1].training_subdir='work/runs/'+ID+'/training';state.conditions[0].run_id=ID;state.conditions[0].training_subdir='work/runs/'+ID+'/training';await fs.writeFile(path.join(f.work,'queue/state.json'),JSON.stringify(state));assert.equal((await readIndependentOverview(f.dir)).status,'unknown');
+}));
+
+test('새21상단은10차원본만읽고7차학습기록을현재값으로혼합하지않습니다',()=>fixture(async f=>{
+ const {independentDefinition,independentFingerprint,INDEPENDENT_PROTOCOL}=await import('../adapter.mjs');
+ await f.write('progress.json',{...training,global_step:9999});
+ await independentFixture(f,s=>{s.start_mode='fresh_all_21';s.baseline={status:'not_required'};s.status='training';s.current_condition_id='original_000';s.conditions.unshift({id:'original_000',mode:'original',strength:0,identity_transform:true,status:'training',run_id:ID,training_subdir:'work/runs/'+ID+'/training',condition_fingerprint:independentFingerprint('original_000'),initialization:'fresh_imagenet_seed3',error:null});});
+ const folder=path.join(f.dir,'work/runs',ID,'training');await fs.mkdir(folder,{recursive:true});
+ const config={condition_id:'original_000',condition_fingerprint:independentFingerprint('original_000'),condition:independentDefinition('original_000'),run_id:ID,initialization_mode:'fresh_imagenet_seed3',cross_condition_state_inherited:false,experiment_protocol:INDEPENDENT_PROTOCOL};
+ await fs.writeFile(path.join(folder,'training_config.json'),JSON.stringify(config));await fs.writeFile(path.join(folder,'progress.json'),JSON.stringify({...training,global_step:3}));await fs.writeFile(path.join(folder,'training.stdout.log'),'synthetic fresh original log');
+ const server=createDashboard({root:ROOT,executionRoot:f.dir,independentRoot:f.dir,freshOriginal:true,processQuery:async()=>[],gpuQuery:(_a,_b,_c,cb)=>cb(null,'Test GPU,0,0,24564')});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ try{const s=await(await fetch(`http://127.0.0.1:${server.address().port}/api/status`)).json();assert.equal(s.experiment.execution_revision,10);assert.equal(s.condition.id,'original_000');assert.equal(s.progress.global_step,3);assert.notEqual(s.progress.global_step,9999);assert.equal(s.archived_seven.live_training_source,false);assert.equal(s.process.verified,false);assert.match(s.logs.training.text,/synthetic fresh original/);assert.equal(s.completed_task_conditions,0);}
+ finally{await new Promise(resolve=>server.close(resolve));}
+}));
+
+test('새21관리자의정규상대경로는절대자식출력과계보에결합하고유사경로는거절합니다',async()=>{
+ const {matchIndependentProcesses}=await import('../process.mjs'),root='E:/합성/10차',id='original_000',fingerprint='a'.repeat(64),created='2030-01-02T03:50:00Z',now=Date.parse('2030-01-02T04:00:00Z');
+ const command=`python.exe -u "${root}/src/train_from_scratch.py" --condition-id ${id} --output "${root}/work/runs/${ID}/training" --project "E:/합성/연구 자료"`;
+ const manager={pid:10,ppid:1,created_at:'2030-01-02T03:49:00Z',command_line:'python.exe -B -X utf8 -u src/cxr10_queue.py --run --poll-seconds 30'},child={pid:20,ppid:10,created_at:created,command_line:command};
+ const claim={pid:20,creation_filetime:String(BigInt(Date.parse(created))*10000n+116444736000000000n),entry:'train_from_scratch.py',command_line:command,run_id:ID,condition_id:id,condition_fingerprint:fingerprint},condition={id,run_id:ID,fingerprint};
+ const good=matchIndependentProcesses([manager,child],root,claim,condition,now);assert.equal(good.verified,true);assert.equal(good.proofs[0].manager_source,'exact_relative_child_root_bound');assert.equal(good.proofs[0].manager_cwd_observed,false);
+ for(const command_line of ['python.exe cxr10_queue.py --run','python.exe ../src/cxr10_queue.py --run','python.exe src/../src/cxr10_queue.py --run','python.exe src/cxr10_queue.py','python.exe src/cxr10_queue.py --run=1','python.exe src/cxr10_queue.py --run --prepare-fresh'])assert.equal(matchIndependentProcesses([{...manager,command_line},child],root,claim,condition,now).verified,false);
+ assert.equal(matchIndependentProcesses([manager,{...child,command_line:command.replace('/training','/other')}],root,claim,condition,now).verified,false);
 });

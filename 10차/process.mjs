@@ -67,8 +67,11 @@ export function matchIndependentProcesses(rows,root,claim,condition,now=Date.now
   while(ids.has(node.ppid)&&!visited.has(node.ppid)){const parent=byId.get(node.ppid);if(Date.parse(parent.created_at)>Date.parse(node.created_at)){node=null;break;}visited.add(parent.pid);chain.push(parent);node=parent;}
   if(!node||!chain.some(r=>r.pid===claim.pid))continue;
   const manager=byId.get(node.ppid),args=commandTokens(manager?.command_line);
-  if(!manager||!args||!args.some(v=>normalized(v)===normalized(path.join(root,'src/cxr10_queue.py')))||!Number.isFinite(Date.parse(manager.created_at))||Date.parse(manager.created_at)>Date.parse(node.created_at))continue;
-  proofs.push({pid:leaf.pid,script:claim.entry,manager_pid:manager.pid,created_at:leaf.created_at,redirector_pids:chain.slice(1).map(r=>r.pid)});
+  const absoluteManager=args?.filter(v=>normalized(v)===normalized(path.join(root,'src/cxr10_queue.py'))).length===1;
+  // 상대 경로는 정규 리터럴과 정확한 실행 플래그만 허용합니다. root는 절대 child 소스·출력·계보로 결합합니다.
+  const relativeManager=args?.filter(v=>v==='src/cxr10_queue.py').length===1&&args.filter(v=>v==='--run').length===1&&!args.some(v=>['--prepare','--prepare-fresh'].includes(v));
+  if(!manager||!args||!(absoluteManager||relativeManager)||!Number.isFinite(Date.parse(manager.created_at))||Date.parse(manager.created_at)>Date.parse(node.created_at))continue;
+  proofs.push({pid:leaf.pid,script:claim.entry,manager_pid:manager.pid,created_at:leaf.created_at,redirector_pids:chain.slice(1).map(r=>r.pid),manager_source:absoluteManager?'absolute':'exact_relative_child_root_bound',manager_cwd_observed:false});
  }
  return {verified:proofs.length===1&&leaves.length===1,status:proofs.length===1&&leaves.length===1?'confirmed':leaves.length>1?'ambiguous':'unconfirmed',proofs};
 }

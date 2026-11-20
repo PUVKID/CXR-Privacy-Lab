@@ -2,7 +2,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import { parseCSV, readTrainingHistory, tail } from './io.mjs';
-import { CONDITIONS, DATASETS, TASKS, measured, INDEPENDENT_CONDITIONS } from './화면/state.mjs';
+import { CONDITIONS, DATASETS, TASKS, measured, INDEPENDENT_CONDITIONS, TRAINING_CONDITIONS } from './화면/state.mjs';
 
 export const validRunId=id=>typeof id==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 // 포인터의 path와 결과 안의 image_path는 읽기 경로로 사용하지 않습니다.
@@ -121,9 +121,9 @@ export async function readSevenStatus(executionRoot){
 export const INDEPENDENT_PROTOCOL='independent_strength_training_both_sides_v1';
 const canonicalIndependent=value=>JSON.stringify((function ordered(v){return Array.isArray(v)?v.map(ordered):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,ordered(v[k])])):v;})(value));
 export function independentDefinition(id){
- const p=INDEPENDENT_CONDITIONS.find(c=>c.id===id);if(!p)return null;
+ const p=TRAINING_CONDITIONS.find(c=>c.id===id);if(!p)return null;
  return {id:p.id,mode:p.mode,strength:p.strength,identity_transform:p.identity,operator_mode:p.identity?'original':p.mode,operator_strength:p.identity?0:p.strength,
-  units:p.mode==='blur'?'source_pixel_gaussian_standard_deviation':'source_pixel_tile_size',training_sides:'all_training_and_validation_images',evaluation_sides:'transformed_query_and_transformed_gallery',original_image_modified:false};
+  units:p.mode==='original'?'none':p.mode==='blur'?'source_pixel_gaussian_standard_deviation':'source_pixel_tile_size',training_sides:'all_training_and_validation_images',evaluation_sides:'transformed_query_and_transformed_gallery',original_image_modified:false};
 }
 export function independentFingerprint(id){const condition=independentDefinition(id);return condition?createHash('sha256').update(canonicalIndependent({protocol:INDEPENDENT_PROTOCOL,condition,seed:3,initialization:'fresh_imagenet_seed3',cross_condition_state_inherited:false}),'utf8').digest('hex'):null;}
 const QUEUE_STATUSES=['waiting_baseline','ready','training','evaluating','completed','failed','blocked'];
@@ -136,11 +136,11 @@ async function independentQueue(root){
  const q=file.value;
  try{
   if(q?.schema_version!==1||q.protocol!==INDEPENDENT_PROTOCOL||(!validRunId(q.queue_id)||q.queue_id!==q.queue_id.toLowerCase())||!QUEUE_STATUSES.includes(q.status)||!Number.isFinite(Date.parse(q.updated_at))||
-     !Array.isArray(q.conditions)||q.conditions.length!==20)throw Error();
-  if(q.current_condition_id!==null&&!INDEPENDENT_CONDITIONS.some(c=>c.id===q.current_condition_id))throw Error();
+     !Array.isArray(q.conditions)||q.conditions.length!==(q.start_mode==='fresh_all_21'?21:20)||q.start_mode==='fresh_all_21'&&q.baseline?.status!=='not_required')throw Error();
+  if(q.current_condition_id!==null&&!TRAINING_CONDITIONS.some(c=>c.id===q.current_condition_id))throw Error();
   const ids=new Set();
   for(const row of q.conditions){
-   const plan=INDEPENDENT_CONDITIONS.find(c=>c.id===row.id);
+   const plan=(q.start_mode==='fresh_all_21'?TRAINING_CONDITIONS:INDEPENDENT_CONDITIONS).find(c=>c.id===row.id);
    if(!plan||ids.has(row.id)||row.mode!==plan.mode||row.strength!==plan.strength||row.identity_transform!==plan.identity||
       !ROW_STATUSES.includes(row.status)||row.initialization!=='fresh_imagenet_seed3'||row.condition_fingerprint!==independentFingerprint(row.id))throw Error();
    ids.add(row.id);
@@ -156,27 +156,34 @@ async function independentQueue(root){
 }
 export async function readIndependentOverview(root){
  const {value:q,errors}=await independentQueue(root);
- return {status:q?.status||'unknown',label:errors.length?'큐 기록 확인 필요 · 조건 조회 차단':queueLabel(q?.status),errors,
-  conditions:INDEPENDENT_CONDITIONS.map(plan=>{const row=q?.conditions.find(r=>r.id===plan.id);return {...plan,status:row?row.status==='pending'?(q.status==='waiting_baseline'?'waiting_original':'pending'):row.status==='completed'?'complete':row.status==='training'?'stale':row.status==='evaluating'?'evaluating':row.status==='blocked'?'blocked':row.status:'unknown'};})};
+ return {status:q?.status||'unknown',label:errors.length?'큐 기록 확인 필요 · 조건 조회 차단':q?.status==='completed'&&q?.start_mode==='fresh_all_21'?'원본 포함21조건 정상 완료 기록':queueLabel(q?.status),start_mode:q?.start_mode??null,errors,
+  conditions:(q?.start_mode==='fresh_all_21'?TRAINING_CONDITIONS:INDEPENDENT_CONDITIONS).map(plan=>{const row=q?.conditions.find(r=>r.id===plan.id);return {...plan,status:row?row.status==='pending'?(q.status==='waiting_baseline'?'waiting_original':'pending'):row.status==='completed'?'complete':row.status==='training'?'stale':row.status==='evaluating'?'evaluating':row.status==='blocked'?'blocked':row.status:'unknown'};})};
 }
 export async function readIndependentCondition(root,id){
- const plan=INDEPENDENT_CONDITIONS.find(c=>c.id===id);if(!plan)return null;
+ const plan=TRAINING_CONDITIONS.find(c=>c.id===id);if(!plan)return null;
  const {value:q,errors}=await independentQueue(root);
  const empty={condition:plan,status:'unknown',progress:null,progress_raw:null,last_observed_progress:null,history:null,initialization:null,training_phases:{},errors};
  if(!q)return empty;
- const row=q.conditions.find(r=>r.id===id);empty.queue_error=row.error??null;
+ const row=q.conditions.find(r=>r.id===id);
+ if(!row)return {...empty,errors:[...errors,{source:'work/queue/state.json',error:'현재 큐에 새 원본 조건이 없습니다. 이전 실행을 대신 연결하지 않습니다.'}]};
+ empty.queue_error=row.error??null;
  let status=row.status==='pending'?(q.status==='waiting_baseline'?'waiting_original':'pending'):row.status==='completed'?'complete':row.status==='training'?'stale':row.status;
  if(!row.run_id)return {...empty,status};
  const folder=path.resolve(root,'work/runs',row.run_id,'training');
  try{if(await fs.realpath(folder)!==folder)throw Error();}
  catch(error){return {...empty,status:'unknown',errors:[...errors,{source:'선택 조건 학습 기록',error:'실행 폴더 경계 또는 존재 확인 실패'}]};}
+ const logs={};
+ for(const name of ['training','evaluation']){
+  try{const file=path.join(folder,name+'.stdout.log');if(await fs.realpath(file)!==file)throw Error();logs[name]={...await tail(file),source:name+'.stdout.log',selection:'현재 조건 실행의 고정 로그'};}
+  catch(error){if(error.code!=='ENOENT')errors.push({source:name+'.stdout.log',error:'현재 조건 로그 경계 확인 실패'});}
+ }
  const current=await json(folder,'progress.json',errors),config=await json(folder,'training_config.json',errors),artifacts=await json(folder,'artifacts.json',errors),evaluation=await json(folder,'evaluation_results.json',errors);
  const bound=value=>value&&value.condition_id===id&&value.condition_fingerprint===row.condition_fingerprint&&value.run_id===row.run_id&&
   value.initialization_mode==='fresh_imagenet_seed3'&&value.cross_condition_state_inherited===false&&value.experiment_protocol===INDEPENDENT_PROTOCOL&&
   canonicalIndependent(value.condition)===canonicalIndependent(independentDefinition(id));
  const canonical=value=>JSON.stringify((function ordered(v){return Array.isArray(v)?v.map(ordered):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,ordered(v[k])])):v;})(value));
  const sameDefinition=value=>bound(value)&&canonical(value.condition)===canonical(config?.value?.condition);
- if(!bound(config?.value))return {...empty,status:['failed','blocked'].includes(status)?status:'unknown',errors:[...errors,{source:'training_config.json',error:'선택 조건·실행·설정 지문 결합 확인 실패'}]};
+ if(!bound(config?.value))return {...empty,status:['failed','blocked'].includes(status)?status:!config?'preparing':'unknown',run_id:row.run_id,process_claim:row.process??null,condition_fingerprint:row.condition_fingerprint,logs,errors:config?[...errors,{source:'training_config.json',error:'선택 조건·실행·설정 지문 결합 확인 실패'}]:errors};
 
  let history=null;
  try{const file=path.join(folder,'events.jsonl');if(await fs.realpath(file)!==file)throw Error();history=await readTrainingHistory(file,row.run_id);}
@@ -197,7 +204,7 @@ export async function readIndependentCondition(root,id){
   if(!valid)return {...empty,status:'unknown',errors:[...errors,{source:'선택 조건 평가',error:'학습·동일 조건 NIH/COVID 평가 완료 결합 확인 실패'}]};
  }
  const age=Date.now()-Date.parse(current?.value?.updated_at),fresh=Number.isFinite(age)&&age>=-5000&&age<90000;
- return {...empty,status,progress:current?.value??null,progress_raw:current?.text??null,last_observed_progress:history?.last_observed_progress??null,history,config:config?.value??null,artifacts:artifacts?.value??null,evaluation:evaluation?.value??null,training_phases:phases,fresh,
+ return {...empty,status,progress:current?.value??null,progress_raw:current?.text??null,last_observed_progress:history?.last_observed_progress??null,history,config:config?.value??null,artifacts:artifacts?.value??null,evaluation:evaluation?.value??null,training_phases:phases,fresh,logs,preflight:(await json(folder,'preflight.json',errors))?.value??null,
   initialization_label:'계획: 새 ImageNet 초기값·시드3. 아래 단계별 초기화 원기록에서 실제 실행 여부를 확인합니다.',
   condition_fingerprint:row.condition_fingerprint,process_claim:row.process??null,run_id:row.run_id,errors};
 }

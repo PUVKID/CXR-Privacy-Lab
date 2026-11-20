@@ -26,7 +26,11 @@ def canonical_digest(value):
 
 
 def condition_plan():
-    rows = []
+    rows = [{'id': 'original_000', 'mode': 'original', 'strength': 0,
+        'identity_transform': True, 'operator_mode': 'original', 'operator_strength': 0,
+        'units': 'none', 'training_sides': 'all_training_and_validation_images',
+        'evaluation_sides': 'transformed_query_and_transformed_gallery',
+        'original_image_modified': False}]
     for mode in ('blur', 'mosaic'):
         for strength in LEVELS:
             identity = strength == 0 or (mode == 'mosaic' and strength == 1)
@@ -163,8 +167,10 @@ def file_sha256(path):
     return value.hexdigest()
 
 
-def initial_queue_state(queue_id, baseline):
-    return {'schema_version': 1, 'queue_id': valid_run_id(queue_id), 'status': 'waiting_baseline',
+def initial_queue_state(queue_id, baseline, *, start_mode='wait_baseline'):
+    return {'schema_version': 1, 'queue_id': valid_run_id(queue_id),
+        'status': 'ready' if start_mode == 'fresh_all_21' else 'waiting_baseline',
+        'start_mode': start_mode,
         'updated_at': utc_now(), 'current_condition_id': None, 'baseline': baseline,
         'protocol': PROTOCOL_NAME, 'conditions': [{**row, 'status': 'pending', 'run_id': None,
             'training_subdir': None, 'condition_fingerprint': condition_fingerprint(row['id']),
@@ -179,7 +185,7 @@ def training_argv(root, python, project, condition_id, run_id, *, resume=False):
         '--project', str(project), '--output', str(root / run_relative(run_id)),
         '--condition-id', condition_id, '--tasks', 'both', '--seed', '3',
         '--verification-workers', '16', '--retrieval-workers', '4',
-        '--activation-checkpointing', '--no-wait-for-memory',
+        '--activation-checkpointing',
         '--imagenet-cache', str(root / 'work/imagenet_cache')]
     if resume:
         argv.append('--resume')

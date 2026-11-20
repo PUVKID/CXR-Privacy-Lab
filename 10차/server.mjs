@@ -3,7 +3,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFile } from 'node:child_process';
-import { readSevenStatus,validRunId,previewName,readIndependentOverview,readIndependentCondition } from './adapter.mjs';
+import { readSevenStatus,validRunId,previewName,readIndependentOverview,readIndependentCondition,adaptConditions } from './adapter.mjs';
 import {createProcessObserver,createIndependentProcessObserver,createCachedProcessQuery} from './process.mjs';
 import { DATASETS,CONDITIONS } from './화면/state.mjs';
 const ROOT=path.dirname(fileURLToPath(import.meta.url));
@@ -11,11 +11,18 @@ export function createDashboard(options={}){
  const root=options.root||ROOT,executionRoot=options.executionRoot||path.resolve(ROOT,'../7차');
  const processQuery=createCachedProcessQuery(options.processQuery),observe=createProcessObserver(processQuery),observeIndependent=createIndependentProcessObserver(processQuery);
  const independentRoot=options.independentRoot||options.executionRoot||ROOT;
+ const freshMode=options.freshOriginal??!options.executionRoot;
  let gpu={name:'확인 중',utilization:null},gpuAt=0,cached=null,cachedAt=0,pending=null;
  async function status(){
   if(Date.now()-gpuAt>15000){gpuAt=Date.now();(options.gpuQuery||execFile)('nvidia-smi',['--query-gpu=name,utilization.gpu,memory.used,memory.total','--format=csv,noheader,nounits'],{windowsHide:true,timeout:2000,maxBuffer:4096},(error,out)=>{
    if(error)gpu={name:'조회 불가',utilization:null};else{const [name,utilization,used,total]=out.trim().split('\n')[0].split(',').map(x=>x.trim());gpu={name,utilization,used,total};}
   });}
+  if(freshMode){
+   const value=await independentDetail('original_000');
+   return {...value,revision:10,read_only:true,experiment:{screen_revision:10,execution_revision:10,condition_count:21,task_condition_count:84,mode:'fresh_all_21',datasets:DATASETS},
+    pointer_error:false,conditions:adaptConditions(null,null,null,false),completed_task_conditions:0,logs:value?.logs??{},previews:{},gpu,
+    archived_seven:{revision:7,status:'보관 · 사용자 요청으로 학습 중단',live_training_source:false},updated_at:new Date().toISOString()};
+  }
   if(cached&&Date.now()-cachedAt<500)return {...cached,gpu,process:cached.run_id?await observe(executionRoot,cached.run_id,cached.pointer_created_at):{status:'unavailable',verified:false,proofs:[]}};
   if(!pending)pending=readSevenStatus(executionRoot).then(value=>{cached=value;cachedAt=Date.now();return value;}).finally(()=>{pending=null;});
   const s=await pending;return {...s,gpu,process:s.run_id?await observe(executionRoot,s.run_id,s.pointer_created_at):{status:'unavailable',verified:false,proofs:[]}};
@@ -39,7 +46,7 @@ export function createDashboard(options={}){
     for(const row of independent.conditions.filter(c=>['stale','complete','evaluating','failed'].includes(c.status))){const detail=await independentDetail(row.id);row.status=detail?.status||'unknown';}
     return send(200,{...await status(),independent});
    }
-   const independent=/^\/api\/independent\/((?:blur|mosaic)_\d{3})$/.exec(req.url);
+   const independent=/^\/api\/independent\/((?:blur|mosaic|original)_\d{3})$/.exec(req.url);
    if(independent){const value=await independentDetail(independent[1]);return send(value?200:404,value||{error:'허용된 독립 학습 조건이 아닙니다.'});}
    const preview=/^\/api\/preview\/(NIH|COVID19)\/([a-z]+_\d{3})\.png$/.exec(req.url);
    if(preview&&DATASETS.includes(preview[1])&&CONDITIONS.some(item=>item.id===preview[2])){
@@ -59,5 +66,5 @@ export function createDashboard(options={}){
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const server=createDashboard();server.on('error',error=>{console.error(`[대시보드 시작 실패] ${error.code}: ${error.message}`);process.exitCode=1;});
- server.listen(8787,'127.0.0.1',()=>console.log('화면 10차 · 실험 7차 · 읽기 전용: http://127.0.0.1:8787'));
+ server.listen(8787,'127.0.0.1',()=>console.log('화면 10차 · 새 실험 10차 · 읽기 전용: http://127.0.0.1:8787'));
 }

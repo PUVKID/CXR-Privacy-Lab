@@ -1,4 +1,4 @@
-"""7차의 실제 정상 종료를 확인한 뒤20개의 새 학습을 한 번에 하나씩 실행합니다."""
+"""원본부터21개의 독립 학습을 한 번에 하나씩 새로 실행합니다."""
 
 from __future__ import annotations
 
@@ -284,6 +284,42 @@ def gpu_processes():
     return [int(line.strip()) for line in values]
 
 
+def cxr_processes(root):
+    """WDDM의 GUI 목록과 구분하여 같은 프로젝트의 학습·평가 중복만 찾습니다."""
+    script = ("[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false);"
+        "@(Get-CimInstance Win32_Process|Select-Object ProcessId,ParentProcessId,Name,CommandLine)"
+        "|ConvertTo-Json -Compress")
+    result = subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', script],
+        capture_output=True, timeout=15, check=False)
+    if result.returncode or len(result.stdout) > 4 * 1024 * 1024:
+        raise RuntimeError('CXR 중복 실행 여부를 확인하지 못했습니다.')
+    rows = json.loads(result.stdout.decode('utf-8-sig', 'strict'))
+    if not isinstance(rows, list):
+        raise ValueError('CXR 프로세스 목록 형식이 잘못됐습니다.')
+    prefix = str(root.parent).replace('\\', '/').casefold() + '/'
+    entries = ('train_from_scratch.py', 'cxr7_evaluate.py', 'cxr10_evaluate.py',
+               'cxr7_privacy.py', 'all-in-one.ps1')
+    found = []
+    for row in rows:
+        command = str(row.get('CommandLine') or '').replace('\\', '/').casefold()
+        if prefix in command and any(entry in command for entry in entries):
+            found.append({'pid': row['ProcessId'], 'parent_pid': row['ParentProcessId'],
+                'command_line': row.get('CommandLine')})
+    return found
+
+
+def require_no_cxr_processes(root, state=None):
+    active = cxr_processes(root)
+    observed_gpu = gpu_processes()
+    if state is not None:
+        state['gpu_observation'] = {'observed_at': utc_now(), 'pids': observed_gpu,
+            'policy': 'block_same_project_training_evaluation_only',
+            'cxr_processes': active}
+    if active:
+        raise RuntimeError('같은 CXR 프로젝트의 학습·평가가 이미 실행 중입니다: ' +
+            ','.join(str(row['pid']) for row in active))
+
+
 def completed_condition_gate(root, row):
     output = root / run_relative(row['run_id'])
     for stage in ('training', 'evaluation'):
@@ -316,8 +352,10 @@ def validate_state(state, plan):
     if state.get('schema_version') != 1 or state.get('queue_id') != plan['queue_id']:
         raise ValueError('현재 큐 상태의 실행 결합이 다릅니다.')
     rows = state.get('conditions', [])
-    if len(rows) != 20 or [row.get('id') for row in rows] != [row['id'] for row in condition_plan()]:
-        raise ValueError('큐의20조건 목록이 변조됐습니다.')
+    if len(rows) != len(condition_plan()) or [row.get('id') for row in rows] != [row['id'] for row in condition_plan()]:
+        raise ValueError('큐의21조건 목록이 변조됐습니다.')
+    if state.get('start_mode', 'wait_baseline') != plan.get('start_mode', 'wait_baseline'):
+        raise ValueError('큐의 새 시작 방식이 계획과 다릅니다.')
     runs = set()
     for row in rows:
         expected = condition(row['id'])
@@ -337,14 +375,21 @@ def validate_plan(root, plan):
     if plan.get('schema_version') != 1 or plan.get('protocol') != PROTOCOL_NAME:
         raise ValueError('알 수 없는 큐 계획입니다.')
     valid_run_id(plan.get('queue_id'))
+    start_mode = plan.get('start_mode', 'wait_baseline')
+    if start_mode not in ('wait_baseline', 'fresh_all_21'):
+        raise ValueError('알 수 없는 새 시작 방식입니다.')
     baseline = plan.get('baseline', {})
-    valid_run_id(baseline.get('run_id'))
-    identity = baseline.get('process', {})
-    if (type(identity.get('pid')) is not int or identity['pid'] <= 0
-            or not isinstance(identity.get('creation_filetime'), str)
-            or not identity['creation_filetime'].isdigit() or int(identity['creation_filetime']) <= 0
-            or not isinstance(identity.get('command_line'), str) or not identity['command_line']):
-        raise ValueError('원본 프로세스의 정확한 신원이 없습니다.')
+    if start_mode == 'fresh_all_21':
+        if baseline.get('status') != 'not_required' or baseline.get('process') is not None:
+            raise ValueError('새 시작 계획에 이전 원본의 프로세스를 연결할 수 없습니다.')
+    else:
+        valid_run_id(baseline.get('run_id'))
+        identity = baseline.get('process', {})
+        if (type(identity.get('pid')) is not int or identity['pid'] <= 0
+                or not isinstance(identity.get('creation_filetime'), str)
+                or not identity['creation_filetime'].isdigit() or int(identity['creation_filetime']) <= 0
+                or not isinstance(identity.get('command_line'), str) or not identity['command_line']):
+            raise ValueError('원본 프로세스의 정확한 신원이 없습니다.')
     for key, expected in (('python', root.parent / '실행 환경/Scripts/python.exe'),
                           ('project', root.parent / '연구 자료')):
         actual = Path(plan.get(key, ''))
@@ -436,6 +481,56 @@ def prepare(root, args):
         return plan
 
 
+def prepare_fresh(root):
+    """사용자 정정에 따라 기존 대기 기록을 보존하고 원본부터 새 계획을 만듭니다."""
+    queue = root / 'work/queue'
+    with QueueLock(queue / 'queue.lock') as lock:
+        require_no_cxr_processes(root)
+        old_state = queue / 'state.json'
+        if old_state.exists():
+            rows = read_json(old_state).get('conditions', [])
+            if any(row.get('run_id') is not None or row.get('process') is not None
+                   or row.get('unconfirmed_child_pid') is not None for row in rows):
+                raise ValueError('이미 시작한 조건의 기록이 있어 자동으로 새 계획으로 바꾸지 않습니다.')
+        archive = root / 'work/재시작 이전/대기열' / (str(uuid.uuid4()))
+        plain_path(archive)
+        archive.mkdir(parents=True, exist_ok=False)
+        entries = []
+        for path in sorted(queue.rglob('*')):
+            plain_path(path)
+            if not path.is_file():
+                continue
+            relative = path.relative_to(queue)
+            if path == queue / 'queue.lock':
+                lock.file.seek(0)
+                data = lock.file.read()
+            else:
+                data = path.read_bytes()
+            target = archive / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(data)
+            if target.read_bytes() != data:
+                raise ValueError('이전 대기열 보존 사본이 원본과 다릅니다.')
+            entries.append({'path': relative.as_posix(), 'bytes': len(data),
+                'sha256': file_sha256(target)})
+        atomic_json(archive / '보존.private.json', {'at': utc_now(), 'files': entries,
+            'reason': '사용자 정정:7차 대기를 중단하고10차 원본부터 새 학습'})
+        # 검증한 보존본이 생긴 뒤 현재 대기열의 이전 파일만 제거합니다. lock은 유지합니다.
+        for entry in entries:
+            if entry['path'] != 'queue.lock':
+                (queue / entry['path']).unlink()
+        baseline = {'status': 'not_required', 'reason': 'explicit_fresh_original_and_strengths'}
+        plan = {'schema_version': 1, 'queue_id': str(uuid.uuid4()),
+            'start_mode': 'fresh_all_21', 'baseline': baseline,
+            'source_fingerprint': source_fingerprint(root), 'created_at': utc_now(),
+            'python': str(root.parent / '실행 환경/Scripts/python.exe'),
+            'project': str(root.parent / '연구 자료'), 'protocol': PROTOCOL_NAME,
+            'previous_queue_archive': str(archive.relative_to(root))}
+        atomic_json(queue / 'plan.private.json', plan)
+        write_state(root, initial_queue_state(plan['queue_id'], baseline, start_mode='fresh_all_21'))
+        return plan
+
+
 def execute(root, args):
     with QueueLock(root / 'work/queue/queue.lock'), prevent_sleep():
         plan = read_json(root / 'work/queue/plan.private.json')
@@ -448,11 +543,12 @@ def execute(root, args):
             state['manager'] = manager.identity
         current = None
         try:
-            state['status'] = 'waiting_baseline'
-            write_state(root, state)
-            wait_baseline(root, plan, state, args.poll_seconds)
-            proof = baseline_artifact_gate(root, plan['baseline']['run_id'])
-            state['baseline'].update(status='completed', completion=proof)
+            if plan.get('start_mode', 'wait_baseline') == 'wait_baseline':
+                state['status'] = 'waiting_baseline'
+                write_state(root, state)
+                wait_baseline(root, plan, state, args.poll_seconds)
+                proof = baseline_artifact_gate(root, plan['baseline']['run_id'])
+                state['baseline'].update(status='completed', completion=proof)
             state['status'] = 'ready'
             write_state(root, state)
             for current in state['conditions']:
@@ -463,6 +559,8 @@ def execute(root, args):
                     raise KeyboardInterrupt('현재 조건 뒤의 새 학습 시작을 중단합니다.')
                 if current['run_id'] is not None and args.resume_condition != current['id']:
                     raise ValueError('기존 실패/중단 조건은 정확한 --resume-condition을 명시해야 합니다.')
+                if current.get('unconfirmed_child_pid') is not None:
+                    raise ValueError('신원 미확인 자식이 남은 조건은 종료 확인과 별도 운영 판단 전 재개하지 않습니다.')
                 resume = current['run_id'] is not None
                 if not resume:
                     current['run_id'] = str(uuid.uuid4())
@@ -471,9 +569,7 @@ def execute(root, args):
                 else:
                     validate_training_identity(read_json(root / current['training_subdir'] / 'training_config.json'),
                         current['id'], current['run_id'])
-                active = gpu_processes()
-                if active:
-                    raise RuntimeError('다른 GPU 프로세스가 있어 경합 없이 차단합니다: ' + ','.join(map(str, active)))
+                require_no_cxr_processes(root, state)
                 current['status'], current['error'] = 'training', None
                 state['status'], state['current_condition_id'] = 'training', current['id']
                 write_state(root, state)
@@ -481,8 +577,7 @@ def execute(root, args):
                     current['id'], current['run_id'], resume=resume), 'training')
                 current['status'], state['status'] = 'evaluating', 'evaluating'
                 write_state(root, state)
-                if gpu_processes():
-                    raise RuntimeError('학습 뒤 GPU 프로세스가 남아 있어 평가를 시작하지 않습니다.')
+                require_no_cxr_processes(root, state)
                 run_child(root, state, current, evaluation_argv(root, plan['python'], plan['project'],
                     current['id'], current['run_id']), 'evaluation')
                 current['completion'] = completed_condition_gate(root, current)
@@ -503,6 +598,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     action = parser.add_mutually_exclusive_group(required=True)
     action.add_argument('--prepare', action='store_true')
+    action.add_argument('--prepare-fresh', action='store_true')
     action.add_argument('--run', action='store_true')
     parser.add_argument('--baseline-run-id')
     parser.add_argument('--baseline-pid', type=int)
@@ -518,7 +614,9 @@ def main():
     if args.prepare and (not args.baseline_run_id or not args.baseline_pid or not args.baseline_created_utc):
         parser.error('준비에는 기존 run UUID/PID/생성시각이 모두 필요합니다.')
     plain_path(root)
-    if args.prepare:
+    if args.prepare_fresh:
+        print(json.dumps(prepare_fresh(root), ensure_ascii=False))
+    elif args.prepare:
         print(json.dumps(prepare(root, args), ensure_ascii=False))
     else:
         execute(root, args)

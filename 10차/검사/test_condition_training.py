@@ -19,18 +19,18 @@ class ConditionContractTests(unittest.TestCase):
         import cxr10_contract
         return cxr10_contract
 
-    def test_twenty_conditions_have_separate_identities_even_when_operator_is_identity(self):
+    def test_twenty_one_conditions_have_separate_identities_even_when_operator_is_identity(self):
         c = self.module()
         rows = c.condition_plan()
-        self.assertEqual(len(rows), 20)
-        self.assertEqual(len({row['id'] for row in rows}), 20)
+        self.assertEqual(len(rows), 21)
+        self.assertEqual(len({row['id'] for row in rows}), 21)
         self.assertEqual([row['id'] for row in rows if row['identity_transform']],
-                         ['blur_000', 'mosaic_000', 'mosaic_001'])
-        self.assertEqual(len({c.condition_fingerprint(row['id']) for row in rows}), 20)
+                         ['original_000', 'blur_000', 'mosaic_000', 'mosaic_001'])
+        self.assertEqual(len({c.condition_fingerprint(row['id']) for row in rows}), 21)
 
     def test_unrecognized_condition_cannot_select_a_file_or_model(self):
         c = self.module()
-        for value in ('../blur_001', 'original_000', 'blur_003', 'blur_1', None, True):
+        for value in ('../blur_001', 'original_001', 'blur_003', 'blur_1', None, True):
             with self.subTest(value=value), self.assertRaises(ValueError):
                 c.condition(value)
 
@@ -83,12 +83,12 @@ class ConditionContractTests(unittest.TestCase):
                 c.atomic_json(path, {'loss': float('nan')})
             self.assertEqual(path.read_bytes(), original)
 
-    def test_queue_state_uses_twenty_unique_runs_without_starting_work(self):
+    def test_queue_state_uses_twenty_one_unique_runs_without_starting_work(self):
         c = self.module()
         state = c.initial_queue_state(str(uuid.uuid4()), {'run_id': str(uuid.uuid4())})
         self.assertEqual(state['status'], 'waiting_baseline')
         self.assertIsNone(state['current_condition_id'])
-        self.assertEqual(len(state['conditions']), 20)
+        self.assertEqual(len(state['conditions']), 21)
         self.assertTrue(all(row['status'] == 'pending' and row['run_id'] is None for row in state['conditions']))
 
 

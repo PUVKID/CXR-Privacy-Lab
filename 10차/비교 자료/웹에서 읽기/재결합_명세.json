@@ -1,0 +1,37 @@
+{
+  "original": "../10차와9차_전체_텍스트.patch",
+  "bytes": 836006,
+  "sha256": "8f95bc80968b90ee26cdaebb6d898ea1b5f9cd5eebb09358abb48466fa6130c0",
+  "parts": [
+    {
+      "path": "부분_01.md",
+      "payload_offset": 184,
+      "payload_bytes": 204791,
+      "payload_sha256": "fc0cf3ff4ed9dd08b46ebbff9cb2bab687da89786c7be5909e2adf7b91a72b22"
+    },
+    {
+      "path": "부분_02.md",
+      "payload_offset": 210,
+      "payload_bytes": 204749,
+      "payload_sha256": "583799fb7d1c510515b757e7b5cf4fd2eb29daf0bc9fffdd9fd4f8b5ae3d7707"
+    },
+    {
+      "path": "부분_03.md",
+      "payload_offset": 210,
+      "payload_bytes": 204776,
+      "payload_sha256": "a23c156957f363dcb6fd2d0baa448c208f8bf49584d23964ce76905d6db4b98d"
+    },
+    {
+      "path": "부분_04.md",
+      "payload_offset": 210,
+      "payload_bytes": 204165,
+      "payload_sha256": "b42374133f773138d5680cef20175ef66ca4006f8d15ce4f5813022b54643694"
+    },
+    {
+      "path": "부분_05.md",
+      "payload_offset": 184,
+      "payload_bytes": 17525,
+      "payload_sha256": "43e78193d51a5af2679734a25d89d32b54ca7490c913c365ce6fa4c94b79cd07"
+    }
+  ]
+}

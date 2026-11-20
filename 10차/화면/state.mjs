@@ -144,4 +144,5 @@ export function formatProgressPercent(record,kind='epoch'){
 }
 
 export const INDEPENDENT_CONDITIONS=Object.freeze(['blur','mosaic'].flatMap(mode=>LEVELS.map(strength=>Object.freeze({id:mode+'_'+String(strength).padStart(3,'0'),mode,strength,identity:mode==='blur'&&strength===0||mode==='mosaic'&&strength<=1}))));
+export const TRAINING_CONDITIONS=Object.freeze([Object.freeze({id:'original_000',mode:'original',strength:0,identity:true}),...INDEPENDENT_CONDITIONS]);
 export function independentLabel(status){return {waiting_original:'원본 전체 완료 대기',pending:'순차 실행 대기',training:'학습 중 · 실제 관측',validating:'에폭 검증 중 · 실제 프로세스 확인',waiting_gpu:'GPU 여유 대기 · 학습 배치 전',preparing:'실행 준비 · 학습 미확인',complete:'독립 학습·평가 완료',failed:'오류 · 다음 조건 중단',stopped:'중단 기록',evaluating:'동일 조건 평가 기록',blocked:'조건 확인 필요 · 실행 차단',stale:'학습 기록 · 현재 실행 미확인',unknown:'기록 대기 · 미측정'}[status]||'기록 확인 필요';}
