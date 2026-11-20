@@ -8,7 +8,7 @@
 | <a id="layout18-table-1-row-2"></a> 데이터 범위 | Verification112120·Retrieval112118의 실제 공식 목록을 구분하고 2장의 차이를 고정 출처에 결합 |
 | <a id="layout18-table-1-row-3"></a> 누수 | 환자 분리·쌍 라벨·자기 이미지 제외·전수 디코드·정확 픽셀 중복 검사.<br>근사 중복 검사는 미실시로 명시 |
 | <a id="layout18-table-1-row-4"></a> 검색 | 공식 출력 L2 정규화, 영벡터 규칙과 고유 영상 키 기반 동률 순위·동률 보조 통계 |
-| <a id="layout18-table-1-row-5"></a> 결과 | 실행 UUID별 결과·provenance·조건별 영수증.<br>재개 시 설정·결과해 시 검증, 과거 파일 보존 |
+| <a id="layout18-table-1-row-5"></a> 결과 | 실행 UUID별 결과·provenance·조건별 영수증.<br>재개 시 설정·결과 해시 검증, 과거 파일 보존 |
 | <a id="layout18-table-1-row-6"></a> 캐시 | 모델·영상 내용·전처리·환경 출처와 payload SHA·dtype·shape를 결합.<br>불일치는 격리 보존 후 재계산 |
 | <a id="layout18-table-1-row-7"></a> 다운로드 | 고정 소스·메타데이터 해시, 완료 partial416 복구, 검증된 압축 앞부분과 일치하는 중단 추출 파일만 보존 후 복원 |
 | <a id="layout18-table-1-row-8"></a> 실행 | 현재 E 프로젝트와 runtime 경로, CMD 단일 진입, 노트북의 학습 가중치 명시 선택, 디스크·실측 GPU 검사 |

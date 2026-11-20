@@ -20,7 +20,7 @@
 | <a id="layout18-table-1-row-4"></a> 검색 모델 | 입력 1024, 배치 32, 학습 61,755장, 환자별 블록 8 샘플러, 밝기·대비 0.4 증강 |
 | <a id="layout18-table-1-row-5"></a> 검색 손실 | PML0.9.94 기준 정규화 L2 ContrastiveLoss, CBM128, 자기 비교 제외 |
 | <a id="layout18-table-1-row-6"></a> 검색 최적화 | SGD momentum0.9, weight_decay0.00001, OneCycle max_lr0.158489 |
-| <a id="layout18-table-1-row-7"></a> 검색 단계 | 출력 부 30에 폭 → 같은 실행의 가중치로 전체 50에 폭.<br>각 단계의 optimizer·scheduler·CBM은 새로 구성 |
+| <a id="layout18-table-1-row-7"></a> 검색 단계 | 출력 부 30에폭 → 같은 실행의 가중치로 전체 50에폭.<br>각 단계의 optimizer·scheduler·CBM은 새로 구성 |
 | <a id="layout18-table-1-row-8"></a> 선택과 평가 | 검증 모델은 validation BCE 기준, 검색은 공식 경로의 마지막 에폭.<br>시험 영상과 COVID를 학습·선택에 사용하지 않음 |
 
 
