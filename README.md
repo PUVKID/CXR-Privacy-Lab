@@ -77,3 +77,7 @@ NIH 원본 112,120장 전수 검사에서 정확한 픽셀 중복 25그룹을 �
 
 - [Packhäuser 등 원 논문](https://doi.org/10.1038/s41598-022-19045-3)
 - [고정한 원 저자 코드](https://github.com/kaipackhaeuser/CXR-Patient-ReID/tree/880168f564afa07936a8d8fb3b868b140ab937d9)
+
+## 이전 원격 첫 화면 보존
+
+[11/13시점 원격 설명(보존)](https://github.com/PUVKID/CXR-Privacy-Lab/blob/2434a1e29533a74b7acc60a6799c8da550c91ac7/README.md)은6차 화면·5차 파생 실험을 설명하던 첫 화면입니다. 당시의 표·설정·실행 안내 전체를 보존하며 현재8차 화면·7차 원본 기반 실험과 구분합니다. 각 수준의 과거 설명은 현재 LEVEL1~5 안내에 연결했습니다.

@@ -11,6 +11,8 @@
 <a id="reading-level-1"></a>
 ## LEVEL 1 - Beginner · 배경과 용어부터 읽기
 
+[11/13시점 원격 설명(보존) · 같은 LEVEL 1](https://github.com/PUVKID/CXR-Privacy-Lab/blob/2434a1e29533a74b7acc60a6799c8da550c91ac7/3%EC%B0%A8/README.md#reading-level-1) — 당시6차까지의 설명이며 현재7·8차 관측과 구분합니다.
+
 | 구분 | 이 차수에서 하는 일 | 처음 읽을 때 확인할 뜻 |
 | --- | --- | --- |
 | 목적 | 공개 최종 가중치 평가와 별도로, ImageNet 초기값에서 CXR 모델을 새로 학습하는 경로를 만들었습니다. | 배우는 작업인지 평가인지 먼저 구분합니다. |
@@ -44,6 +46,8 @@
 <a id="reading-level-2"></a>
 ## LEVEL 2 - Explorer · 구성과 조건의 관계
 
+[11/13시점 원격 설명(보존) · 같은 LEVEL 2](https://github.com/PUVKID/CXR-Privacy-Lab/blob/2434a1e29533a74b7acc60a6799c8da550c91ac7/3%EC%B0%A8/README.md#reading-level-2) — 당시6차까지의 설명이며 현재7·8차 관측과 구분합니다.
+
 | 구성 요소 | 연결되는 자료·조건 | 해석 경계 |
 | --- | --- | --- |
 | 목적 | 공개 최종 가중치 평가와 별도로, ImageNet 초기값에서 CXR 모델을 새로 학습하는 경로를 만들었습니다. | 경로의 목적을 정하는 계약입니다. |
@@ -63,6 +67,8 @@
 
 <a id="reading-level-3"></a>
 ## LEVEL 3 - Practitioner · 실행·점검 절차
+
+[11/13시점 원격 설명(보존) · 같은 LEVEL 3](https://github.com/PUVKID/CXR-Privacy-Lab/blob/2434a1e29533a74b7acc60a6799c8da550c91ac7/3%EC%B0%A8/README.md#reading-level-3) — 당시6차까지의 설명이며 현재7·8차 관측과 구분합니다.
 
 | 점검 영역 | 해당 차수의 실제 절차·기록 | 진행·보고 조건 |
 | --- | --- | --- |
@@ -84,6 +90,8 @@
 <a id="reading-level-4"></a>
 ## LEVEL 4 - Advanced · 설계 경계와 변경 영향
 
+[11/13시점 원격 설명(보존) · 같은 LEVEL 4](https://github.com/PUVKID/CXR-Privacy-Lab/blob/2434a1e29533a74b7acc60a6799c8da550c91ac7/3%EC%B0%A8/README.md#reading-level-4) — 당시6차까지의 설명이며 현재7·8차 관측과 구분합니다.
+
 | 구현 경계 | 보존하는 계약과 사실 | 변경 영향 |
 | --- | --- | --- |
 | 목적 | 공개 최종 가중치 평가와 별도로, ImageNet 초기값에서 CXR 모델을 새로 학습하는 경로를 만들었습니다. | 상태·제어·수치 계산의 책임을 분리합니다. |
@@ -103,6 +111,8 @@
 
 <a id="reading-level-5"></a>
 ## LEVEL 5 - Expert · 전체 상세와 근거
+
+[11/13시점 원격 설명(보존) · 같은 LEVEL 5](https://github.com/PUVKID/CXR-Privacy-Lab/blob/2434a1e29533a74b7acc60a6799c8da550c91ac7/3%EC%B0%A8/README.md#reading-level-5) — 당시6차까지의 설명이며 현재7·8차 관측과 구분합니다.
 
 ## 🩻 3차 — 학습부터 다시 수행하는 흉부 X선 재식별 실험
 

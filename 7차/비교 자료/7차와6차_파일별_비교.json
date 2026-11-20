@@ -1443,8 +1443,8 @@
     "path": "문서/단계별_실험_구조.md",
     "change": "이전 폴더에만",
     "before": {
-      "bytes": 9684,
-      "sha256": "c96d87c19429c56416e4da017ab8b6866b5179cbf1eba37074669c93f7c9ce8a"
+      "bytes": 11915,
+      "sha256": "6159fb6d07eef313b1f932a3dfa7e71167e1f269ccdc7f9f89b1c810752ef4f1"
     },
     "after": null
   },
@@ -1452,8 +1452,8 @@
     "path": "문서/코로나_외부검증_정제.md",
     "change": "이전 폴더에만",
     "before": {
-      "bytes": 6912,
-      "sha256": "7ab913bfd2d0dfc361f6e66869d45fbdc6ebb9adbb24a3789dd2787002d8071b"
+      "bytes": 7486,
+      "sha256": "44bb5e5187148425d4b6adb5ef417ba42f7f31a36a05f578d03fba2256458995"
     },
     "after": null
   },
@@ -1461,8 +1461,8 @@
     "path": "문서/학습_조건.md",
     "change": "이전 폴더에만",
     "before": {
-      "bytes": 6330,
-      "sha256": "7628618539a88dc870aa820fb811174c989b39e0e5a30c61b976fc67ae0ee9c8"
+      "bytes": 6901,
+      "sha256": "cd1ddb68f2a377a66ce72a3ab09fe4cae62aa8a14672beca3d0fb17aab8562c9"
     },
     "after": null
   },
@@ -1470,8 +1470,8 @@
     "path": "변경_기록.md",
     "change": "이전 폴더에만",
     "before": {
-      "bytes": 1963,
-      "sha256": "f40da43f863d89238c05b96f148e3aa962a94c6c848df60cb0fc9a375162f875"
+      "bytes": 1969,
+      "sha256": "619dcecfe7099bf400183ae5d98783b831f42995fbc3242ae44343689f1c7a27"
     },
     "after": null
   },
@@ -1479,8 +1479,8 @@
     "path": "보고서_항목별_이행표.md",
     "change": "이전 폴더에만",
     "before": {
-      "bytes": 7765,
-      "sha256": "164b478ee1f70b8db508001965af3b82d72d516dfd35a442351bce3ec848c8ac"
+      "bytes": 9886,
+      "sha256": "f414fb99e0e719948933f7bcd2b52455485389be32325e4c63727011dcb4cb83"
     },
     "after": null
   },
