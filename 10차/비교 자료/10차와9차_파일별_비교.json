@@ -1,0 +1,1611 @@
+{
+  "before_revision": "9차",
+  "after_revision": "10차",
+  "scope": "양쪽 공개 차수 폴더 전체; 비교 문서와 비교 자료만 자기 포함 방지를 위해 제외",
+  "previous_only_meaning": "보존된9차에만 있는 파일이며 기존 원문 삭제가 아님",
+  "files": [
+    {
+      "path": "README.md",
+      "status": "modified",
+      "before": {
+        "bytes": 15041,
+        "sha256": "d4ced5ba5768faf49568cce9071057f800f44c8d4b3479e70821090a12504a3c"
+      },
+      "after": {
+        "bytes": 28902,
+        "sha256": "2301f5d78f01968bc7cc9ff1ab3b78d3fd2fb24c6b79edeafa649eb72a0191b3"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "adapter.mjs",
+      "status": "modified",
+      "before": {
+        "bytes": 9853,
+        "sha256": "73dc4f81064598a8ba9708a031ffbe48167b7267e836292cf160e4fcfcd3a4be"
+      },
+      "after": {
+        "bytes": 19076,
+        "sha256": "72aae0fb32a0c9af4ac3b819256545102faeb632b6464bed8be430db1a0e1cdd"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "docs/설계와_작업계획.md",
+      "status": "previous_only",
+      "before": {
+        "bytes": 3967,
+        "sha256": "b439e11a8c55b639ee897a8e8bb43f7d23b4189e4f9d6d164b8723173801ddca"
+      },
+      "after": null,
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "io.mjs",
+      "status": "unchanged",
+      "before": {
+        "bytes": 5328,
+        "sha256": "2a582654823c3f4da3a608daa012264c34d90287846573b01c8be406eaed84ab"
+      },
+      "after": {
+        "bytes": 5328,
+        "sha256": "2a582654823c3f4da3a608daa012264c34d90287846573b01c8be406eaed84ab"
+      }
+    },
+    {
+      "path": "official_source/LICENSE",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 35149,
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientRetrieval/config_files/config.json",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1440,
+        "sha256": "ce3641fad2c67cf8724a87ffc11963661460575a39710594fa60ca50931ad646"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientRetrieval/paper_retrieval_test_chexpert_data.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 12828,
+        "sha256": "d82fdebe2394b43c33d16b53330aaa73845458672495b44322397fca1d4d7767"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientRetrieval/paper_retrieval_test_covid_data.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 11885,
+        "sha256": "55a6d64884835fb3c82e97c390f2a14c5a907e14248ebe33832c8647f3fb908d"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientRetrieval/paper_retrieval_test_resolution.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 13008,
+        "sha256": "d8f07ce0a2e4503da71ba7c26f1370c56aec528c99d13789910232b81c920bfb"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientRetrieval/paper_retrieval_test_subset_with_foreign_material.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 12776,
+        "sha256": "5f3ddd438ffc578aabef75c810ad97cd1b7f026662ba646b3bb014e62ecf41df"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientRetrieval/paper_retrieval_test_subset_without_foreign_material.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 12759,
+        "sha256": "108e90233fb3ba3eefcb0c80784814616b218e7c65e031c27be214bd13203ca4"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientRetrieval/paper_retrieval_training_phase1.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 29176,
+        "sha256": "3911df8e5ddd2adcbd6b0a79a79fb66d70e56a2696f572bcd4546b368ff2b2d4"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientRetrieval/paper_retrieval_training_phase2.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 29545,
+        "sha256": "72bf22464fafc6d15df2d2a9280d58e444f008d70413360533d20e14e5aa0243"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientRetrieval/requirements.txt",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 318,
+        "sha256": "c87b20e371350cb5489da2eb9541ee810b552517b8d09cf270575eb0848598e3"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientVerification/agent/AgentSiameseNetwork.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 14380,
+        "sha256": "2f1c80d1e3e3f836b889427c205f1993b7f0185c112672f67c804a144c7d95de"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientVerification/config_files/config.json",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 623,
+        "sha256": "cdd23ebdb63fb8edab9858153e2b1a230bff3797b0c2cb3af40a2e63bd171c37"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientVerification/dataset/SiameseDataset.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 4186,
+        "sha256": "2f86c420cf9cabad8fb215ce3df238adec3837d017492bf4723bdd41dcc7066e"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientVerification/dataset/SiameseDatasetCheXpert.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1760,
+        "sha256": "51b69b4b3fe155c6665517017c602054af62da89a3c6c4ab082b5a298a8c7cc9"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientVerification/dataset/SiameseDatasetCovid19.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1758,
+        "sha256": "2c6af86063911d8200a7cc39bca8d3c468661ea1b5fc4dd09cb43108b5757575"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientVerification/dataset/SiameseDatasetSubsets.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1833,
+        "sha256": "81117914d1d6bb3ced05e2b31d4571aad815405de29f224603fd01cec2c5f358"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientVerification/evaluate_foreign_material.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 3014,
+        "sha256": "9eb46cbd4d754bfb16c5c5a6e1a3a0203b0901b9ac902f2a6a2ae8c582476a20"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientVerification/evaluate_model_chexpert.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2452,
+        "sha256": "bb764cc75a5ca15d57e128fae3a6874aef7a7db16d2f54b26a7b9a54a4f2973e"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientVerification/evaluate_model_covid19.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2412,
+        "sha256": "19a452a680e3f5011e7a8508cfd5a52a3803affea1a6beb776f871e0cb5febca"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientVerification/evaluate_trained_model.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 3310,
+        "sha256": "b5fab2288ae1503723566f3ff433265652d6561119b20a6d15f880f0aed2a3c2"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientVerification/main.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 950,
+        "sha256": "09a98f370ffebc6746fe97387d3f175a39c3a2c07c2fdd5d01bac48eea72465b"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientVerification/networks/SiameseNetwork.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1974,
+        "sha256": "c12685f19e2762ee489d6bd57f3ec804135ade2024da48833ba6ab0f13795dfd"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientVerification/requirements.txt",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 111,
+        "sha256": "7249d10257be8847b163fbbc7e6144ad0a10189056e0780fd6b2a28c25180790"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientVerification/utils/EarlyStopping.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1621,
+        "sha256": "0d2490a97a0989f5f20054b24efa939f4aa89bc1faa57e0645f586a8f01843ad"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "official_source/PatientVerification/utils/Utils.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 11869,
+        "sha256": "1e088762717fdf18e1a0d9c21aa814eeae442c1607e276fba6e51c8d881bff36"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "process.mjs",
+      "status": "modified",
+      "before": {
+        "bytes": 4828,
+        "sha256": "1f5e00d7f1f378a98ca34744b33949e6dc6d7f49338f2335f42359b6687a0a51"
+      },
+      "after": {
+        "bytes": 8988,
+        "sha256": "02f16b81db9af6e57d903ac58b21f94bc9651906895c4113f098110d40e72b40"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "server.mjs",
+      "status": "modified",
+      "before": {
+        "bytes": 4640,
+        "sha256": "3cee5ac9e7a7165f00504400c0c6b6667b393fe3d23c00199820f8599ad398f3"
+      },
+      "after": {
+        "bytes": 6103,
+        "sha256": "14acb7ef1386055131d4bfe46876ce3949a9c950019984cd36ea4418d52dd974"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/cxr10_contract.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 8069,
+        "sha256": "dec3c3ba6ec5952f4b7cd218f885be3e53765bda8239834aba36fb48e3de9299"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/cxr10_evaluate.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 12491,
+        "sha256": "3f09d26fae0f15ae5e15c1e700ee1f6146be2b0cfadf83b9fec6729eb1de5943"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/cxr10_queue.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 27689,
+        "sha256": "d3489f5035155b851b30d19c9f564571428934a3a1cfec47666b221307162715"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/cxr7_contract.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 9053,
+        "sha256": "e9a6bcb3ca841bfa0bd7efbdce981d029588edefdc7c0c2c018b3e59b83b6de9"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/cxr7_evaluate.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 10652,
+        "sha256": "5f88f3535baa044da475679e21ec42254c58f56ca21d5d32aa7085c9ffa76a40"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/cxr7_privacy_contract.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 9549,
+        "sha256": "0fdb84cbb0b6ef0f9100a05b8cb591d06b93433fecd71b41745a8fe2647212e6"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/cxr7_reports.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 3089,
+        "sha256": "0e13a756e714fa1431acc4ae159acf95a811c42e0f9fa0d5c7d1d4c648eca179"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/cxr_reid/__init__.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 80,
+        "sha256": "51da573bfa4d1ace8d97e397a763545d216ed57b0c6e05b1e65c05304a7462ba"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/cxr_reid/data.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 3075,
+        "sha256": "69221ea99f942a9f4f1ebbbf9e2ca3011792a6356522a02f12fd08e6ac406896"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/cxr_reid/download.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2121,
+        "sha256": "da8d0f00f85c1f6a638226f865a8e1028611e3d95d1d556f2d52e437999b14d4"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/cxr_reid/evaluation.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 9916,
+        "sha256": "94310499d7b495310701f8de2f8633e12073f944ae18fe52f01e7f2f8b974dfe"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/cxr_reid/image_ops.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1345,
+        "sha256": "5942a32e2992ef9cb23ce3747118d13297fa6482dd4c47855f7762e650e36f8c"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/cxr_reid/inference.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 4740,
+        "sha256": "3b7f34748082e9022ae32473f968dcecf68629c5437bfea8222a618e04215d0c"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/cxr_reid/models.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 4220,
+        "sha256": "a304e2983f914aa376c4d30413be50ec7472142a2e233dc0abf625cc1d8f11f6"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/train_from_scratch.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 3239,
+        "sha256": "edf8d447a37f1055c528fb12eba52c295f518226065b9b273f9d4d07ffe79d3f"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/LICENSE",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 35149,
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/__init__.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 63,
+        "sha256": "97e4463ec22d336483565e8bae01522ba9af0b2566dd5b010fd0c670c09861f1"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/PML-LICENSE.txt",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1090,
+        "sha256": "8487a9eae44e63ce55bb6d8a471a7fdadee6d1f9f2e923c2f1042e0ba9af85f9"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/PROVENANCE.md",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 996,
+        "sha256": "5ef0493a5c22177293e1d838c10b4f301c2934dd8cb1341e02db351146b76863"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/__init__.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 73,
+        "sha256": "967791f621051c7f575fc35e8d9266e6a3ac9520118a15e14fbfa2eee8ed355a"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/__init__.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 23,
+        "sha256": "3c971b66e83188500e3cff72aaf9554a452dc67b94f41a400eef300d201c4b0e"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/distances/__init__.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 219,
+        "sha256": "a8ef5ef83426b82ee5b46a602792b40554fb6a15d7523164ff1f2189e59a48cc"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/distances/base_distance.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 3220,
+        "sha256": "85f3f2735d0651480624ae899fda4b109715933786a53dae84d2705ab349bddf"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/distances/cosine_similarity.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 274,
+        "sha256": "1fe81e5b1be129b15cd754149c3d41fbcd10331498a0de6ff4677828e75c1efc"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/distances/dot_product_similarity.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 423,
+        "sha256": "c9d8aecbc789be52353f2b12d8f3363c9d81a304dec430c423d536e83d7ba681"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/distances/lp_distance.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1037,
+        "sha256": "838a17bd5d12a4e187bd31f69775fd7cdc03b2a0c5d141b1f4594f22b7daf0c2"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/distances/snr_distance.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 712,
+        "sha256": "9f3724d3cae90f55ce485fb0168c83a813552faf95f4e24fc65bde36f3fe0efa"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/__init__.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1316,
+        "sha256": "9337f2a22e54d8b9e92dbf0160dddd20e7ac75169ca1e3595724e2674829e082"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/angular_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2883,
+        "sha256": "fc0c6dcb60c45c30789c28051e2740068c4c1859e8f3a7d17618089cd360626a"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/arcface_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 810,
+        "sha256": "ad5cf4fe91cc6174dc34c46cea40fcd9ababfe4e00bc80a747a15414c7e3fdb7"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/base_metric_loss_function.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 4580,
+        "sha256": "2b3b10055bf9c05e52be5d2d9439f3b5f657dd5446f31768778e7b3da1958c6d"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/circle_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2812,
+        "sha256": "b64487f4c7aeb79355135e89d0dd63df85b45f1b214dad81788a3328224516a7"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/contrastive_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2004,
+        "sha256": "3aeca4b5151f3505717faa3e150960d0c46a6efd69faa457f979d53aa41b3e66"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/cosface_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 909,
+        "sha256": "b99527a552c41791b4a50fe6c3c53e7b94cc1953ab7802ab23f8d410f5cd8800"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/cross_batch_memory.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 5914,
+        "sha256": "7810e2fcb3137988bfcf13c7da562d527e314cf2f928bc8bb173dc0cdbc56ed6"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/fast_ap_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2780,
+        "sha256": "5452feebb30c8b151a5eef0bd70c0f76f1fb84baaf720f8a0c6954306d64c1ee"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/generic_pair_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1361,
+        "sha256": "5d9dd5cdd212527d8a64fcbacc8a3139a727a70710a526a00aacfc944bd5651b"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/intra_pair_variance_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2101,
+        "sha256": "3a3d6a432bbe10fc0a56751e977f1da1f1e2d6cf6adcd80e57b9f78885657344"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/large_margin_softmax_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 5418,
+        "sha256": "b60e10d8ddb8a3159ed29f775b8ce32859946c3de83511233023f7ac29ceda2a"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/lifted_structure_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2980,
+        "sha256": "bc8c32086469a7388587ab10fc73c4e461f37d6be0f133d5d584593d1783126b"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/margin_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 3246,
+        "sha256": "8dcb9243ccfd391b4822e33a725af49c495f4eb140384712d2aae16777d6aed1"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/mixins.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2933,
+        "sha256": "9840959b4a14745906fef43bdb8b2e431d67e8f011dd9d104c8b451856fa5b49"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/multi_similarity_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1539,
+        "sha256": "1f10d0ee7591e143b16da4b796dad0c5f7bbd4a1eb61051c0ee0fef95dc9f05c"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/n_pairs_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1285,
+        "sha256": "c9777cca21d8c7cde6347b8833819616b06c796ff40f4e8f6cd078647df67690"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/nca_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1810,
+        "sha256": "74031b0f67ba6d436eddac5793cfd92a001728d0d92e90491b320367a09d557b"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/normalized_softmax_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1951,
+        "sha256": "6a73055dc1bbfe5d0bef386c19f162cb26b3b0bcf207d2138e1d7aab948b69d6"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/ntxent_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1721,
+        "sha256": "c7129770a8bdf87828f8ee37298309ca0a88c14a400aead45bc42ee37ef5f0b6"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/proxy_anchor_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 3363,
+        "sha256": "585bd0c2c2895572eb1ecc9f43a41829b4035df4dc7758ea18e771bd1f0c1a52"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/proxy_losses.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1084,
+        "sha256": "5a80edf4e8086db68da754d8bd62832140508154206112f9f14ec38e393509bc"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/signal_to_noise_ratio_losses.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 385,
+        "sha256": "a162b744b1e0d9665b855c95e9eba1d3e4c9a01de23e8016aa61a5eba4a4a503"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/soft_triple_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 3031,
+        "sha256": "050fa7587d5029acafe1f74420c74a4c1a696872d030754e0cac9ec13c8481a0"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/sphereface_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 368,
+        "sha256": "8cce66b78941aa43f633eba497a6b7c840366d29373664dc225d775082a41cde"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/triplet_margin_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2109,
+        "sha256": "961d1a2c552bb3c0832b699351198b560801a06ccc47fdaef4d9b3067ee4abcf"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/losses/tuplet_margin_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2080,
+        "sha256": "3627c2e993c6318cd12f01cf7471edcf54dcccd90a98ccd18e76a2a761b79f50"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/miners/__init__.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 553,
+        "sha256": "7568efff3c8340b80f05cc9b92ce3895a4001c1cf7bca0eb6baa799ca22146d3"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/miners/angular_miner.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2935,
+        "sha256": "1105a21ee8d0b7c689c7b7f0ad25660e5b763122db780cecce58bcf6c80c6c86"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/miners/base_miner.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 3090,
+        "sha256": "2729b4be4221a0b156149feb5b84120c50fed65b1afe7b854357456e7ce4aa4c"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/miners/batch_hard_miner.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 3090,
+        "sha256": "16297b4aec910b6923c62743ff9940b6faba9c8cd3f3f27ed7764dc4966affd0"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/miners/distance_weighted_miner.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2001,
+        "sha256": "7f9a66d9b87657df9d699f063ccc71b8d73efb1e1b21f6b97d96f2f2779ed474"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/miners/embeddings_already_packaged_as_triplets.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 502,
+        "sha256": "1ba6d06072fdaee4ec5ce663e4ad1e165328d49ccafd7d6af3adc3eede1feeae"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/miners/hdc_miner.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2199,
+        "sha256": "1df8830c8be5a061f9a678be709d8b24fa26a591b9c30743f1689ca1950a609f"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/miners/maximum_loss_miner.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1656,
+        "sha256": "db707a6edb028c1fe452ed44fea085ffda0655e146e2aa93ac1e0a24af905d23"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/miners/multi_similarity_miner.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2294,
+        "sha256": "fd3184678285f0e42dbd0b99c08a8d5e5f8d17b5bccdbdb18041b100f6b2b0e9"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/miners/pair_margin_miner.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1751,
+        "sha256": "3c0f601c791127d74aeb5a692be146e6c79224c2d5ab97f271395a139b58e03f"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/miners/triplet_margin_miner.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2471,
+        "sha256": "1c2de193209980d491ed085241e2379e9fb0c005180ad541388a4d75ab9a7eda"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/reducers/__init__.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 374,
+        "sha256": "3be7d2e5a4906213afacf90df2a5c3737781ad4159cf835d1913aad136dbe98b"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/reducers/avg_non_zero_reducer.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 169,
+        "sha256": "138e0bf298c1b200b75afe7f1c90723a3ea62a7a7c59c85fd036b14f72278496"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/reducers/base_reducer.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 3744,
+        "sha256": "3aad27e3a657beb4deed5eaf38e414daf65adc086be260147fc2fdf219229a51"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/reducers/class_weighted_reducer.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1079,
+        "sha256": "ac193a45a05cfe1c8186af9471357cfe16983825a5b8f3b79831cd4a94d449c7"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/reducers/divisor_reducer.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1820,
+        "sha256": "ffffb4af1f71e804b0c91bcdbe322d5d6b1b019edb56ee91a2eb7dc2db7a2a96"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/reducers/do_nothing_reducer.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 156,
+        "sha256": "30ffed746bff74247de5e466ed3ef5372970a335462f3bda84746ebc70db1bec"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/reducers/mean_reducer.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 472,
+        "sha256": "c03cc364b9d17d2d1b7464849304153f6696bff5ed85025b76be9c1512fcf36c"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/reducers/multiple_reducers.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1209,
+        "sha256": "cb04b6b2269126ce4ea0bdfb37a5aed5a04d0686167785b58be76bf74e47bdb0"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/reducers/threshold_reducer.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2577,
+        "sha256": "e8c8e1e6e99b888b22dce7c5bc31e1fb8ec8fe39a5dcf30f9ecb70e9fda3a87d"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/regularizers/__init__.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 344,
+        "sha256": "161edacaaaacba26bc8d58b43e490164108005f106238c1cf98af2a9fbe8ea61"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/regularizers/base_regularizer.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 514,
+        "sha256": "f0bdb47e7592b6cca7ee41d35f76701cb8ca16f0016b35cdef7e74bdaa258ce3"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/regularizers/center_invariant_regularizer.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 896,
+        "sha256": "c8345aa9fe2439b375228e8789b91ceb62a5728c712ed790dc7750c4a52c9409"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/regularizers/lp_regularizer.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 615,
+        "sha256": "810061eabc13ed87001d411ffe6988447f8e834d5e98b03f459ee9c57c1f1c31"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/regularizers/regular_face_regularizer.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1241,
+        "sha256": "cacb59d9405dbdd97ae0e01363ffa991f828cfd468ca2bb3c19c32e40c8275a4"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/regularizers/sparse_centers_regularizer.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2736,
+        "sha256": "27446dcd1369cbffda16384e08075aae8ed08bc5a3a3c4711435f0bae134d8ee"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/regularizers/zero_mean_regularizer.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 431,
+        "sha256": "a62915384963f453262a60f41e836b77b324ab3f7b41c1fe5d9340b832036d78"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/samplers/__init__.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 169,
+        "sha256": "0467d5245405b84227199e9cfb6dea47989d4d9bf61d91c10609d30845019e7e"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/samplers/fixed_set_of_triplets.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2183,
+        "sha256": "8ca20c5f760e112c6cc28b9aff5112ed5caf838e3cb78cd8397c3d6f19b54552"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/samplers/m_per_class_sampler.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2614,
+        "sha256": "f54c45b747625c6d6cfe958d93d0e994d7e96e4de39011947ee837b9303f664e"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/samplers/tuples_to_weights_sampler.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1780,
+        "sha256": "40901bf0c46a22381e2532a0cec3b570440a88fbf66d954f41b5e30400aa8792"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/testers/__init__.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 247,
+        "sha256": "5b1c6fcd71174c211525cf09cf2a363d128d060ed24933dcba3757da090efbe4"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/testers/base_tester.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 12315,
+        "sha256": "013a1d5dcc32b3b74dd0c8f1383174b25f3851c931cbab72cd52115ba901b9a0"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/testers/global_embedding_space.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1307,
+        "sha256": "97a10ebd39153365d70f4972a66db2d66a2ab0e8dfd982546703d0d925b09953"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/testers/global_twostream_embedding_space.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 3093,
+        "sha256": "7184b6e31743979bb6b38d372e04b0954d5d09d341a3472833fff8052d5933ef"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/testers/with_same_parent_label.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2617,
+        "sha256": "bb14a8400055ca073e34f9f351fb931d360229ac4b8e283649c09ef1fd4a9ae0"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/trainers/__init__.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 437,
+        "sha256": "52c500ff03331b94189ea00b3def3d8a4f5bb0a4d43c68b29c3c4e952981e601"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/trainers/base_trainer.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 13491,
+        "sha256": "fbe53a2d0aeada0bdf7d8796d0ea67319be95eeb8f693287b0f23966d4f5bce5"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/trainers/cascaded_embeddings.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2929,
+        "sha256": "91bdad1c6df1cb7d5eec18a5e093ae45de1fb99a9b49d1da06b695d00e4da0e1"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/trainers/deep_adversarial_metric_learning.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 7207,
+        "sha256": "8e259377a0aefffdf8ba0d4391dc5cfc3bfe9c3862721134df0e4f5370fd1ad2"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/trainers/metric_loss_only.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 625,
+        "sha256": "32a72adadf0306e3850cccddfc2e9a3f9d5aafbe00e597455351b14c7e5a8410"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/trainers/train_with_classifier.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1207,
+        "sha256": "ed960d77b2e81285f569b51c7f94be84bc3da414992e45dc0455b11874838bdb"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/trainers/twostream_metric_loss.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2206,
+        "sha256": "f9297a4d68cf9d194c7c39960110dc683ad233d032d5f654fddf2f52db6e2515"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/trainers/unsupervised_embeddings_using_augmentations.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1191,
+        "sha256": "aff0a1c5cbcaafccb8c9d4d1a8e8f359c85ce943d95f831527aa933ce0967099"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/utils/__init__.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/utils/accuracy_calculator.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 9609,
+        "sha256": "1b01e2347235d800df834591bc4c80dc99d5664d6e13455de5de1b0c82434d79"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/utils/common_functions.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 12991,
+        "sha256": "4d6619e721d3b31edcf10f1aa82ace764344dfc0221931383cedeafd827a72d0"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/utils/distributed.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2842,
+        "sha256": "9a1cc0ef364734310de4e01d445b859ff74adf2d4c787646dcceb7c41aa66c60"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/utils/inference.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 5936,
+        "sha256": "be096f88fdc73394167bde96501f2b642514e687d41a6a1e5c676cd62bf04fbb"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/utils/logging_presets.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 15947,
+        "sha256": "72682502ffd80eb86caed728a57f0fd9b73339c71aeda5a6e4e225f4924ccce8"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/utils/loss_and_miner_utils.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 8075,
+        "sha256": "d6d6dadf13687192730e8da65754b8abbf2b07bd86e3dfc60a5891775737581a"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/utils/loss_tracker.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1104,
+        "sha256": "6a9ed000f08a40962edfadc36746804e410e831ddcb41fc736511546cbfb1b01"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/utils/module_with_records.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 588,
+        "sha256": "b5b01144d3e16a7f6ac4ab3270ab4f902d8341cc4d53e1fa3d7f749c1708b7bf"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/utils/module_with_records_and_reducer.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 1687,
+        "sha256": "5aa9354f7df6581a55ac3945bf14367362be6b4a295d26ad77ecdabc38f25edd"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/_vendor/pytorch_metric_learning/utils/stat_utils.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2829,
+        "sha256": "ab982bd2257dbab7ae47459a06569ff3863fa0e54908dc4cb5de31ba4856f3a3"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/data.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 8952,
+        "sha256": "0871c39c3b9aa5ea551019b7cdbbdc8e8543530205529f9cfcd2a9fa307ab71b"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/engine.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 35329,
+        "sha256": "01b4212d95402d2e11e70e69e73da68ce86b30993d07f34a1fcb49d5730c6537"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/imagenet.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 9326,
+        "sha256": "b68d32dc78b3aa6c6b03586725e172fd12042b70d34efe5de09049a53a8db233"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/losses.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 2072,
+        "sha256": "1590fef53721ef2e744ca5471357cdf8b7c66e24cf2452ed0c8915f83a0a4d3d"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "src/training/state.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 3304,
+        "sha256": "111cb7c67969d84f58f8141a8d4b30ea8cf438803e6c17e0838238fb27ad1774"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "검사/runtime_condition_cpu.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 6893,
+        "sha256": "c08ca0ef0b3ff9a39e8668fbbab5f4e6137ac2c4afa95682c765966b9798a713"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "검사/server.test.mjs",
+      "status": "modified",
+      "before": {
+        "bytes": 25687,
+        "sha256": "45e92ddc57394a82c7dcdae8650303940c499388da52a49f33d18d0098467eb0"
+      },
+      "after": {
+        "bytes": 38124,
+        "sha256": "4b8d3cd3aecf4bfd532ed9fc71128db409e7f853ce1a9f5c2883c8955a59efc7"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "검사/test_baseline_completion.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 5560,
+        "sha256": "4e4d0a5f63d7c1f88bcc7c49860df47800d404b89deea86eafb04db8e88a82a5"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "검사/test_condition_training.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 6422,
+        "sha256": "04dc028ce67b4407dff77adc25b6e17861a4e026f89b9d7c1458536376371d12"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "검사/test_queue_safety.py",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 9879,
+        "sha256": "45e2fa2c5b536278a763f0e4a2f424f4e53af9eebb41edd131281bc57eabe19d"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "학습안내.md",
+      "status": "added",
+      "before": null,
+      "after": {
+        "bytes": 8146,
+        "sha256": "29085da63405ddf4a9686e55dd3bf1a2f990ff112d5becd4ebaf9ec800621c7e"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "화면/app.js",
+      "status": "modified",
+      "before": {
+        "bytes": 24598,
+        "sha256": "4a8d98bbfa7d14f13f2d0746cb515f71ae476948cb0953f53e39b18a763cd7cb"
+      },
+      "after": {
+        "bytes": 31100,
+        "sha256": "afc35cdd930061836442a69b32a752d312482676c1f0649d0ffff2d737688417"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "화면/assets/NanumGothic-Bold.ttf",
+      "status": "unchanged",
+      "before": {
+        "bytes": 2073868,
+        "sha256": "f96298f9fb18e364d2370f4c3ce948ac67a2b61af992d7234bc15c42b033c674"
+      },
+      "after": {
+        "bytes": 2073868,
+        "sha256": "f96298f9fb18e364d2370f4c3ce948ac67a2b61af992d7234bc15c42b033c674"
+      }
+    },
+    {
+      "path": "화면/assets/OFL.txt",
+      "status": "unchanged",
+      "before": {
+        "bytes": 4534,
+        "sha256": "eeacf16032901d0ed0456876ec77b8f0fda6b3fecec7d972f8543eb602e6c30f"
+      },
+      "after": {
+        "bytes": 4534,
+        "sha256": "eeacf16032901d0ed0456876ec77b8f0fda6b3fecec7d972f8543eb602e6c30f"
+      }
+    },
+    {
+      "path": "화면/index.html",
+      "status": "modified",
+      "before": {
+        "bytes": 14299,
+        "sha256": "5265d666d9dbf30e14e7af92a906963cb7f159c90df39434a56ee9cd484700b8"
+      },
+      "after": {
+        "bytes": 18518,
+        "sha256": "daa4087b9f636825422e5e3a2112e5f576d1c488c6a28614b7dc1db71de8c4b2"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "화면/state.mjs",
+      "status": "modified",
+      "before": {
+        "bytes": 10599,
+        "sha256": "42e3f8dc887766e8b7bd489a17cc891316e468cfbe2d1a20cb7caca8bb059d18"
+      },
+      "after": {
+        "bytes": 11493,
+        "sha256": "1eaa10a8814ecc09665914eec8a33731c90838cb0ea27a7b2b75ed4e676ae96d"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    },
+    {
+      "path": "화면/style.css",
+      "status": "modified",
+      "before": {
+        "bytes": 22489,
+        "sha256": "0eea4e026e6b4fcedeba93e8d2855d28d3c37b564729ea2b50316eb216a8d036"
+      },
+      "after": {
+        "bytes": 24517,
+        "sha256": "5af5ca99429fbe43ca0a2cd1d0d76b1cce65d45a06eab9bd394ec090c1bc1c90"
+      },
+      "comparison": "full_utf8_text_including_whitespace"
+    }
+  ]
+}
