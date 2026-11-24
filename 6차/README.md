@@ -9,7 +9,7 @@
 | [LEVEL 5 - Expert](../docs/읽기안내/레벨5.md) | 논문·코드·프로토콜 검토 |
 
 <details open>
-<summary><strong>LEVEL 1 · Beginner</strong> — 목적과 동작부터</summary>
+<summary>LEVEL 1 · Beginner — 목적과 동작부터</summary>
 
 <a id="reading-level-1"></a>
 ## LEVEL 1 - Beginner · 배경과 용어부터 읽기
@@ -49,7 +49,7 @@
 </details>
 
 <details>
-<summary><strong>LEVEL 2 · Explorer</strong> — 구성과 연결 원리</summary>
+<summary>LEVEL 2 · Explorer — 구성과 연결 원리</summary>
 
 <a id="reading-level-2"></a>
 ## LEVEL 2 - Explorer · 구성과 조건의 관계
@@ -85,7 +85,7 @@
 </details>
 
 <details>
-<summary><strong>LEVEL 3 · Practitioner</strong> — 준비·실행·결과 확인</summary>
+<summary>LEVEL 3 · Practitioner — 준비·실행·결과 확인</summary>
 
 <a id="reading-level-3"></a>
 ## LEVEL 3 - Practitioner · 실행·점검 절차
@@ -121,7 +121,7 @@ CUDA 오류가 있는 과거 실행은 중단 상태로 남기고 오류 0을 �
 </details>
 
 <details>
-<summary><strong>LEVEL 4 · Advanced</strong> — 구현·설계·실패 처리</summary>
+<summary>LEVEL 4 · Advanced — 구현·설계·실패 처리</summary>
 
 <a id="reading-level-4"></a>
 ## LEVEL 4 - Advanced · 설계 경계와 변경 영향
@@ -157,18 +157,20 @@ API executionRoot는 5차, 정적 root는 6차여서 제어·로그·결과 모�
 </details>
 
 <details>
-<summary><strong>LEVEL 5 · Expert</strong> — 근거·프로토콜·한계 검토</summary>
+<summary>LEVEL 5 · Expert — 근거·프로토콜·한계 검토</summary>
 
 <a id="reading-level-5"></a>
 ## LEVEL 5 - Expert · 전체 상세와 근거
 
 [11/13시점 원격 설명(보존) · 같은 LEVEL 5](https://github.com/PUVKID/CXR-Privacy-Lab/blob/2434a1e29533a74b7acc60a6799c8da550c91ac7/6%EC%B0%A8/README.md#reading-level-5) — 당시 6차까지의 설명이며 현재 7·8차 관측과 구분합니다.
 
-## 🩻 6차 — 단계와 강도를 골라 보는 재식별 실험
+<a id="-6차--단계와-강도를-골라-보는-재식별-실험"></a>
+## 6차 — 단계와 강도를 골라 보는 재식별 실험
 
 1 단계 원본, 2 단계 블러, 3 단계 모자이크를 선택하고 각 강도의 조건·진행·실제 결과를 확인하는 대시보드입니다. **화면은 6차, 연결한 실험은 기존 5차 실행**입니다. 화면 개편만으로 기존 실행을 다시 시작하지 않습니다. 2026-11-13 확인 시 연결 실험은 CUDA 오류로 중단된 상태입니다.
 
-## 🧪 학습과 평가
+<a id="-학습과-평가"></a>
+## 학습과 평가
 
 검증 모델 학습 → 검색 모델 출력 부 학습 → 검색 모델 전체 학습을 마친 뒤, 같은 실행에서 만든 두 모델로 21 조건을 평가합니다. 강도마다 모델을 다시 학습하는 구조는 아닙니다. 강도별 재학습은 별도 실험 설계입니다.
 
@@ -180,7 +182,8 @@ API executionRoot는 5차, 정적 root는 6차여서 제어·로그·결과 모�
 
 변형은 질의에만 적용하고 검색 갤러리는 원본으로 고정합니다. 자기 원본은 검색에서 제외합니다. 블러 0 과 모자이크 1 도 각 단계의 별도 조건입니다. 원본 모델의 논문 재현과 블러·모자이크 확장 비교를 구분합니다. [단계별 실험 구조](문서/단계별_실험_구조.md)에서 실제 코드와 지표를 확인합니다.
 
-## 🖱️ 화면 사용
+<a id="-화면-사용"></a>
+## 화면 사용
 
 단계 선택 → 강도 선택 → 상세 정보 순서로 확인합니다. 결과가 없는 조건도 선택할 수 있고 미측정으로 표시합니다. 현재 실행의 같은 단계·강도 결과만 연결하며 선택은 3초 갱신 뒤에도 유지합니다. 학습 3 과정과 평가 3 단계는 별도로 보여 줍니다.
 
@@ -198,7 +201,8 @@ API executionRoot는 5차, 정적 root는 6차여서 제어·로그·결과 모�
 
 실험 코드와 학습 설정은 5차의 보존 사본이며 이번 변경으로 강도별 재학습을 추가한 것은 아닙니다.
 
-## 🔎 검증과 해석
+<a id="-검증과-해석"></a>
+## 검증과 해석
 
 [보고서 항목별 이행표](보고서_항목별_이행표.md)에 서 코드 수정·검사와 실제 학습·성능 재현의 확인 상태를 구분합니다.
 

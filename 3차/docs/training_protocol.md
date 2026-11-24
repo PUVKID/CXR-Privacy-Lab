@@ -2,7 +2,7 @@
 
 <!-- reading-levels17:start -->
 <details>
-<summary><strong>읽기 수준 선택</strong></summary>
+<summary>읽기 수준 선택</summary>
 
 | 레벨 | 읽는 목적 |
 | --- | --- |
@@ -35,7 +35,7 @@
 | <a id="layout18-table-1-row-8"></a> 선택과 평가 | 검증 모델은 validation BCE 기준, 검색은 공식 경로의 마지막 에폭.<br>시험 영상과 COVID를 학습·선택에 사용하지 않음 |
 
 
-**Windows·Python3.12·PyTorch2.7.1 포팅은 논문 당시 Linux 환경과 동일하지 않습니다.** GPU 메모리를 절약하기 위한 활성값 재계산을 선택할 경우 같은 배치·난수·BatchNorm 상태와 기울기를 보존하는지 검사하고 실행 설정에 기록합니다.  
+Windows·Python3.12·PyTorch2.7.1 포팅은 논문 당시 Linux 환경과 동일하지 않습니다. GPU 메모리를 절약하기 위한 활성값 재계산을 선택할 경우 같은 배치·난수·BatchNorm 상태와 기울기를 보존하는지 검사하고 실행 설정에 기록합니다.  
 배치 크기를 묵시적으로 줄이지 않습니다.
 
 공식 검색 코드에서는 validation에서도 PML0.9.94의 CBM 손실을 호출해 메모리 큐를 갱신하는 경로가 있습니다.

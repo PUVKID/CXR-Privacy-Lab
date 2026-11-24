@@ -9,7 +9,7 @@
 | [LEVEL 5 - Expert](../docs/읽기안내/레벨5.md) | 논문·코드·프로토콜 검토 |
 
 <details open>
-<summary><strong>LEVEL 1 · Beginner</strong> — 목적과 동작부터</summary>
+<summary>LEVEL 1 · Beginner — 목적과 동작부터</summary>
 
 <a id="reading-level-1"></a>
 ## LEVEL 1 - Beginner · 배경과 용어부터 읽기
@@ -49,7 +49,7 @@
 </details>
 
 <details>
-<summary><strong>LEVEL 2 · Explorer</strong> — 구성과 연결 원리</summary>
+<summary>LEVEL 2 · Explorer — 구성과 연결 원리</summary>
 
 <a id="reading-level-2"></a>
 ## LEVEL 2 - Explorer · 구성과 조건의 관계
@@ -83,7 +83,7 @@ Python 관리자에 데이터 준비가 있어도 그 다음이 반드시 새 �
 </details>
 
 <details>
-<summary><strong>LEVEL 3 · Practitioner</strong> — 준비·실행·결과 확인</summary>
+<summary>LEVEL 3 · Practitioner — 준비·실행·결과 확인</summary>
 
 <a id="reading-level-3"></a>
 ## LEVEL 3 - Practitioner · 실행·점검 절차
@@ -119,7 +119,7 @@ START_DASHBOARD.cmd 또는 Node 서버를 열고 GPU 정보·다운로드 크기
 </details>
 
 <details>
-<summary><strong>LEVEL 4 · Advanced</strong> — 구현·설계·실패 처리</summary>
+<summary>LEVEL 4 · Advanced — 구현·설계·실패 처리</summary>
 
 <a id="reading-level-4"></a>
 ## LEVEL 4 - Advanced · 설계 경계와 변경 영향
@@ -155,14 +155,15 @@ CSV·상태·부분 다운로드 크기는 관측 입력이며 대표 미리 보
 </details>
 
 <details>
-<summary><strong>LEVEL 5 · Expert</strong> — 근거·프로토콜·한계 검토</summary>
+<summary>LEVEL 5 · Expert — 근거·프로토콜·한계 검토</summary>
 
 <a id="reading-level-5"></a>
 ## LEVEL 5 - Expert · 전체 상세와 근거
 
 [11/13시점 원격 설명(보존) · 같은 LEVEL 5](https://github.com/PUVKID/CXR-Privacy-Lab/blob/2434a1e29533a74b7acc60a6799c8da550c91ac7/1%EC%B0%A8/README.md#reading-level-5) — 당시 6차까지의 설명이며 현재 7·8차 관측과 구분합니다.
 
-## 🩻 1차 — 로컬 실험 제어와 대시보드
+<a id="-1차--로컬-실험-제어와-대시보드"></a>
+## 1차 — 로컬 실험 제어와 대시보드
 
 첫 구현 차수입니다. 앞선 차수나 최종본은 없습니다. 원본·블러·모자이크는 실험의 세 단계이며 파일 저장 차수와 다릅니다.
 

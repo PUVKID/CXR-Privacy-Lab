@@ -9,12 +9,12 @@
 | [LEVEL 5 - Expert](../docs/읽기안내/레벨5.md) | 전체 상세·검증 범위 |
 
 <details open>
-<summary><strong>LEVEL 1 · Beginner</strong> — 목적과 동작부터</summary>
+<summary>LEVEL 1 · Beginner — 목적과 동작부터</summary>
 
 <a id="reading-level-1"></a>
 ## LEVEL 1 - Beginner
 
-**현재 계산은 7차, 새 진행 화면은 9차**입니다. 에폭은 학습 자료를 한 바퀴 도는 단위이고, 배치는 한 번에 처리하는 묶음입니다. 같은 7차 학습을 보면서 현재 바퀴가 얼마나 진행됐는지와 세 학습 과정 중 어디에 있는지를 구분합니다.
+현재 계산은 7차, 새 진행 화면은 9차입니다. 에폭은 학습 자료를 한 바퀴 도는 단위이고, 배치는 한 번에 처리하는 묶음입니다. 같은 7차 학습을 보면서 현재 바퀴가 얼마나 진행됐는지와 세 학습 과정 중 어디에 있는지를 구분합니다.
 
 | 보는 곳 | 읽는 방법 | 주의할 점 |
 | --- | --- | --- |
@@ -46,12 +46,12 @@
 </details>
 
 <details>
-<summary><strong>LEVEL 2 · Explorer</strong> — 구성과 연결 원리</summary>
+<summary>LEVEL 2 · Explorer — 구성과 연결 원리</summary>
 
 <a id="reading-level-2"></a>
 ## LEVEL 2 - Explorer
 
-9차는 7차 계산 결과를 새로 만드는 학습기가 아니라, **기존 기록을 진행률·단계·추세로 연결하는 읽기 전용 화면**입니다. 에폭, 학습 단계, 전체 평가 조건은 분모가 다른 세 축입니다.
+9차는 7차 계산 결과를 새로 만드는 학습기가 아니라, 기존 기록을 진행률·단계·추세로 연결하는 읽기 전용 화면입니다. 에폭, 학습 단계, 전체 평가 조건은 분모가 다른 세 축입니다.
 
 | 연결 | 처리 | 화면에서의 뜻 |
 | --- | --- | --- |
@@ -71,7 +71,7 @@
 </details>
 
 <details>
-<summary><strong>LEVEL 3 · Practitioner</strong> — 준비·실행·결과 확인</summary>
+<summary>LEVEL 3 · Practitioner — 준비·실행·결과 확인</summary>
 
 <a id="reading-level-3"></a>
 ## LEVEL 3 - Practitioner
@@ -103,7 +103,7 @@
 </details>
 
 <details>
-<summary><strong>LEVEL 4 · Advanced</strong> — 구현·설계·실패 처리</summary>
+<summary>LEVEL 4 · Advanced — 구현·설계·실패 처리</summary>
 
 <a id="reading-level-4"></a>
 ## LEVEL 4 - Advanced
@@ -128,7 +128,7 @@
 </details>
 
 <details>
-<summary><strong>LEVEL 5 · Expert</strong> — 근거·프로토콜·한계 검토</summary>
+<summary>LEVEL 5 · Expert — 근거·프로토콜·한계 검토</summary>
 
 <a id="reading-level-5"></a>
 ## LEVEL 5 - Expert · 동결 구현의 전체 설명
@@ -163,7 +163,7 @@
 
 원본은 보존되며 잘린 앞부분과 작성 중 마지막 행은 따로 안내합니다.
 
-**이 그래프는 전체 학습 이력이 아닙니다.** 학습 곡선은 단계·에폭·시간 역전·누적 처리 배치 되 감기에서 선을 끊습니다.
+이 그래프는 전체 학습 이력이 아닙니다. 학습 곡선은 단계·에폭·시간 역전·누적 처리 배치 되 감기에서 선을 끊습니다.
 
 원값이 0 인 손실은 유효하고, 미측정 손실은 점을 만들지 않습니다.
 

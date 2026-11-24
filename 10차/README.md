@@ -9,7 +9,7 @@
 | [LEVEL 5 - Expert](#reading-level-5) | [같은 수준 프로젝트](../docs/읽기안내/레벨5.md) |
 
 <details open>
-<summary><strong>LEVEL 1 · Beginner</strong> — 목적과 동작부터</summary>
+<summary>LEVEL 1 · Beginner — 목적과 동작부터</summary>
 
 <a id="reading-level-1"></a>
 ## LEVEL 1 - Beginner
@@ -32,7 +32,7 @@ Adam·SGD는 모델 수치를 고치는 학습 방법이고 OneCycle은 학습�
 </details>
 
 <details>
-<summary><strong>LEVEL 2 · Explorer</strong> — 구성과 연결 원리</summary>
+<summary>LEVEL 2 · Explorer — 구성과 연결 원리</summary>
 
 <a id="reading-level-2"></a>
 ## LEVEL 2 - Explorer
@@ -54,7 +54,7 @@ NIH의 학습·검증·시험 역할과 COVID-19의 외부 평가 역할을 구�
 </details>
 
 <details>
-<summary><strong>LEVEL 3 · Practitioner</strong> — 준비·실행·결과 확인</summary>
+<summary>LEVEL 3 · Practitioner — 준비·실행·결과 확인</summary>
 
 <a id="reading-level-3"></a>
 ## LEVEL 3 - Practitioner
@@ -77,7 +77,7 @@ NIH의 학습·검증·시험 역할과 COVID-19의 외부 평가 역할을 구�
 </details>
 
 <details>
-<summary><strong>LEVEL 4 · Advanced</strong> — 구현·설계·실패 처리</summary>
+<summary>LEVEL 4 · Advanced — 구현·설계·실패 처리</summary>
 
 <a id="reading-level-4"></a>
 ## LEVEL 4 - Advanced
@@ -100,7 +100,7 @@ CXR 동일 프로젝트의 중복 학습·평가는 차단하고 기존 단계�
 </details>
 
 <details>
-<summary><strong>LEVEL 5 · Expert</strong> — 근거·프로토콜·한계 검토</summary>
+<summary>LEVEL 5 · Expert — 근거·프로토콜·한계 검토</summary>
 
 <a id="reading-level-5"></a>
 ## LEVEL 5 - Expert · 현재 10차 구현 안내 전체
@@ -109,7 +109,7 @@ CXR 동일 프로젝트의 중복 학습·평가는 차단하고 기존 단계�
 
 # 새 원본부터 시작하는 강도별 독립 학습 · 10차
 
-**10차에서 원본 모델부터 새로 학습한 뒤 블러·모자이크의 각 강도에서도 별도 모델을 학습합니다.** 이전 7차 학습과 대기열은 사용자 요청으로 중단하고 보관했습니다. 기존 CXR 체크포인트를 이어받거나 7차의 완료를 기다리지 않습니다.
+10차에서 원본 모델부터 새로 학습한 뒤 블러·모자이크의 각 강도에서도 별도 모델을 학습합니다. 이전 7차 학습과 대기열은 사용자 요청으로 중단하고 보관했습니다. 기존 CXR 체크포인트를 이어받거나 7차의 완료를 기다리지 않습니다.
 
 | 조건 | 새로 만드는 모델 | 순서와 평가 |
 | --- | --- | --- |
@@ -117,7 +117,7 @@ CXR 동일 프로젝트의 중복 학습·평가는 차단하고 기존 단계�
 | 블러 10개 | 각 강도의 검증·검색 모델 | 0, 1, 2, 4, 8, 16, 32, 64, 128, 256 픽셀 |
 | 모자이크 10개 | 각 강도의 검증·검색 모델 | 같은 10개 강도, 각 조건의 학습과 평가가 끝나야 다음 조건 실행 |
 
-총 21개 학습 조건입니다. 블러 0, 모자이크 0·1은 픽셀 변형이 없는 항등 조건이지만 모델을 재사용하지 않고 각각 새로 학습합니다. 같은 모델의 질의만 변형했던 이전 고정 공격 평가와 구분합니다. **NIH는 학습·내부 검증·시험, COVID-19는 외부 평가에 사용**합니다. 두 데이터셋과 블러·모자이크 확장은 이번 비교 연구의 범위이며 그 추가 자체를 원논문 방법 재현 실패로 세지 않습니다. 원논문의 방법과 실제 구현 차이는 따로 대조합니다.
+총 21개 학습 조건입니다. 블러 0, 모자이크 0·1은 픽셀 변형이 없는 항등 조건이지만 모델을 재사용하지 않고 각각 새로 학습합니다. 같은 모델의 질의만 변형했던 이전 고정 공격 평가와 구분합니다. NIH는 학습·내부 검증·시험, COVID-19는 외부 평가에 사용합니다. 두 데이터셋과 블러·모자이크 확장은 이번 비교 연구의 범위이며 그 추가 자체를 원논문 방법 재현 실패로 세지 않습니다. 원논문의 방법과 실제 구현 차이는 따로 대조합니다.
 
 ## 학습 조건과 데이터 처리
 

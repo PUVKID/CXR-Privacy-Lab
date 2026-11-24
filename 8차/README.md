@@ -9,7 +9,7 @@
 | [LEVEL 5 - Expert](../docs/읽기안내/레벨5.md) | 논문·코드·프로토콜 검토 |
 
 <details open>
-<summary><strong>LEVEL 1 · Beginner</strong> — 목적과 동작부터</summary>
+<summary>LEVEL 1 · Beginner — 목적과 동작부터</summary>
 
 <a id="reading-level-1"></a>
 ## LEVEL 1 - Beginner · 배경과 용어부터 읽기
@@ -54,7 +54,7 @@
 </details>
 
 <details>
-<summary><strong>LEVEL 2 · Explorer</strong> — 구성과 연결 원리</summary>
+<summary>LEVEL 2 · Explorer — 구성과 연결 원리</summary>
 
 <a id="reading-level-2"></a>
 ## LEVEL 2 - Explorer · 구성과 조건의 관계
@@ -70,7 +70,7 @@
 | 한계 | global_step은 단계 내 처리 배치이며 혼합 정밀도의 가중치 적용 생략 때문에 실제 적용 횟수와 다를 수 있습니다.<br>마지막 관측과 저장 체크포인트도 다르며 운영 분리가 재부팅·저장 실패를 막지는 않습니다. | 같지 않은 조건은 비교에 명시합니다. |
 | 실행·검사 | node server.mjs 후127.0.0.1:8787에서 화면 8차·실험 7차를 확인합니다.<br>Node 검사와 실제 데이터셋/과제/21 조건 선택·원값·양 쪽 테마·모션·포커스 검증을 구분합니다. | 검사 도구의 역할을 구분합니다. |
 
-8차 연결은 **포인터 검증→고정 실행 경계→상태·결과 어댑터→선택 화면**입니다.
+8차 연결은 포인터 검증→고정 실행 경계→상태·결과 어댑터→선택 화면입니다.
 
 기록 파일이 최근이라는 조건과 현재 프로세스의 소스·UUID·부모·생성 시각이 맞는 조건을 결합합니다.
 
@@ -88,7 +88,7 @@ Windows 가상환경의 실행 전달 프로세스와 실제 Python 자식은 �
 </details>
 
 <details>
-<summary><strong>LEVEL 3 · Practitioner</strong> — 준비·실행·결과 확인</summary>
+<summary>LEVEL 3 · Practitioner — 준비·실행·결과 확인</summary>
 
 <a id="reading-level-3"></a>
 ## LEVEL 3 - Practitioner · 실행·점검 절차
@@ -124,7 +124,7 @@ NIH/COVID19와 검증/검색을 고르고 원본·블러·모자이크의 원하
 </details>
 
 <details>
-<summary><strong>LEVEL 4 · Advanced</strong> — 구현·설계·실패 처리</summary>
+<summary>LEVEL 4 · Advanced — 구현·설계·실패 처리</summary>
 
 <a id="reading-level-4"></a>
 ## LEVEL 4 - Advanced · 설계 경계와 변경 영향
@@ -160,7 +160,7 @@ JSON/CSV의 UTF8 엄격 해석, JSONL의 LF·256KiB 범위·불완전 꼬리 표
 </details>
 
 <details>
-<summary><strong>LEVEL 5 · Expert</strong> — 근거·프로토콜·한계 검토</summary>
+<summary>LEVEL 5 · Expert — 근거·프로토콜·한계 검토</summary>
 
 <a id="reading-level-5"></a>
 ## LEVEL 5 - Expert · 전체 상세와 근거

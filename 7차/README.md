@@ -9,7 +9,7 @@
 | [LEVEL 5 - Expert](../docs/읽기안내/레벨5.md) | 논문·코드·프로토콜 검토 |
 
 <details open>
-<summary><strong>LEVEL 1 · Beginner</strong> — 목적과 동작부터</summary>
+<summary>LEVEL 1 · Beginner — 목적과 동작부터</summary>
 
 <a id="reading-level-1"></a>
 ## LEVEL 1 - Beginner · 배경과 용어부터 읽기
@@ -72,7 +72,7 @@ NIH로 학습·내부 시험을 하고 COVID는 외부 시험으로 남깁니다
 </details>
 
 <details>
-<summary><strong>LEVEL 2 · Explorer</strong> — 구성과 연결 원리</summary>
+<summary>LEVEL 2 · Explorer — 구성과 연결 원리</summary>
 
 <a id="reading-level-2"></a>
 ## LEVEL 2 - Explorer · 구성과 조건의 관계
@@ -88,7 +88,7 @@ NIH로 학습·내부 시험을 하고 COVID는 외부 시험으로 남깁니다
 | 한계 | 원본 중복과 검증 중 동일 CBM 큐 갱신을 유지합니다.<br>논문 본문의 고정 검증 설명과 달리 공식 randomized 코드는 검증 음성도 에폭마다 다시 만듭니다.<br>Windows·동률·난수·신뢰구간 차이와 CheXpert 미수행이 남습니다. | 같지 않은 조건은 비교에 명시합니다. |
 | 실행·검사 | 로컬 Start-CXR7.cmd는 새 실행, Resume-CXR7.cmd는 현재 실행 재개, Check-CXR7.cmd는 사전 검사입니다.<br>All-In-One.ps1의 start/resume과 체크포인트 결합·손실/기울기·분할·재개 검사를 구분합니다.<br>공개 소스는 제공하지만 의료 목록·전체 실행 관리 패키지·가중치는 포함하지 않으므로 공개 사본만으로 전체 실험을 바로 실행할 수 없습니다. | 검사 도구의 역할을 구분합니다. |
 
-7차는 **저자 목록·학습 규칙·모델 선택·고정 모델 변환 평가**를 하나의 출처 계약으로 묶습니다.
+7차는 저자 목록·학습 규칙·모델 선택·**고정 모델** 변환 평가를 하나의 출처 계약으로 묶습니다.
 
 검증의 RNP는 같은 환자 양성 쌍을 유지하고 다른 환자 음성 쌍을 다시 구성하는 방식이며 채택한 공식 분기는 학습뿐 아니라 검증 음성도 바꿉니다.
 
@@ -110,7 +110,7 @@ NIH로 학습·내부 시험을 하고 COVID는 외부 시험으로 남깁니다
 </details>
 
 <details>
-<summary><strong>LEVEL 3 · Practitioner</strong> — 준비·실행·결과 확인</summary>
+<summary>LEVEL 3 · Practitioner — 준비·실행·결과 확인</summary>
 
 <a id="reading-level-3"></a>
 ## LEVEL 3 - Practitioner · 실행·점검 절차
@@ -148,7 +148,7 @@ NIH로 학습·내부 시험을 하고 COVID는 외부 시험으로 남깁니다
 </details>
 
 <details>
-<summary><strong>LEVEL 4 · Advanced</strong> — 구현·설계·실패 처리</summary>
+<summary>LEVEL 4 · Advanced — 구현·설계·실패 처리</summary>
 
 <a id="reading-level-4"></a>
 ## LEVEL 4 - Advanced · 설계 경계와 변경 영향
@@ -182,7 +182,7 @@ AMP overflow에서는 native scaler가 optimizer 적용을 생략하며 global_s
 </details>
 
 <details>
-<summary><strong>LEVEL 5 · Expert</strong> — 근거·프로토콜·한계 검토</summary>
+<summary>LEVEL 5 · Expert — 근거·프로토콜·한계 검토</summary>
 
 <a id="reading-level-5"></a>
 ## LEVEL 5 - Expert · 전체 상세와 근거

@@ -9,7 +9,7 @@
 | [LEVEL 5 - Expert](../docs/읽기안내/레벨5.md) | 논문·코드·프로토콜 검토 |
 
 <details open>
-<summary><strong>LEVEL 1 · Beginner</strong> — 목적과 동작부터</summary>
+<summary>LEVEL 1 · Beginner — 목적과 동작부터</summary>
 
 <a id="reading-level-1"></a>
 ## LEVEL 1 - Beginner · 배경과 용어부터 읽기
@@ -54,7 +54,7 @@
 </details>
 
 <details>
-<summary><strong>LEVEL 2 · Explorer</strong> — 구성과 연결 원리</summary>
+<summary>LEVEL 2 · Explorer — 구성과 연결 원리</summary>
 
 <a id="reading-level-2"></a>
 ## LEVEL 2 - Explorer · 구성과 조건의 관계
@@ -90,7 +90,7 @@
 </details>
 
 <details>
-<summary><strong>LEVEL 3 · Practitioner</strong> — 준비·실행·결과 확인</summary>
+<summary>LEVEL 3 · Practitioner — 준비·실행·결과 확인</summary>
 
 <a id="reading-level-3"></a>
 ## LEVEL 3 - Practitioner · 실행·점검 절차
@@ -126,7 +126,7 @@
 </details>
 
 <details>
-<summary><strong>LEVEL 4 · Advanced</strong> — 구현·설계·실패 처리</summary>
+<summary>LEVEL 4 · Advanced — 구현·설계·실패 처리</summary>
 
 <a id="reading-level-4"></a>
 ## LEVEL 4 - Advanced · 설계 경계와 변경 영향
@@ -162,18 +162,20 @@ AMP 비유한 값에서 상태를 복원하고 같은 배치를 재시도하는 
 </details>
 
 <details>
-<summary><strong>LEVEL 5 · Expert</strong> — 근거·프로토콜·한계 검토</summary>
+<summary>LEVEL 5 · Expert — 근거·프로토콜·한계 검토</summary>
 
 <a id="reading-level-5"></a>
 ## LEVEL 5 - Expert · 전체 상세와 근거
 
 [11/13시점 원격 설명(보존) · 같은 LEVEL 5](https://github.com/PUVKID/CXR-Privacy-Lab/blob/2434a1e29533a74b7acc60a6799c8da550c91ac7/3%EC%B0%A8/README.md#reading-level-5) — 당시 6차까지의 설명이며 현재 7·8차 관측과 구분합니다.
 
-## 🩻 3차 — 학습부터 다시 수행하는 흉부 X 선 재식별 실험
+<a id="-3차--학습부터-다시-수행하는-흉부-x-선-재식별-실험"></a>
+## 3차 — 학습부터 다시 수행하는 흉부 X 선 재식별 실험
 
 공개 CXR 최종 가중치를 평가하는 경로와 새로운 학습 경로를 분리했습니다. 데이터 준비·검증이 끝나면 검증 모델, 검색 모델 출력부, 검색 모델 전체를 순서대로 학습하고 이 실행에서 생성한 가중치로 원본·블러·모자이크를 평가합니다. ImageNet 초기화는 논문상 설정이며 CXR 최종 가중치 재사용과 구분합니다.
 
-## 🧪 실행
+<a id="-실행"></a>
+## 실행
 
 프로젝트 상위의 `runtime/Scripts/python.exe`로 `run_experiment.py`를 실행합니다.
 
@@ -197,7 +199,8 @@ AMP 비유한 값에서 상태를 복원하고 같은 배치를 재시도하는 
 
 원 공식 검색 코드의 validation CBM 메모리 갱신은 이번 구현에서 차단합니다. 검증 영상이 다음 학습 큐에 섞이지 않도록 한 의도된 변경이며, 원 논문 주요 학습 조건에 누수 방어를 보완한 재학습으로 구분합니다. 모든 코드 동작과 환경이 원본과 동일한 재현이라고 표현하지 않습니다.
 
-## 📊 지표 해석
+<a id="-지표-해석"></a>
+## 지표 해석
 
 프라이버시 점수 `100 × (1 − CMC@1)`는 고정된 공격 모델과 검색 집합에서의 1 순위 재식별 실패율입니다.
 
@@ -207,13 +210,15 @@ AMP 비유한 값에서 상태를 복원하고 같은 배치를 재시도하는 
 
 환자별 영상 수와 질의 분모를 함께 기록합니다.
 
-## 🔎 검증과 공개 경계
+<a id="-검증과-공개-경계"></a>
+## 검증과 공개 경계
 
 검사와 독립 검토 결과는 실제 실행 뒤 별도로 기록합니다. 합성 GPU 역전파 성공과 실제 NIH 학습, 학습 종료와 원 논문 수치 재현은 각각 구분합니다. Windows·Python3.12·PyTorch2.7.1 환경은 원 논문 환경과 동일하지 않습니다.
 
 의료 원영상·영상별 목록·환자 식별자·학습 가중치·실행 로그·개인 지침은 공개하지 않습니다. 제공 패키지 자체의 재배포 권한이 확인되지 않은 평가 엔진은 로컬에서 보존하며 공개 대상에서 보류합니다.
 
-## 📚 근거
+<a id="-근거"></a>
+## 근거
 
 - [Packhäuser 등 원 논문](https://doi.org/10.1038/s41598-022-19045-3)
 - [원 저자 공식 코드](https://github.com/kaipackhaeuser/CXR-Patient-ReID/tree/880168f564afa07936a8d8fb3b868b140ab937d9)
