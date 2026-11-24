@@ -8,6 +8,9 @@
 | [LEVEL 4 - Advanced](../docs/읽기안내/레벨4.md) | 구현 경계와 실패 처리 |
 | [LEVEL 5 - Expert](../docs/읽기안내/레벨5.md) | 전체 상세·검증 범위 |
 
+<details open>
+<summary><strong>LEVEL 1 · Beginner</strong> — 목적과 동작부터</summary>
+
 <a id="reading-level-1"></a>
 ## LEVEL 1 - Beginner
 
@@ -39,6 +42,12 @@
 
 [같은 수준 프로젝트 안내](../docs/읽기안내/레벨1.md) · [직전8차 상세](../8차/README.md#reading-level-1) · [8→9 전체 비교](이전_차수_비교.md)
 
+
+</details>
+
+<details>
+<summary><strong>LEVEL 2 · Explorer</strong> — 구성과 연결 원리</summary>
+
 <a id="reading-level-2"></a>
 ## LEVEL 2 - Explorer
 
@@ -57,6 +66,12 @@
 표시 창·화면 서버·학습 실행기가 분리돼 있으면 표시만 닫는 조작은 학습 종료 명령이 아닙니다. 다만 실제 실행기 종료·운영 체제 종료·저장 실패까지 막는 보장은 아닙니다. 8차의 연결·입력 검증과 강도별 원값 조회는 보존하며 9차는 학습 설정이나 변환별 재학습 구조를 추가하지 않습니다.
 
 [같은 수준 프로젝트 안내](../docs/읽기안내/레벨2.md) · [직전8차 상세](../8차/README.md#reading-level-2) · [8→9 전체 비교](이전_차수_비교.md)
+
+
+</details>
+
+<details>
+<summary><strong>LEVEL 3 · Practitioner</strong> — 준비·실행·결과 확인</summary>
 
 <a id="reading-level-3"></a>
 ## LEVEL 3 - Practitioner
@@ -84,6 +99,12 @@
 
 [같은 수준 프로젝트 안내](../docs/읽기안내/레벨3.md) · [직전8차 상세](../8차/README.md#reading-level-3) · [8→9 전체 비교](이전_차수_비교.md)
 
+
+</details>
+
+<details>
+<summary><strong>LEVEL 4 · Advanced</strong> — 구현·설계·실패 처리</summary>
+
 <a id="reading-level-4"></a>
 ## LEVEL 4 - Advanced
 
@@ -102,6 +123,12 @@
 동일 실행의 표시 창과 숨김 학습 실행기는 별개 생명 주기를 가질 수 있습니다. 서버 재시작·브라우저 종료가 학습 종료 API가 되어서는 안 되며, 기존 프로세스 정체 확인·읽기 경로 제한은 유지합니다. 구체적 읽기 상한·계산 함수·회귀 결과는 9차 상세와 8 →9 전체 파일 비교에서 대조합니다.
 
 [같은 수준 프로젝트 안내](../docs/읽기안내/레벨4.md) · [직전8차 상세](../8차/README.md#reading-level-4) · [8→9 전체 비교](이전_차수_비교.md)
+
+
+</details>
+
+<details>
+<summary><strong>LEVEL 5 · Expert</strong> — 근거·프로토콜·한계 검토</summary>
 
 <a id="reading-level-5"></a>
 ## LEVEL 5 - Expert · 동결 구현의 전체 설명
@@ -195,3 +222,6 @@ node --test 검사/server.test.mjs
 설계와 작업계획의 미완료 체크 표시는 작성 시점의 계획을 보존한 것입니다. 이후 수행한 구현 검사와 위 화면 확인 범위는 따로 구분합니다. 논문·평가 해석의 한계는 [8차 재검토](../8차/논문과_실행_재검증.md)를 유지하며 새 원고·논문 PDF·성과를 만들지 않았습니다.
 
 [같은 수준 프로젝트 안내](../docs/읽기안내/레벨5.md) · [직전8차 상세](../8차/README.md#reading-level-5) · [전체 파일 비교](이전_차수_비교.md)
+
+</details>
+

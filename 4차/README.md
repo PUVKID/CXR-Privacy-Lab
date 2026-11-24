@@ -8,6 +8,9 @@
 | [LEVEL 4 - Advanced](../docs/읽기안내/레벨4.md) | 구현과 실패 처리 |
 | [LEVEL 5 - Expert](../docs/읽기안내/레벨5.md) | 논문·코드·프로토콜 검토 |
 
+<details open>
+<summary><strong>LEVEL 1 · Beginner</strong> — 목적과 동작부터</summary>
+
 <a id="reading-level-1"></a>
 ## LEVEL 1 - Beginner · 배경과 용어부터 읽기
 
@@ -43,6 +46,12 @@
 | 시드·작업자 0 | 시드는 무작위 선택의 시작 설정입니다.<br>입력 작업자 0은 추가 자료 읽기 프로세스를 만들지 않는 설정이며 학습 배치가 0이라는 뜻이 아닙니다. |
 | 호버·포커스 | 호버는 마우스를 올린 상태, 포커스는 키보드로 조작할 대상이 선택된 상태입니다.<br>화면이 멀쩡해 보여도 이 상태를 따로 확인합니다. |
 
+
+</details>
+
+<details>
+<summary><strong>LEVEL 2 · Explorer</strong> — 구성과 연결 원리</summary>
+
 <a id="reading-level-2"></a>
 ## LEVEL 2 - Explorer · 구성과 조건의 관계
 
@@ -72,6 +81,12 @@ NIH 정제 완료는 COVID 검사까지 통과했다는 뜻이 아니므로 뒤�
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
 [2수준 프로젝트 안내](../docs/읽기안내/레벨2.md) · [직전 차수](../3차/README.md#reading-level-2) · [다음 차수](../5차/README.md#reading-level-2) · [전체 파일 비교](이전_차수_비교.md)
+
+
+</details>
+
+<details>
+<summary><strong>LEVEL 3 · Practitioner</strong> — 준비·실행·결과 확인</summary>
 
 <a id="reading-level-3"></a>
 ## LEVEL 3 - Practitioner · 실행·점검 절차
@@ -103,6 +118,12 @@ NIH 원본 112,120장 보존을 확인하고 허용 112,086장 및 환자별·�
 
 [3수준 프로젝트 안내](../docs/읽기안내/레벨3.md) · [직전 차수](../3차/README.md#reading-level-3) · [다음 차수](../5차/README.md#reading-level-3) · [전체 파일 비교](이전_차수_비교.md)
 
+
+</details>
+
+<details>
+<summary><strong>LEVEL 4 · Advanced</strong> — 구현·설계·실패 처리</summary>
+
 <a id="reading-level-4"></a>
 ## LEVEL 4 - Advanced · 설계 경계와 변경 영향
 
@@ -132,6 +153,12 @@ UI 호버 수정의 증거와 준비 실패/후속 학습 여부의 증거를 �
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
 [4수준 프로젝트 안내](../docs/읽기안내/레벨4.md) · [직전 차수](../3차/README.md#reading-level-4) · [다음 차수](../5차/README.md#reading-level-4) · [전체 파일 비교](이전_차수_비교.md)
+
+
+</details>
+
+<details>
+<summary><strong>LEVEL 5 · Expert</strong> — 근거·프로토콜·한계 검토</summary>
 
 <a id="reading-level-5"></a>
 ## LEVEL 5 - Expert · 전체 상세와 근거
@@ -233,3 +260,6 @@ NIH 원본 112,120장을 모두 디코딩한 결과 손상은 0개, 정확히 �
 최종 준비 검증과 실제 실행 기록에서 이 수량과 동일 픽셀 잔여 중복 0을 다시 확인해야 합니다.
 
 [5수준 프로젝트 안내](../docs/읽기안내/레벨5.md) · [직전 차수](../3차/README.md#reading-level-5) · [다음 차수](../5차/README.md#reading-level-5)
+
+</details>
+

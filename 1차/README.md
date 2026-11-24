@@ -8,6 +8,9 @@
 | [LEVEL 4 - Advanced](../docs/읽기안내/레벨4.md) | 구현과 실패 처리 |
 | [LEVEL 5 - Expert](../docs/읽기안내/레벨5.md) | 논문·코드·프로토콜 검토 |
 
+<details open>
+<summary><strong>LEVEL 1 · Beginner</strong> — 목적과 동작부터</summary>
+
 <a id="reading-level-1"></a>
 ## LEVEL 1 - Beginner · 배경과 용어부터 읽기
 
@@ -42,6 +45,12 @@
 | Node·Python 관리자 | Node는 화면 서버를, Python 관리자는 준비·평가 실행 순서를 담당합니다.<br>화면과 계산의 역할이 다릅니다. |
 | GPU·CSV·원값 | GPU는 계산 장치이고 CSV는 표 형태의 결과 파일입니다.<br>원값은 그 파일에 저장된 수치이며 예시 사진이나 목표 수치가 아닙니다. |
 
+
+</details>
+
+<details>
+<summary><strong>LEVEL 2 · Explorer</strong> — 구성과 연결 원리</summary>
+
 <a id="reading-level-2"></a>
 ## LEVEL 2 - Explorer · 구성과 조건의 관계
 
@@ -69,6 +78,12 @@ Python 관리자에 데이터 준비가 있어도 그 다음이 반드시 새 �
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
 [2수준 프로젝트 안내](../docs/읽기안내/레벨2.md) · 최초 차수 · 이전 비교 대상 없음 · [다음 차수](../2차/README.md#reading-level-2) · [전체 파일 비교](COMPARISON.md)
+
+
+</details>
+
+<details>
+<summary><strong>LEVEL 3 · Practitioner</strong> — 준비·실행·결과 확인</summary>
 
 <a id="reading-level-3"></a>
 ## LEVEL 3 - Practitioner · 실행·점검 절차
@@ -100,6 +115,12 @@ START_DASHBOARD.cmd 또는 Node 서버를 열고 GPU 정보·다운로드 크기
 
 [3수준 프로젝트 안내](../docs/읽기안내/레벨3.md) · 최초 차수 · 이전 비교 대상 없음 · [다음 차수](../2차/README.md#reading-level-3) · [전체 파일 비교](COMPARISON.md)
 
+
+</details>
+
+<details>
+<summary><strong>LEVEL 4 · Advanced</strong> — 구현·설계·실패 처리</summary>
+
 <a id="reading-level-4"></a>
 ## LEVEL 4 - Advanced · 설계 경계와 변경 영향
 
@@ -129,6 +150,12 @@ CSV·상태·부분 다운로드 크기는 관측 입력이며 대표 미리 보
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
 [4수준 프로젝트 안내](../docs/읽기안내/레벨4.md) · 최초 차수 · 이전 비교 대상 없음 · [다음 차수](../2차/README.md#reading-level-4) · [전체 파일 비교](COMPARISON.md)
+
+
+</details>
+
+<details>
+<summary><strong>LEVEL 5 · Expert</strong> — 근거·프로토콜·한계 검토</summary>
 
 <a id="reading-level-5"></a>
 ## LEVEL 5 - Expert · 전체 상세와 근거
@@ -161,3 +188,6 @@ CSV·상태·부분 다운로드 크기는 관측 입력이며 대표 미리 보
 [직전 비교와 전체 변경 범위](COMPARISON.md) · [차수 목차](../docs/REVISION_INDEX.md)
 
 [5수준 프로젝트 안내](../docs/읽기안내/레벨5.md) · 최초 차수 · 이전 비교 대상 없음 · [다음 차수](../2차/README.md#reading-level-5)
+
+</details>
+

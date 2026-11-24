@@ -8,6 +8,9 @@
 | [LEVEL 4 - Advanced](#reading-level-4) | [같은 수준 프로젝트](../docs/읽기안내/레벨4.md) |
 | [LEVEL 5 - Expert](#reading-level-5) | [같은 수준 프로젝트](../docs/읽기안내/레벨5.md) |
 
+<details open>
+<summary><strong>LEVEL 1 · Beginner</strong> — 목적과 동작부터</summary>
+
 <a id="reading-level-1"></a>
 ## LEVEL 1 - Beginner
 
@@ -25,6 +28,12 @@ Adam·SGD는 모델 수치를 고치는 학습 방법이고 OneCycle은 학습�
 
 [같은 수준 프로젝트](../docs/읽기안내/레벨1.md) · [직전 9차](../9차/README.md#reading-level-1) · [9차와 초기 10차 비교](이전_차수_비교.md) · [학습 안내](학습안내.md)
 
+
+</details>
+
+<details>
+<summary><strong>LEVEL 2 · Explorer</strong> — 구성과 연결 원리</summary>
+
 <a id="reading-level-2"></a>
 ## LEVEL 2 - Explorer
 
@@ -40,6 +49,12 @@ Adam·SGD는 모델 수치를 고치는 학습 방법이고 OneCycle은 학습�
 NIH의 학습·검증·시험 역할과 COVID-19의 외부 평가 역할을 구분합니다. 데이터셋과 블러·모자이크 확장은 이번 비교 범위이고, 학습 방법의 원논문 대비 차이는 따로 확인합니다. 원저자 목록을 쓰므로 기존 중복과 검증 메모리 정책의 한계가 사라졌다고 주장하지 않습니다.
 
 [같은 수준 프로젝트](../docs/읽기안내/레벨2.md) · [직전 9차](../9차/README.md#reading-level-2) · [9차와 초기 10차 비교](이전_차수_비교.md) · [학습 안내](학습안내.md)
+
+
+</details>
+
+<details>
+<summary><strong>LEVEL 3 · Practitioner</strong> — 준비·실행·결과 확인</summary>
 
 <a id="reading-level-3"></a>
 ## LEVEL 3 - Practitioner
@@ -58,6 +73,12 @@ NIH의 학습·검증·시험 역할과 COVID-19의 외부 평가 역할을 구�
 
 [같은 수준 프로젝트](../docs/읽기안내/레벨3.md) · [직전 9차](../9차/README.md#reading-level-3) · [9차와 초기 10차 비교](이전_차수_비교.md) · [학습 안내](학습안내.md)
 
+
+</details>
+
+<details>
+<summary><strong>LEVEL 4 · Advanced</strong> — 구현·설계·실패 처리</summary>
+
 <a id="reading-level-4"></a>
 ## LEVEL 4 - Advanced
 
@@ -74,6 +95,12 @@ NIH의 학습·검증·시험 역할과 COVID-19의 외부 평가 역할을 구�
 CXR 동일 프로젝트의 중복 학습·평가는 차단하고 기존 단계별 메모리 여유 기준은 유지합니다. 외부 GPU 작업 목록 자체를 일괄 종료·차단 근거로 쓰지 않습니다. 코드 검사와 실제 21개 조건의 완주는 구분합니다.
 
 [같은 수준 프로젝트](../docs/읽기안내/레벨4.md) · [직전 9차](../9차/README.md#reading-level-4) · [9차와 초기 10차 비교](이전_차수_비교.md) · [학습 안내](학습안내.md)
+
+
+</details>
+
+<details>
+<summary><strong>LEVEL 5 · Expert</strong> — 근거·프로토콜·한계 검토</summary>
 
 <a id="reading-level-5"></a>
 ## LEVEL 5 - Expert · 현재 10차 구현 안내 전체
@@ -136,3 +163,6 @@ CXR 동일 프로젝트의 중복 학습·평가는 차단하고 기존 단계�
 [초기 10차와 9차 비교 · 웹 목차](비교%20자료/웹에서%20읽기/목차.md) · [원문 보존 커밋](https://github.com/PUVKID/CXR-Privacy-Lab/tree/5397ebc6294086217c84be56aca126c13a1f4ea3)
 
 **이번 새 원본 재시작의 실제 전체 변경**은 [5397 이후 코드·문서 전체 비교](https://github.com/PUVKID/CXR-Privacy-Lab/compare/5397ebc6294086217c84be56aca126c13a1f4ea3...main)에서 확인합니다. 위 836,006 B 분할 원문은 초기 10차와 9차의 비교 이력입니다. main은 이후 바뀔 수 있으며 이번 확정 반영 커밋은 비공개 반영 기록으로 구분합니다.
+
+</details>
+

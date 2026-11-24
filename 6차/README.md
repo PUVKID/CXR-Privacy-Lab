@@ -8,6 +8,9 @@
 | [LEVEL 4 - Advanced](../docs/읽기안내/레벨4.md) | 구현과 실패 처리 |
 | [LEVEL 5 - Expert](../docs/읽기안내/레벨5.md) | 논문·코드·프로토콜 검토 |
 
+<details open>
+<summary><strong>LEVEL 1 · Beginner</strong> — 목적과 동작부터</summary>
+
 <a id="reading-level-1"></a>
 ## LEVEL 1 - Beginner · 배경과 용어부터 읽기
 
@@ -42,6 +45,12 @@
 | AUC·Rank1·원비율 | AUC는 두 환자 여부 점수의 구별 정도, Rank1은 맨 앞 후보 성공률입니다.<br>원비율은 백분율로 바꾸기 전 저장 숫자입니다. |
 | CUDA·실행 버전 | CUDA는 GPU 계산 도구입니다.<br>화면 6차와 실제 계산 5차는 버전이 다르며 계산 오류는 화면 선택 기능의 성공과 별개입니다. |
 
+
+</details>
+
+<details>
+<summary><strong>LEVEL 2 · Explorer</strong> — 구성과 연결 원리</summary>
+
 <a id="reading-level-2"></a>
 ## LEVEL 2 - Explorer · 구성과 조건의 관계
 
@@ -71,6 +80,12 @@
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
 [2수준 프로젝트 안내](../docs/읽기안내/레벨2.md) · [직전 차수](../5차/README.md#reading-level-2) · [다음 차수](../7차/README.md#reading-level-2) · [전체 파일 비교](이전_차수_비교.md)
+
+
+</details>
+
+<details>
+<summary><strong>LEVEL 3 · Practitioner</strong> — 준비·실행·결과 확인</summary>
 
 <a id="reading-level-3"></a>
 ## LEVEL 3 - Practitioner · 실행·점검 절차
@@ -102,6 +117,12 @@ CUDA 오류가 있는 과거 실행은 중단 상태로 남기고 오류 0을 �
 
 [3수준 프로젝트 안내](../docs/읽기안내/레벨3.md) · [직전 차수](../5차/README.md#reading-level-3) · [다음 차수](../7차/README.md#reading-level-3) · [전체 파일 비교](이전_차수_비교.md)
 
+
+</details>
+
+<details>
+<summary><strong>LEVEL 4 · Advanced</strong> — 구현·설계·실패 처리</summary>
+
 <a id="reading-level-4"></a>
 ## LEVEL 4 - Advanced · 설계 경계와 변경 영향
 
@@ -131,6 +152,12 @@ API executionRoot는 5차, 정적 root는 6차여서 제어·로그·결과 모�
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
 [4수준 프로젝트 안내](../docs/읽기안내/레벨4.md) · [직전 차수](../5차/README.md#reading-level-4) · [다음 차수](../7차/README.md#reading-level-4) · [전체 파일 비교](이전_차수_비교.md)
+
+
+</details>
+
+<details>
+<summary><strong>LEVEL 5 · Expert</strong> — 근거·프로토콜·한계 검토</summary>
 
 <a id="reading-level-5"></a>
 ## LEVEL 5 - Expert · 전체 상세와 근거
@@ -184,3 +211,6 @@ NIH34장·COVID4장 제외, 검증 메모리 혼입 방어와 Windows 포팅으�
 [변경 기록](변경_기록.md) · [5차와 전체 비교](이전_차수_비교.md) · [학습 조건 보존](문서/학습_조건.md) · [원 논문](https://doi.org/10.1038/s41598-022-19045-3)
 
 [5수준 프로젝트 안내](../docs/읽기안내/레벨5.md) · [직전 차수](../5차/README.md#reading-level-5) · [다음 차수](../7차/README.md#reading-level-5)
+
+</details>
+

@@ -8,6 +8,9 @@
 | [LEVEL 4 - Advanced](../docs/읽기안내/레벨4.md) | 구현과 실패 처리 |
 | [LEVEL 5 - Expert](../docs/읽기안내/레벨5.md) | 논문·코드·프로토콜 검토 |
 
+<details open>
+<summary><strong>LEVEL 1 · Beginner</strong> — 목적과 동작부터</summary>
+
 <a id="reading-level-1"></a>
 ## LEVEL 1 - Beginner · 배경과 용어부터 읽기
 
@@ -47,6 +50,12 @@
 | CBM·검증 자료 | CBM은 최근 사진 특징을 기억하는 공간입니다. 3차는 따로 보는 검증 자료가 그 학습 기억을 바꾸지 않게 막습니다. |
 | 체크포인트·UUID | 체크포인트는 모델과 학습 상태의 저장 파일이고 UUID는 서로 다른 실행을 구분하는 고유 표지입니다. |
 
+
+</details>
+
+<details>
+<summary><strong>LEVEL 2 · Explorer</strong> — 구성과 연결 원리</summary>
+
 <a id="reading-level-2"></a>
 ## LEVEL 2 - Explorer · 구성과 조건의 관계
 
@@ -76,6 +85,12 @@
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
 [2수준 프로젝트 안내](../docs/읽기안내/레벨2.md) · [직전 차수](../2차/README.md#reading-level-2) · [다음 차수](../4차/README.md#reading-level-2) · [전체 파일 비교](COMPARISON.md)
+
+
+</details>
+
+<details>
+<summary><strong>LEVEL 3 · Practitioner</strong> — 준비·실행·결과 확인</summary>
 
 <a id="reading-level-3"></a>
 ## LEVEL 3 - Practitioner · 실행·점검 절차
@@ -107,6 +122,12 @@
 
 [3수준 프로젝트 안내](../docs/읽기안내/레벨3.md) · [직전 차수](../2차/README.md#reading-level-3) · [다음 차수](../4차/README.md#reading-level-3) · [전체 파일 비교](COMPARISON.md)
 
+
+</details>
+
+<details>
+<summary><strong>LEVEL 4 · Advanced</strong> — 구현·설계·실패 처리</summary>
+
 <a id="reading-level-4"></a>
 ## LEVEL 4 - Advanced · 설계 경계와 변경 영향
 
@@ -136,6 +157,12 @@ AMP 비유한 값에서 상태를 복원하고 같은 배치를 재시도하는 
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
 [4수준 프로젝트 안내](../docs/읽기안내/레벨4.md) · [직전 차수](../2차/README.md#reading-level-4) · [다음 차수](../4차/README.md#reading-level-4) · [전체 파일 비교](COMPARISON.md)
+
+
+</details>
+
+<details>
+<summary><strong>LEVEL 5 · Expert</strong> — 근거·프로토콜·한계 검토</summary>
 
 <a id="reading-level-5"></a>
 ## LEVEL 5 - Expert · 전체 상세와 근거
@@ -197,3 +224,6 @@ AMP 비유한 값에서 상태를 복원하고 같은 배치를 재시도하는 
 측정하지 않은 성능이나 예상 완료 시각은 표시하지 않습니다.
 
 [5수준 프로젝트 안내](../docs/읽기안내/레벨5.md) · [직전 차수](../2차/README.md#reading-level-5) · [다음 차수](../4차/README.md#reading-level-5)
+
+</details>
+

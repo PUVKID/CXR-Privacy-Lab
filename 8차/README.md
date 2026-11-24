@@ -8,6 +8,9 @@
 | [LEVEL 4 - Advanced](../docs/읽기안내/레벨4.md) | 구현과 실패 처리 |
 | [LEVEL 5 - Expert](../docs/읽기안내/레벨5.md) | 논문·코드·프로토콜 검토 |
 
+<details open>
+<summary><strong>LEVEL 1 · Beginner</strong> — 목적과 동작부터</summary>
+
 <a id="reading-level-1"></a>
 ## LEVEL 1 - Beginner · 배경과 용어부터 읽기
 
@@ -47,6 +50,12 @@
 | 처리 배치·AMP | 처리 배치는 다룬 입력 묶음입니다.<br>작은 정밀도를 쓰는 AMP가 유효하지 않은 숫자를 만나면 모델 숫자 적용을 생략할 수 있습니다. |
 | 256 KiB·캐시·신선도 | KiB는 파일 크기 단위입니다.<br>캐시는 잠시 조회 결과를 재사용하는 방식, 신선도는 기록이 최근인지 보는 기준이며 그 자체로 프로세스 생존 증명은 아닙니다. |
 
+
+</details>
+
+<details>
+<summary><strong>LEVEL 2 · Explorer</strong> — 구성과 연결 원리</summary>
+
 <a id="reading-level-2"></a>
 ## LEVEL 2 - Explorer · 구성과 조건의 관계
 
@@ -74,6 +83,12 @@ Windows 가상환경의 실행 전달 프로세스와 실제 Python 자식은 �
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
 [2수준 프로젝트 안내](../docs/읽기안내/레벨2.md) · [직전 차수](../7차/README.md#reading-level-2) · [전체 파일 비교](이전_차수_비교.md)
+
+
+</details>
+
+<details>
+<summary><strong>LEVEL 3 · Practitioner</strong> — 준비·실행·결과 확인</summary>
 
 <a id="reading-level-3"></a>
 ## LEVEL 3 - Practitioner · 실행·점검 절차
@@ -105,6 +120,12 @@ NIH/COVID19와 검증/검색을 고르고 원본·블러·모자이크의 원하
 
 [3수준 프로젝트 안내](../docs/읽기안내/레벨3.md) · [직전 차수](../7차/README.md#reading-level-3) · [전체 파일 비교](이전_차수_비교.md)
 
+
+</details>
+
+<details>
+<summary><strong>LEVEL 4 · Advanced</strong> — 구현·설계·실패 처리</summary>
+
 <a id="reading-level-4"></a>
 ## LEVEL 4 - Advanced · 설계 경계와 변경 영향
 
@@ -135,6 +156,12 @@ JSON/CSV의 UTF8 엄격 해석, JSONL의 LF·256KiB 범위·불완전 꼬리 표
 
 [4수준 프로젝트 안내](../docs/읽기안내/레벨4.md) · [직전 차수](../7차/README.md#reading-level-4) · [전체 파일 비교](이전_차수_비교.md)
 
+
+</details>
+
+<details>
+<summary><strong>LEVEL 5 · Expert</strong> — 근거·프로토콜·한계 검토</summary>
+
 <a id="reading-level-5"></a>
 ## LEVEL 5 - Expert · 전체 상세와 근거
 
@@ -153,3 +180,6 @@ Node.js로 8차/server.mjs를 실행하고127.0.0.1:8787에 접속합니다. 현
 ## 공개 화면 실행 범위
 
 공개 화면은 Node.js를 준비한 뒤 `node server.mjs`로 실행합니다. 로컬 환경에 고정된 `대시보드_시작.cmd`는 공개 사본에서 제외하고 실제 로컬 원본에 보존합니다. 실험 7차와의 폴더 관계가 필요하며, 이 화면이 학습을 생성하거나 중단하지 않습니다.
+
+</details>
+
