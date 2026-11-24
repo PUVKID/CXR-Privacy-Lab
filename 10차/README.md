@@ -2,11 +2,11 @@
 
 | 읽기 수준 | 자료 |
 | --- | --- |
-| [LEVEL 1 - Beginner](#reading-level-1) | [같은 수준 프로젝트](../docs/읽기안내/레벨1.md) |
-| [LEVEL 2 - Explorer](#reading-level-2) | [같은 수준 프로젝트](../docs/읽기안내/레벨2.md) |
-| [LEVEL 3 - Practitioner](#reading-level-3) | [같은 수준 프로젝트](../docs/읽기안내/레벨3.md) |
-| [LEVEL 4 - Advanced](#reading-level-4) | [같은 수준 프로젝트](../docs/읽기안내/레벨4.md) |
-| [LEVEL 5 - Expert](#reading-level-5) | [같은 수준 프로젝트](../docs/읽기안내/레벨5.md) |
+| [LEVEL 1 - Beginner](#user-content-reading-level-1) | [같은 수준 프로젝트](../docs/읽기안내/레벨1.md) |
+| [LEVEL 2 - Explorer](#user-content-reading-level-2) | [같은 수준 프로젝트](../docs/읽기안내/레벨2.md) |
+| [LEVEL 3 - Practitioner](#user-content-reading-level-3) | [같은 수준 프로젝트](../docs/읽기안내/레벨3.md) |
+| [LEVEL 4 - Advanced](#user-content-reading-level-4) | [같은 수준 프로젝트](../docs/읽기안내/레벨4.md) |
+| [LEVEL 5 - Expert](#user-content-reading-level-5) | [같은 수준 프로젝트](../docs/읽기안내/레벨5.md) |
 
 <details open>
 <summary>LEVEL 1 · Beginner — 목적과 동작부터</summary>
@@ -26,7 +26,7 @@
 
 Adam·SGD는 모델 수치를 고치는 학습 방법이고 OneCycle은 학습률을 바꾸는 계획입니다. CBM은 최근 특징을 기억하는 검색 학습 메모리입니다. 검증 모델은 최대 100에폭·개선 없음 5회 조기 종료, 검색 출력부는 30에폭·전체는 50에폭입니다. 이 설정과 배치 32를 유지하며 단계별 시간을 같다고 계산하지 않습니다.
 
-[같은 수준 프로젝트](../docs/읽기안내/레벨1.md) · [직전 9차](../9차/README.md#reading-level-1) · [9차와 초기 10차 비교](이전_차수_비교.md) · [학습 안내](학습안내.md)
+[같은 수준 프로젝트](../docs/읽기안내/레벨1.md) · [직전 9차](../9차/README.md#user-content-reading-level-1) · [9차와 초기 10차 비교](이전_차수_비교.md) · [학습 안내](학습안내.md)
 
 
 </details>
@@ -48,7 +48,7 @@ Adam·SGD는 모델 수치를 고치는 학습 방법이고 OneCycle은 학습�
 
 NIH의 학습·검증·시험 역할과 COVID-19의 외부 평가 역할을 구분합니다. 데이터셋과 블러·모자이크 확장은 이번 비교 범위이고, 학습 방법의 원논문 대비 차이는 따로 확인합니다. 원저자 목록을 쓰므로 기존 중복과 검증 메모리 정책의 한계가 사라졌다고 주장하지 않습니다.
 
-[같은 수준 프로젝트](../docs/읽기안내/레벨2.md) · [직전 9차](../9차/README.md#reading-level-2) · [9차와 초기 10차 비교](이전_차수_비교.md) · [학습 안내](학습안내.md)
+[같은 수준 프로젝트](../docs/읽기안내/레벨2.md) · [직전 9차](../9차/README.md#user-content-reading-level-2) · [9차와 초기 10차 비교](이전_차수_비교.md) · [학습 안내](학습안내.md)
 
 
 </details>
@@ -71,7 +71,7 @@ NIH의 학습·검증·시험 역할과 COVID-19의 외부 평가 역할을 구�
 
 기존 통과 검사는 재사용했고 이번에는 새 연결과 경계에 필요한 최소 검사만 수행했습니다. CPU 실변환 검사는 import 시간 상한으로 미완료입니다. 실행 자식이 시작됐다는 관측을 전체 학습·평가 완료나 성능으로 쓰지 않습니다.
 
-[같은 수준 프로젝트](../docs/읽기안내/레벨3.md) · [직전 9차](../9차/README.md#reading-level-3) · [9차와 초기 10차 비교](이전_차수_비교.md) · [학습 안내](학습안내.md)
+[같은 수준 프로젝트](../docs/읽기안내/레벨3.md) · [직전 9차](../9차/README.md#user-content-reading-level-3) · [9차와 초기 10차 비교](이전_차수_비교.md) · [학습 안내](학습안내.md)
 
 
 </details>
@@ -94,7 +94,7 @@ NIH의 학습·검증·시험 역할과 COVID-19의 외부 평가 역할을 구�
 
 CXR 동일 프로젝트의 중복 학습·평가는 차단하고 기존 단계별 메모리 여유 기준은 유지합니다. 외부 GPU 작업 목록 자체를 일괄 종료·차단 근거로 쓰지 않습니다. 코드 검사와 실제 21개 조건의 완주는 구분합니다.
 
-[같은 수준 프로젝트](../docs/읽기안내/레벨4.md) · [직전 9차](../9차/README.md#reading-level-4) · [9차와 초기 10차 비교](이전_차수_비교.md) · [학습 안내](학습안내.md)
+[같은 수준 프로젝트](../docs/읽기안내/레벨4.md) · [직전 9차](../9차/README.md#user-content-reading-level-4) · [9차와 초기 10차 비교](이전_차수_비교.md) · [학습 안내](학습안내.md)
 
 
 </details>
@@ -105,7 +105,7 @@ CXR 동일 프로젝트의 중복 학습·평가는 차단하고 기존 단계�
 <a id="reading-level-5"></a>
 ## LEVEL 5 - Expert · 현재 10차 구현 안내 전체
 
-[같은 수준 프로젝트](../docs/읽기안내/레벨5.md) · [직전 9차](../9차/README.md#reading-level-5) · [9차와 초기 10차 비교](이전_차수_비교.md)
+[같은 수준 프로젝트](../docs/읽기안내/레벨5.md) · [직전 9차](../9차/README.md#user-content-reading-level-5) · [9차와 초기 10차 비교](이전_차수_비교.md)
 
 # 새 원본부터 시작하는 강도별 독립 학습 · 10차
 

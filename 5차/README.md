@@ -35,7 +35,7 @@
 
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
-[1수준 프로젝트 안내](../docs/읽기안내/레벨1.md) · [직전 차수](../4차/README.md#reading-level-1) · [다음 차수](../6차/README.md#reading-level-1) · [전체 파일 비교](이전_차수_비교.md)
+[1수준 프로젝트 안내](../docs/읽기안내/레벨1.md) · [직전 차수](../4차/README.md#user-content-reading-level-1) · [다음 차수](../6차/README.md#user-content-reading-level-1) · [전체 파일 비교](이전_차수_비교.md)
 
 ### LEVEL 1 · 이 차수의 용어 풀이
 
@@ -80,7 +80,7 @@ COVID는 777 영상·1,534 검증 쌍·508 유효 질의처럼 과제마다 분�
 
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
-[2수준 프로젝트 안내](../docs/읽기안내/레벨2.md) · [직전 차수](../4차/README.md#reading-level-2) · [다음 차수](../6차/README.md#reading-level-2) · [전체 파일 비교](이전_차수_비교.md)
+[2수준 프로젝트 안내](../docs/읽기안내/레벨2.md) · [직전 차수](../4차/README.md#user-content-reading-level-2) · [다음 차수](../6차/README.md#user-content-reading-level-2) · [전체 파일 비교](이전_차수_비교.md)
 
 
 </details>
@@ -114,7 +114,7 @@ NIH34장과 COVID4장 제외 가 명세에 일치하는지, 검증 쌍과 검색
 
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
-[3수준 프로젝트 안내](../docs/읽기안내/레벨3.md) · [직전 차수](../4차/README.md#reading-level-3) · [다음 차수](../6차/README.md#reading-level-3) · [전체 파일 비교](이전_차수_비교.md)
+[3수준 프로젝트 안내](../docs/읽기안내/레벨3.md) · [직전 차수](../4차/README.md#user-content-reading-level-3) · [다음 차수](../6차/README.md#user-content-reading-level-3) · [전체 파일 비교](이전_차수_비교.md)
 
 
 </details>
@@ -150,7 +150,7 @@ NIH34장과 COVID4장 제외 가 명세에 일치하는지, 검증 쌍과 검색
 
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
-[4수준 프로젝트 안내](../docs/읽기안내/레벨4.md) · [직전 차수](../4차/README.md#reading-level-4) · [다음 차수](../6차/README.md#reading-level-4) · [전체 파일 비교](이전_차수_비교.md)
+[4수준 프로젝트 안내](../docs/읽기안내/레벨4.md) · [직전 차수](../4차/README.md#user-content-reading-level-4) · [다음 차수](../6차/README.md#user-content-reading-level-4) · [전체 파일 비교](이전_차수_비교.md)
 
 
 </details>
@@ -287,7 +287,7 @@ AUC·손실·학습률의 표시 자릿수와 원값도 구분합니다.
 
 표시 과정에서 CSV·JSON 결과 원본을 바꾸거나 미측정 값을 0으로 대체하지 않습니다.
 
-[5수준 프로젝트 안내](../docs/읽기안내/레벨5.md) · [직전 차수](../4차/README.md#reading-level-5) · [다음 차수](../6차/README.md#reading-level-5)
+[5수준 프로젝트 안내](../docs/읽기안내/레벨5.md) · [직전 차수](../4차/README.md#user-content-reading-level-5) · [다음 차수](../6차/README.md#user-content-reading-level-5)
 
 </details>
 

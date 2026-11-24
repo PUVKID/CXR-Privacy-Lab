@@ -39,7 +39,7 @@
 
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
-[1수준 프로젝트 안내](../docs/읽기안내/레벨1.md) · [직전 차수](../2차/README.md#reading-level-1) · [다음 차수](../4차/README.md#reading-level-1) · [전체 파일 비교](COMPARISON.md)
+[1수준 프로젝트 안내](../docs/읽기안내/레벨1.md) · [직전 차수](../2차/README.md#user-content-reading-level-1) · [다음 차수](../4차/README.md#user-content-reading-level-1) · [전체 파일 비교](COMPARISON.md)
 
 ### LEVEL 1 · 이 차수의 용어 풀이
 
@@ -84,7 +84,7 @@
 
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
-[2수준 프로젝트 안내](../docs/읽기안내/레벨2.md) · [직전 차수](../2차/README.md#reading-level-2) · [다음 차수](../4차/README.md#reading-level-2) · [전체 파일 비교](COMPARISON.md)
+[2수준 프로젝트 안내](../docs/읽기안내/레벨2.md) · [직전 차수](../2차/README.md#user-content-reading-level-2) · [다음 차수](../4차/README.md#user-content-reading-level-2) · [전체 파일 비교](COMPARISON.md)
 
 
 </details>
@@ -120,7 +120,7 @@
 
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
-[3수준 프로젝트 안내](../docs/읽기안내/레벨3.md) · [직전 차수](../2차/README.md#reading-level-3) · [다음 차수](../4차/README.md#reading-level-3) · [전체 파일 비교](COMPARISON.md)
+[3수준 프로젝트 안내](../docs/읽기안내/레벨3.md) · [직전 차수](../2차/README.md#user-content-reading-level-3) · [다음 차수](../4차/README.md#user-content-reading-level-3) · [전체 파일 비교](COMPARISON.md)
 
 
 </details>
@@ -156,7 +156,7 @@ AMP 비유한 값에서 상태를 복원하고 같은 배치를 재시도하는 
 
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
-[4수준 프로젝트 안내](../docs/읽기안내/레벨4.md) · [직전 차수](../2차/README.md#reading-level-4) · [다음 차수](../4차/README.md#reading-level-4) · [전체 파일 비교](COMPARISON.md)
+[4수준 프로젝트 안내](../docs/읽기안내/레벨4.md) · [직전 차수](../2차/README.md#user-content-reading-level-4) · [다음 차수](../4차/README.md#user-content-reading-level-4) · [전체 파일 비교](COMPARISON.md)
 
 
 </details>
@@ -228,7 +228,7 @@ AMP 비유한 값에서 상태를 복원하고 같은 배치를 재시도하는 
 
 측정하지 않은 성능이나 예상 완료 시각은 표시하지 않습니다.
 
-[5수준 프로젝트 안내](../docs/읽기안내/레벨5.md) · [직전 차수](../2차/README.md#reading-level-5) · [다음 차수](../4차/README.md#reading-level-5)
+[5수준 프로젝트 안내](../docs/읽기안내/레벨5.md) · [직전 차수](../2차/README.md#user-content-reading-level-5) · [다음 차수](../4차/README.md#user-content-reading-level-5)
 
 </details>
 

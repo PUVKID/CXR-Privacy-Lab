@@ -35,7 +35,7 @@
 
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
-[1수준 프로젝트 안내](../docs/읽기안내/레벨1.md) · [직전 차수](../3차/README.md#reading-level-1) · [다음 차수](../5차/README.md#reading-level-1) · [전체 파일 비교](이전_차수_비교.md)
+[1수준 프로젝트 안내](../docs/읽기안내/레벨1.md) · [직전 차수](../3차/README.md#user-content-reading-level-1) · [다음 차수](../5차/README.md#user-content-reading-level-1) · [전체 파일 비교](이전_차수_비교.md)
 
 ### LEVEL 1 · 이 차수의 용어 풀이
 
@@ -80,7 +80,7 @@ NIH 정제 완료는 COVID 검사까지 통과했다는 뜻이 아니므로 뒤�
 
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
-[2수준 프로젝트 안내](../docs/읽기안내/레벨2.md) · [직전 차수](../3차/README.md#reading-level-2) · [다음 차수](../5차/README.md#reading-level-2) · [전체 파일 비교](이전_차수_비교.md)
+[2수준 프로젝트 안내](../docs/읽기안내/레벨2.md) · [직전 차수](../3차/README.md#user-content-reading-level-2) · [다음 차수](../5차/README.md#user-content-reading-level-2) · [전체 파일 비교](이전_차수_비교.md)
 
 
 </details>
@@ -116,7 +116,7 @@ NIH 원본 112,120장 보존을 확인하고 허용 112,086장 및 환자별·�
 
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
-[3수준 프로젝트 안내](../docs/읽기안내/레벨3.md) · [직전 차수](../3차/README.md#reading-level-3) · [다음 차수](../5차/README.md#reading-level-3) · [전체 파일 비교](이전_차수_비교.md)
+[3수준 프로젝트 안내](../docs/읽기안내/레벨3.md) · [직전 차수](../3차/README.md#user-content-reading-level-3) · [다음 차수](../5차/README.md#user-content-reading-level-3) · [전체 파일 비교](이전_차수_비교.md)
 
 
 </details>
@@ -152,7 +152,7 @@ UI 호버 수정의 증거와 준비 실패/후속 학습 여부의 증거를 �
 
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
-[4수준 프로젝트 안내](../docs/읽기안내/레벨4.md) · [직전 차수](../3차/README.md#reading-level-4) · [다음 차수](../5차/README.md#reading-level-4) · [전체 파일 비교](이전_차수_비교.md)
+[4수준 프로젝트 안내](../docs/읽기안내/레벨4.md) · [직전 차수](../3차/README.md#user-content-reading-level-4) · [다음 차수](../5차/README.md#user-content-reading-level-4) · [전체 파일 비교](이전_차수_비교.md)
 
 
 </details>
@@ -266,7 +266,7 @@ NIH 원본 112,120장을 모두 디코딩한 결과 손상은 0개, 정확히 �
 
 최종 준비 검증과 실제 실행 기록에서 이 수량과 동일 픽셀 잔여 중복 0을 다시 확인해야 합니다.
 
-[5수준 프로젝트 안내](../docs/읽기안내/레벨5.md) · [직전 차수](../3차/README.md#reading-level-5) · [다음 차수](../5차/README.md#reading-level-5)
+[5수준 프로젝트 안내](../docs/읽기안내/레벨5.md) · [직전 차수](../3차/README.md#user-content-reading-level-5) · [다음 차수](../5차/README.md#user-content-reading-level-5)
 
 </details>
 

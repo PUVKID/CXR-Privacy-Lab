@@ -66,7 +66,7 @@ NIH로 학습·내부 시험을 하고 COVID는 외부 시험으로 남깁니다
 
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
-[1수준 프로젝트 안내](../docs/읽기안내/레벨1.md) · [직전 차수](../6차/README.md#reading-level-1) · [다음 차수](../8차/README.md#reading-level-1) · [전체 파일 비교](이전_차수_비교.md)
+[1수준 프로젝트 안내](../docs/읽기안내/레벨1.md) · [직전 차수](../6차/README.md#user-content-reading-level-1) · [다음 차수](../8차/README.md#user-content-reading-level-1) · [전체 파일 비교](이전_차수_비교.md)
 
 
 </details>
@@ -104,7 +104,7 @@ NIH로 학습·내부 시험을 하고 COVID는 외부 시험으로 남깁니다
 
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
-[2수준 프로젝트 안내](../docs/읽기안내/레벨2.md) · [직전 차수](../6차/README.md#reading-level-2) · [다음 차수](../8차/README.md#reading-level-2) · [전체 파일 비교](이전_차수_비교.md)
+[2수준 프로젝트 안내](../docs/읽기안내/레벨2.md) · [직전 차수](../6차/README.md#user-content-reading-level-2) · [다음 차수](../8차/README.md#user-content-reading-level-2) · [전체 파일 비교](이전_차수_비교.md)
 
 
 </details>
@@ -142,7 +142,7 @@ NIH로 학습·내부 시험을 하고 COVID는 외부 시험으로 남깁니다
 
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
-[3수준 프로젝트 안내](../docs/읽기안내/레벨3.md) · [직전 차수](../6차/README.md#reading-level-3) · [다음 차수](../8차/README.md#reading-level-3) · [전체 파일 비교](이전_차수_비교.md)
+[3수준 프로젝트 안내](../docs/읽기안내/레벨3.md) · [직전 차수](../6차/README.md#user-content-reading-level-3) · [다음 차수](../8차/README.md#user-content-reading-level-3) · [전체 파일 비교](이전_차수_비교.md)
 
 
 </details>
@@ -176,7 +176,7 @@ AMP overflow에서는 native scaler가 optimizer 적용을 생략하며 global_s
 
 **결과 보고:** 저장된 측정값과 논문 기준을 구분합니다. 손실은 시험 정확도가 아니며 PrivacyScore @1은 고정 공격의 1 순위 실패율입니다. 이 값만으로 익명성·임상 효용을 보장하지 않습니다. 의료 영상·개인별 목록·모델 가중치·운영 원문은 공개하지 않습니다.
 
-[4수준 프로젝트 안내](../docs/읽기안내/레벨4.md) · [직전 차수](../6차/README.md#reading-level-4) · [다음 차수](../8차/README.md#reading-level-4) · [전체 파일 비교](이전_차수_비교.md)
+[4수준 프로젝트 안내](../docs/읽기안내/레벨4.md) · [직전 차수](../6차/README.md#user-content-reading-level-4) · [다음 차수](../8차/README.md#user-content-reading-level-4) · [전체 파일 비교](이전_차수_비교.md)
 
 
 </details>
@@ -211,7 +211,7 @@ AMP overflow에서는 native scaler가 optimizer 적용을 생략하며 global_s
 
 [6차와 비교](이전_차수_비교.md) · [7차 원본 설계 비교](원본_설계_비교.md) · [8차 재검증](../8차/논문과_실행_재검증.md)
 
-[5수준 프로젝트 안내](../docs/읽기안내/레벨5.md) · [직전 차수](../6차/README.md#reading-level-5) · [다음 차수](../8차/README.md#reading-level-5)
+[5수준 프로젝트 안내](../docs/읽기안내/레벨5.md) · [직전 차수](../6차/README.md#user-content-reading-level-5) · [다음 차수](../8차/README.md#user-content-reading-level-5)
 
 [제공 실행 안내 공개본](실행_안내_공개본.md) · [제공 당시 검증 범위](검증_범위_원본.md)
 
