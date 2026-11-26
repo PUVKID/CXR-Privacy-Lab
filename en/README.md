@@ -21,7 +21,7 @@
   <source media="(max-width: 600px)" srcset="../assets/readme/flow-en-light-mobile.svg" />
   <source media="(prefers-color-scheme: dark)" srcset="../assets/readme/flow-en-dark.svg" />
   <source media="(prefers-color-scheme: light)" srcset="../assets/readme/flow-en-light.svg" />
-  <img src="../assets/readme/flow-en-light.svg" alt="Chest X-ray Patient Re-identification Experiment: Chest X-rays → Independent training → Re-identification comparison" width="100%" />
+  <img src="../assets/readme/flow-en-light.svg" alt="Chest X-rays: Original and transformed chest X-rays → Independent training: Reset model and training state per case → Condition status · comparisons: Per-condition status and comparisons" width="100%" />
 </picture>
 <!-- readme-header32:end -->
 

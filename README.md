@@ -19,7 +19,7 @@
   <source media="(max-width: 600px)" srcset="assets/readme/flow-ko-light-mobile.svg" />
   <source media="(prefers-color-scheme: dark)" srcset="assets/readme/flow-ko-dark.svg" />
   <source media="(prefers-color-scheme: light)" srcset="assets/readme/flow-ko-light.svg" />
-  <img src="assets/readme/flow-ko-light.svg" alt="흉부 엑스레이 환자 재식별 실험: 흉부 X선 → 조건별 독립 학습 → 재식별 비교" width="100%" />
+  <img src="assets/readme/flow-ko-light.svg" alt="흉부 X선: 흉부 X선의 원본·변환 조건 → 조건별 독립 학습: 조건마다 모델·학습 상태 새 초기화 → 조건별 상태 · 비교: 조건별 상태와 재식별 결과 비교" width="100%" />
 </picture>
 <!-- readme-header32:end -->
 
