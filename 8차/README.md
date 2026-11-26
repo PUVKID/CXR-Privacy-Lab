@@ -1,3 +1,7 @@
+<!-- language-choice:start -->
+🔵 **한국어** · [English overview](../en/README.md)
+<!-- language-choice:end -->
+
 # 8차 — 7차 실시간 연결과 실행 분리
 
 | 읽기 수준 | 설명의 출발점 |

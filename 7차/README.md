@@ -1,3 +1,7 @@
+<!-- language-choice:start -->
+🔵 **한국어** · [English overview](../en/README.md)
+<!-- language-choice:end -->
+
 # 7차 — 저자 원본 목록 기반 새 학습
 
 | 읽기 수준 | 설명의 출발점 |

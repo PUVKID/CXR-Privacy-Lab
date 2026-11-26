@@ -1,3 +1,7 @@
+<!-- language-choice:start -->
+🔵 **한국어** · [English overview](../en/README.md)
+<!-- language-choice:end -->
+
 # 6차 — 평가 단계·강도 탐색
 
 | 읽기 수준 | 설명의 출발점 |

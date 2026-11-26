@@ -1,3 +1,7 @@
+<!-- language-choice:start -->
+🔵 **한국어** · [English overview](../en/README.md)
+<!-- language-choice:end -->
+
 # 5차 — COVID 외부 검증 정제
 
 | 읽기 수준 | 설명의 출발점 |

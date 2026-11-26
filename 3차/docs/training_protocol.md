@@ -1,3 +1,7 @@
+<!-- language-choice:start -->
+🔵 **한국어** · [English overview](../../en/README.md)
+<!-- language-choice:end -->
+
 # 새 CXR 모델 학습과 평가 조건
 
 <!-- reading-levels17:start -->

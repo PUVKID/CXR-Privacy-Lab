@@ -1,3 +1,7 @@
+<!-- language-choice:start -->
+🔵 **한국어** · [English overview](../en/README.md)
+<!-- language-choice:end -->
+
 # 2차 — 평가 재현 정밀 감사
 
 | 읽기 수준 | 설명의 출발점 |

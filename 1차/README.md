@@ -1,3 +1,7 @@
+<!-- language-choice:start -->
+🔵 **한국어** · [English overview](../en/README.md)
+<!-- language-choice:end -->
+
 # 1차 — 로컬 실험 제어와 화면
 
 | 읽기 수준 | 설명의 출발점 |

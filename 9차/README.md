@@ -1,3 +1,7 @@
+<!-- language-choice:start -->
+🔵 **한국어** · [English overview](../en/README.md)
+<!-- language-choice:end -->
+
 # 흉부 엑스레이 학습 진행 화면·9차
 
 | 읽기 수준 | 설명의 출발점 |

@@ -1,3 +1,7 @@
+<!-- language-choice:start -->
+🔵 **한국어** · [English overview](../en/README.md)
+<!-- language-choice:end -->
+
 # 10차 새 원본·강도별 독립 학습 안내
 
 | 읽기 수준 | 자료 |
